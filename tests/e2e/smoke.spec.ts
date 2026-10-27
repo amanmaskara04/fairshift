@@ -59,7 +59,7 @@ test("demo admin sees live KPIs", async ({ page }) => {
   await demoLogin(page, /Priya/);
   await expect(page).toHaveURL(/\/a$/);
   await expect(page.getByText("BuildRight Constructions")).toBeVisible();
-  await expect(page.getByText("Open hazards")).toBeVisible();
+  await expect(page.getByText("Open hazards", { exact: true })).toBeVisible();
   await expectNoA11yViolations(page);
 });
 
