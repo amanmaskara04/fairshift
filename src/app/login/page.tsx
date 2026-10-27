@@ -5,6 +5,7 @@ import { demoLogin } from "@/server/actions/auth";
 import { getSession, HOME_FOR_ROLE } from "@/server/dal";
 import { isDemoMode } from "@/server/config";
 import { BrandMark } from "@/components/brand-mark";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { LoginForms } from "./login-forms";
 
 const DEMO_BUTTONS = [
@@ -36,13 +37,13 @@ export default async function LoginPage() {
                   <li key={persona}>
                     <form action={demoLogin}>
                       <input type="hidden" name="persona" value={persona} />
-                      <button type="submit" className="print-card group flex min-h-16 w-full items-center gap-3 rounded-worker px-4 py-3 text-left font-bold">
+                      <SubmitButton unstyled className="print-card group flex min-h-16 w-full items-center gap-3 rounded-worker px-4 py-3 text-left font-bold">
                         <span className="flex size-10 shrink-0 items-center justify-center rounded-admin bg-accent text-accent-foreground">
                           <Icon aria-hidden="true" className="size-6" />
                         </span>
                         <span className="flex-1">{t(key)}</span>
                         <ArrowRight aria-hidden="true" className="size-5 transition-transform group-hover:translate-x-1" />
-                      </button>
+                      </SubmitButton>
                     </form>
                   </li>
                 ))}

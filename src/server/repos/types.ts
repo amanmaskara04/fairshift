@@ -123,6 +123,8 @@ export interface AdminRepo {
 export interface ShiftRepo {
   getAll(): Promise<Shift[]>;
   getByWorker(workerId: string): Promise<Shift[]>;
+  /** One query for many workers (avoids N+1 round trips on dashboards). */
+  getByWorkers(workerIds: string[]): Promise<Shift[]>;
   getByWorkerInRange(workerId: string, from: Date, to: Date): Promise<Shift[]>;
   getBySite(siteId: string): Promise<Shift[]>;
   create(shift: Shift): Promise<void>;

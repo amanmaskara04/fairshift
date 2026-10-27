@@ -6,7 +6,7 @@ import { updateHazardStatusAction } from "@/server/actions/admin";
 import { nextStatuses } from "@/core/hazard-rules";
 import type { HazardSeverity, HazardStatus } from "@/core/types";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card } from "@/components/ui/card";
 import { HazardIcon } from "@/components/hazard-icon";
 import { HazardStatusBadge } from "@/components/hazard-status";
@@ -86,16 +86,15 @@ export default async function HazardsPage() {
                       <form action={updateHazardStatusAction} className="flex flex-wrap gap-2">
                         <input type="hidden" name="hazardId" value={h.id} />
                         {nextStatuses(h.status).map((next) => (
-                          <Button
+                          <SubmitButton
                             key={next}
-                            type="submit"
                             name="status"
                             value={next}
                             size="sm"
                             variant={next === "dismissed" ? "ghost" : next === "fixed" ? "primary" : "secondary"}
                           >
                             {t(ACTION_KEY[next])}
-                          </Button>
+                          </SubmitButton>
                         ))}
                       </form>
                     </Card>

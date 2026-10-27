@@ -4,7 +4,7 @@ import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { logout } from "@/server/actions/auth";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Sidebar } from "@/components/admin/sidebar";
 import { BrandMark } from "@/components/brand-mark";
@@ -30,10 +30,10 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
         <div className="flex items-center gap-1">
           <LanguageSwitch />
           <form action={logout}>
-            <Button type="submit" variant="ghost" size="sm">
+            <SubmitButton variant="ghost" size="sm">
               <LogOut aria-hidden="true" className="size-4" />
               {tc("logout")}
-            </Button>
+            </SubmitButton>
           </form>
         </div>
       </header>

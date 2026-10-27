@@ -63,6 +63,10 @@ class MemoryShiftRepo implements ShiftRepo {
   async getByWorker(workerId: string) {
     return getStore().shifts.filter((s) => s.workerId === workerId);
   }
+  async getByWorkers(workerIds: string[]) {
+    const ids = new Set(workerIds);
+    return getStore().shifts.filter((s) => ids.has(s.workerId));
+  }
   async getByWorkerInRange(workerId: string, from: Date, to: Date) {
     return getStore().shifts.filter(
       (s) => s.workerId === workerId && s.inAt >= from && s.inAt <= to

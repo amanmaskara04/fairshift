@@ -24,7 +24,7 @@ type WithId<T> = T & { _id: string };
 const globalMongo = globalThis as typeof globalThis & { __fairshiftMongo?: Promise<Db> };
 
 async function connect(): Promise<Db> {
-  const client = new MongoClient(process.env.MONGODB_URI!, { maxPoolSize: 5, serverSelectionTimeoutMS: 8000 });
+  const client = new MongoClient(process.env.MONGODB_URI!, { maxPoolSize: 10, serverSelectionTimeoutMS: 8000 });
   await client.connect();
   const db = client.db(process.env.MONGODB_DB ?? "fairshift");
   await ensureSeeded(db);
@@ -120,6 +120,7 @@ export function createMongoRepos(): Repos {
     shifts: {
       getAll: () => find<Shift>("shifts"),
       getByWorker: (workerId) => find<Shift>("shifts", { workerId }),
+      getByWorkers: (workerIds) => find<Shift>("shifts", { workerId: { $in: workerIds } }),
       getByWorkerInRange: (workerId, from, to) => find<Shift>("shifts", { workerId, inAt: { $gte: from, $lte: to } }),
       getBySite: (siteId) => find<Shift>("shifts", { siteId }),
       create: (shift) => insert("shifts", shift),

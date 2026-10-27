@@ -17,8 +17,10 @@ export interface PayrollRow {
 export async function buildPayroll(repos: Repos, orgId: string, month: string): Promise<PayrollRow[]> {
   const workers = await repos.workers.getByOrg(orgId);
   const rows: PayrollRow[] = [];
-  for (const worker of workers) {
-    const view = await buildPayslip(repos, worker.id, month);
+  // Payslips are independent, so build them concurrently instead of one round trip after another.
+  const views = await Promise.all(workers.map((worker) => buildPayslip(repos, worker.id, month)));
+  for (const [i, worker] of workers.entries()) {
+    const view = views[i];
     if (!view) continue;
     const { payslip } = view;
     rows.push({

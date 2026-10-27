@@ -5,6 +5,9 @@ const PORT = 3100;
 export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
+  // One local server serves every browser; too many parallel workers just time each other out.
+  workers: process.env.CI ? 2 : 4,
+  expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: {

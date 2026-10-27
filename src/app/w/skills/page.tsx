@@ -7,7 +7,7 @@ import { getRepos } from "@/server/repos";
 import { passportToken } from "@/server/passport";
 import { logout } from "@/server/actions/auth";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { Card } from "@/components/ui/card";
 import { SpeakButton } from "@/components/speak-button";
 import { PageHeader } from "@/components/page-header";
@@ -70,10 +70,10 @@ export default async function SkillsPage() {
       </Card>
 
       <form action={logout}>
-        <Button type="submit" variant="outline" size="lg" className="w-full">
+        <SubmitButton variant="outline" size="lg" className="w-full">
           <LogOut aria-hidden="true" className="size-5" />
           {tc("logout")}
-        </Button>
+        </SubmitButton>
       </form>
     </div>
   );
