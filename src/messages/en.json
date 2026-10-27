@@ -171,7 +171,9 @@
       "notUnderstood": "Sorry, we did not catch that. Please tap an icon.",
       "photo": "Photo could not be added.",
       "pickCategory": "Please tap the icon that matches the danger.",
-      "general": "Could not send. Please try again."
+      "general": "Could not send. Please try again.",
+      "noSpeech": "We didn't hear anything. Tap the mic and speak, or tap an icon.",
+      "pickForHeard": "We heard you. Now tap the picture that matches the danger."
     }
   },
   "feedback": {

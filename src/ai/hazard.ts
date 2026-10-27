@@ -4,7 +4,6 @@ import { getAiClient, MODELS, type AiClient } from "./client";
 import { hazardJsonSchema, HazardExtraction } from "./schemas";
 import { hazardSystemPrompt, untrusted } from "./prompts";
 import { classifyByKeywords } from "./fallback";
-import { HAZARD_FIXTURES } from "./fixtures/hazard";
 import { logAiCall } from "./log";
 
 export interface HazardInput {
@@ -13,11 +12,11 @@ export interface HazardInput {
   text?: string;
   sector: Sector;
   categories: readonly string[];
-  /** Demo mode without a key: use recorded fixtures for audio */
-  demo?: boolean;
+  /** The worker's app language, used as a hint (speech may still mix in English) */
+  locale?: string;
 }
 
-export type HazardSource = "gemini" | "gemini-fallback" | "keywords" | "fixture";
+export type HazardSource = "gemini" | "gemini-fallback" | "keywords";
 
 export interface HazardOutput extends HazardExtraction {
   source: HazardSource;
@@ -25,8 +24,10 @@ export interface HazardOutput extends HazardExtraction {
 
 /**
  * Turn a spoken or typed report into a structured hazard suggestion.
- * Chain: fast model → fallback model → keyword classifier (text) → fixture (demo without key) → null.
- * null means "not understood": the UI falls back to the icon grid.
+ * Chain: fast model → fallback model → keyword classifier (text) → null.
+ * null means "not understood": the UI falls back to the icon grid. Nothing is ever invented:
+ * without Gemini, audio cannot be transcribed on the server, so the phone's own speech recognition
+ * sends text instead.
  * The result is only a suggestion: the worker confirms it, and core/hazard-rules decides severity.
  */
 export async function extractHazard(input: HazardInput, client: AiClient | null = getAiClient()): Promise<HazardOutput | null> {
@@ -42,7 +43,7 @@ export async function extractHazard(input: HazardInput, client: AiClient | null 
       try {
         const raw = await client.generateText({
           model,
-          system: hazardSystemPrompt(input.sector, allowed),
+          system: hazardSystemPrompt(input.sector, allowed, input.locale),
           parts,
           jsonSchema: hazardJsonSchema,
         });
@@ -68,7 +69,5 @@ export async function extractHazard(input: HazardInput, client: AiClient | null 
       source: "keywords",
     };
   }
-  // Never invent what a real worker said: fixtures only stand in when demoing without a key.
-  if (!client && input.demo) return { ...HAZARD_FIXTURES[input.sector], source: "fixture" };
   return null;
 }

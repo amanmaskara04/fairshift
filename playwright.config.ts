@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: "tests/e2e",
   fullyParallel: true,
   // One local server serves every browser; too many parallel workers just time each other out.
-  workers: process.env.CI ? 2 : 4,
+  workers: process.env.CI ? 2 : 3,
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? "github" : "list",

@@ -1,10 +1,11 @@
 "use client";
 
 import { useRef, useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { Camera, Check, Lock, Mic, Pencil, Square } from "lucide-react";
 import { submitHazardAction } from "@/server/actions/hazards";
 import { compressImage } from "@/lib/image";
+import { createRecognizer, transcriptFrom, type Recognizer } from "@/lib/speech-recognition";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,14 +28,63 @@ const SEVERITY_TONE = { low: "neutral", medium: "warning", high: "danger", criti
 
 export function HazardReporter({ categories }: { categories: string[] }) {
   const t = useTranslations("report");
+  const locale = useLocale();
   const [phase, setPhase] = useState<"pick" | "recording" | "analyzing" | "confirm">("pick");
   const [suggestion, setSuggestion] = useState<Suggestion | null>(null);
+  const [heard, setHeard] = useState(""); // live transcript while listening, and what was understood
   const [hideName, setHideName] = useState(true);
   const [photo, setPhoto] = useState<string | undefined>();
   const [error, setError] = useState("");
   const [pending, startTransition] = useTransition();
   const recorder = useRef<MediaRecorder | null>(null);
+  const recognizer = useRef<Recognizer | null>(null);
   const stopTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  /**
+   * Preferred path: the phone's own speech recognition in the worker's language (free, live words on
+   * screen). Fallback: record audio for Gemini on the server.
+   */
+  function startListening() {
+    setError("");
+    setHeard("");
+    const rec = createRecognizer(locale);
+    if (!rec) {
+      void startRecording();
+      return;
+    }
+    let text = "";
+    let fellBack = false;
+    rec.onresult = (event) => {
+      text = transcriptFrom(event.results);
+      setHeard(text);
+    };
+    rec.onerror = (event) => {
+      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
+        setError(t("errors.mic"));
+      } else if (event.error === "network" || event.error === "language-not-supported") {
+        // The phone can't recognise this language right now: send audio to the server instead.
+        fellBack = true;
+        void startRecording();
+      }
+    };
+    rec.onend = () => {
+      recognizer.current = null;
+      if (fellBack) return;
+      if (text) void analyzeText(text);
+      else {
+        setPhase("pick");
+        setError((current) => current || t("errors.noSpeech"));
+      }
+    };
+    recognizer.current = rec;
+    rec.start();
+    setPhase("recording");
+  }
+
+  function stopListening() {
+    if (recognizer.current) recognizer.current.stop();
+    else stopRecording();
+  }
 
   async function startRecording() {
     setError("");
@@ -62,20 +112,35 @@ export function HazardReporter({ categories }: { categories: string[] }) {
     if (recorder.current?.state === "recording") recorder.current.stop();
   }
 
-  async function analyze(audio: Blob) {
-    setPhase("analyzing");
+  function analyze(audio: Blob) {
     const body = new FormData();
     body.append("audio", audio, "report.webm");
+    return classify(body);
+  }
+
+  function analyzeText(text: string) {
+    const body = new FormData();
+    body.append("text", text);
+    return classify(body);
+  }
+
+  async function classify(body: FormData) {
+    setPhase("analyzing");
+    body.append("locale", locale);
     try {
       const response = await fetch("/api/voice/hazard", { method: "POST", body });
       const data = response.ok ? await response.json() : { understood: false };
       if (data.understood && categories.includes(data.category)) {
         setSuggestion(data);
         setPhase("confirm");
-      } else {
-        setError(t("errors.notUnderstood"));
-        setPhase("pick");
+        return;
       }
+      // Words were heard but the type is unclear: keep them and let the worker tap the right icon.
+      const text = data.transcript || (body.get("text") as string | null) || "";
+      setHeard(text);
+      setSuggestion(text ? { category: "", transcript: text, transcriptEn: data.transcriptEn } : null);
+      setError(text ? t("errors.pickForHeard") : t("errors.notUnderstood"));
+      setPhase("pick");
     } catch {
       setError(t("errors.notUnderstood"));
       setPhase("pick");
@@ -83,7 +148,8 @@ export function HazardReporter({ categories }: { categories: string[] }) {
   }
 
   function pickCategory(category: string) {
-    setSuggestion({ category });
+    // Keep anything the worker already said; only the type comes from the icon.
+    setSuggestion((current) => ({ ...current, category }));
     setPhase("confirm");
   }
 
@@ -164,7 +230,7 @@ export function HazardReporter({ categories }: { categories: string[] }) {
       <div className="flex flex-col items-center gap-2 py-2">
         <button
           type="button"
-          onClick={phase === "recording" ? stopRecording : startRecording}
+          onClick={phase === "recording" ? stopListening : startListening}
           disabled={phase === "analyzing"}
           aria-label={phase === "recording" ? t("stopRecording") : t("holdToSpeak")}
           aria-pressed={phase === "recording"}
@@ -178,6 +244,11 @@ export function HazardReporter({ categories }: { categories: string[] }) {
         <p className="font-semibold" aria-live="assertive">
           {phase === "recording" ? t("recording") : phase === "analyzing" ? t("analyzing") : t("tapToSpeak")}
         </p>
+        {heard && (
+          <p lang={locale} className="max-w-full rounded-worker border border-border bg-card px-4 py-2 text-center italic" aria-live="polite">
+            “{heard}”
+          </p>
+        )}
       </div>
 
       <p className="text-center text-muted-foreground">{t("orTapIcon")}</p>
