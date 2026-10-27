@@ -123,3 +123,48 @@ body {
 .skip-link:focus {
   top: 0;
 }
+
+/* Success tick: circle then check mark draw in */
+.success-check-circle {
+  stroke-dasharray: 151;
+  stroke-dashoffset: 151;
+  animation: draw-stroke 0.5s ease-out forwards;
+}
+
+.success-check-mark {
+  stroke-dasharray: 40;
+  stroke-dashoffset: 40;
+  animation: draw-stroke 0.35s 0.45s ease-out forwards;
+}
+
+@keyframes draw-stroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Recording pulse for the hold-to-talk mic */
+.mic-pulse {
+  animation: mic-pulse 1.2s ease-out infinite;
+}
+
+@keyframes mic-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--danger) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 22px transparent;
+  }
+}
+
+/* Gentle entrance for cards and tiles */
+.rise-in {
+  animation: rise-in 0.4s ease-out both;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}

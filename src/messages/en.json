@@ -60,6 +60,14 @@
       "report": "Report",
       "me": "Me",
       "label": "Main menu"
+    },
+    "fatigue": {
+      "title": "Please rest",
+      "maxDailyHours": "You worked a very long day recently.",
+      "minRestHours": "You had too little rest between shifts.",
+      "maxConsecutiveDays": "You worked many days without a day off.",
+      "maxConsecutiveNights": "You worked many night shifts in a row.",
+      "maxWeeklyHours": "You worked more than 48 hours this week."
     }
   },
   "pay": {
@@ -71,7 +79,26 @@
     "deductions": "Deductions",
     "net": "You receive",
     "listen": "Listen",
-    "whyThisAmount": "Why this amount?"
+    "whyThisAmount": "Why this amount?",
+    "daysWorked": "{days} days worked",
+    "doubleRate": "2× pay",
+    "basis": {
+      "daily": "counted per day",
+      "weekly": "counted per week",
+      "mixed": "per day and per week",
+      "none": ""
+    },
+    "deduction": {
+      "pf": "Provident Fund (12%)"
+    },
+    "explainMore": "Explain in simple words",
+    "thinking": "Thinking…",
+    "explain": {
+      "worked": "You worked {days} days, {hours} in total.",
+      "overtime": "{otHours} were extra hours. They are paid double: {otPay}.",
+      "pf": "{pf} goes to your Provident Fund savings.",
+      "net": "You receive {net}."
+    }
   },
   "report": {
     "title": "Report danger",
@@ -84,7 +111,9 @@
     "status": {
       "received": "Received",
       "inProgress": "In progress",
-      "fixed": "Fixed"
+      "fixed": "Fixed",
+      "in_progress": "In progress",
+      "dismissed": "Closed"
     },
     "categories": {
       "fall_from_height": "Fall",
@@ -103,6 +132,32 @@
       "chemical": "Chemical",
       "chemical_labs": "Lab chemical",
       "fire_exit": "Fire exit"
+    },
+    "tapToSpeak": "Tap and speak",
+    "stopRecording": "Stop recording",
+    "recording": "Recording… tap to stop",
+    "analyzing": "Understanding your report…",
+    "confirmTitle": "Is this right?",
+    "weHeard": "We heard: “{text}”",
+    "change": "Change",
+    "photoAdded": "Photo added ✓",
+    "myReports": "My reports",
+    "noReports": "You have not reported anything yet.",
+    "sentHint": "Your manager can see it now. Check here for updates.",
+    "anonymousNote": "Your name is hidden from your manager.",
+    "timeline": "Updates",
+    "severity": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "critical": "Danger now"
+    },
+    "errors": {
+      "mic": "Microphone did not open. You can tap an icon instead.",
+      "notUnderstood": "Sorry, we did not catch that. Please tap an icon.",
+      "photo": "Photo could not be added.",
+      "pickCategory": "Please tap the icon that matches the danger.",
+      "general": "Could not send. Please try again."
     }
   },
   "feedback": {
@@ -113,20 +168,51 @@
     "addComment": "Add a comment (optional)",
     "anonymous": "Your answers are anonymous",
     "submit": "Submit",
-    "thanks": "Thank you for your feedback!"
+    "thanks": "Thank you for your feedback!",
+    "alreadyAnswered": "You already answered this week ✓",
+    "error": "Could not send. Please try again.",
+    "faces": {
+      "bad": "Bad",
+      "okay": "Okay",
+      "good": "Good"
+    },
+    "commentHint": "Do not write names. Names and phone numbers are removed."
   },
   "skills": {
     "title": "My skills",
     "addSkill": "Add skill",
     "verified": "Verified",
-    "pending": "Pending"
+    "pending": "Pending",
+    "summary": "{count} skills, {verified} verified by your employer",
+    "shareTitle": "Show your skills to a new employer",
+    "shareHint": "They can scan this code to see your verified skills.",
+    "passportOf": "Skill passport: {name}",
+    "passportIssuer": "Skills verified by {org}"
   },
   "checkin": {
     "title": "Check in",
     "scanQR": "Scan the QR code",
     "success": "Checked in!",
     "alreadyIn": "You are already checked in",
-    "checkoutSuccess": "Checked out!"
+    "checkoutSuccess": "Checked out!",
+    "checkoutTitle": "Check out",
+    "hint": "Scan the QR code at the gate.",
+    "checkoutHint": "Tap the button when you finish work.",
+    "savedOffline": "Saved. Will send when online.",
+    "backHome": "Back to home",
+    "checkoutButton": "Check out now",
+    "cancel": "Cancel",
+    "cameraWhy": "We need the camera only to read the QR code. No photo is saved.",
+    "allowCamera": "Open camera",
+    "simulateScan": "Demo: scan site QR",
+    "errors": {
+      "invalid_qr": "This QR code is not valid. Please scan the gate QR.",
+      "expired_qr": "This QR code is old. Please scan again.",
+      "wrong_site": "This QR code is for another workplace.",
+      "already_in": "You are already checked in.",
+      "not_in": "You are not checked in.",
+      "camera": "Camera did not open. Please allow the camera and try again."
+    }
   },
   "admin": {
     "overview": "Overview",
@@ -156,7 +242,8 @@
   },
   "offline": {
     "title": "You are offline",
-    "message": "Check your internet connection. Your saved data is safe."
+    "message": "Check your internet connection. Your saved data is safe.",
+    "pending": "{count} saved. Will send when online."
   },
   "a11y": {
     "speakButton": "Read aloud",
@@ -165,5 +252,13 @@
     "navPay": "Go to pay",
     "navReport": "Go to report",
     "navMe": "Go to profile"
+  },
+  "kiosk": {
+    "title": "QR Kiosk",
+    "intro": "Open this on a phone or tablet at the site gate. Workers scan it to check in.",
+    "open": "Open kiosk",
+    "scanHere": "Scan to check in or out",
+    "qrLabel": "Check-in QR code",
+    "refreshIn": "New code in {seconds}s"
   }
 }

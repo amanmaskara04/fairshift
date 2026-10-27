@@ -116,6 +116,19 @@ export function verifyQRToken(
   return { valid: false, siteId, reason: 'expired' };
 }
 
+/**
+ * Read the site id from a token WITHOUT trusting it, so the caller can look up
+ * that site's secret and then call verifyQRToken. Returns null if malformed.
+ */
+export function peekQRSiteId(token: string): string | null {
+  try {
+    const parts = fromBase64Url(token).split(SEPARATOR);
+    return parts.length >= 3 ? parts.slice(0, -2).join(SEPARATOR) || null : null;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function hmac(secret: string, data: string): string {

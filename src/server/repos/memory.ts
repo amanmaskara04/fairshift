@@ -5,7 +5,7 @@
 import {
   Repos,
   Org, Site, Worker, Admin, Shift, Hazard, FeedbackEntry, Skill,
-  OrgRepo, SiteRepo, WorkerRepo, AdminRepo, ShiftRepo, HazardRepo, FeedbackRepo, SkillRepo,
+  OrgRepo, SiteRepo, WorkerRepo, AdminRepo, ShiftRepo, HazardRepo, FeedbackRepo, SkillRepo, FeedbackGuardRepo,
 } from "./types";
 import { getSeedData } from "../seed/data";
 
@@ -18,6 +18,7 @@ interface MemoryStore {
   hazards: Hazard[];
   feedback: FeedbackEntry[];
   skills: Skill[];
+  feedbackGuards: Set<string>;
 }
 
 // Kept on globalThis so every route bundle in the Node process shares one store.
@@ -114,6 +115,11 @@ class MemorySkillRepo implements SkillRepo {
   async create(skill: Skill) { getStore().skills.push(skill); }
 }
 
+class MemoryFeedbackGuardRepo implements FeedbackGuardRepo {
+  async has(key: string) { return getStore().feedbackGuards.has(key); }
+  async add(key: string) { getStore().feedbackGuards.add(key); }
+}
+
 export function createMemoryRepos(): Repos {
   return {
     orgs: new MemoryOrgRepo(),
@@ -124,5 +130,6 @@ export function createMemoryRepos(): Repos {
     hazards: new MemoryHazardRepo(),
     feedback: new MemoryFeedbackRepo(),
     skills: new MemorySkillRepo(),
+    feedbackGuards: new MemoryFeedbackGuardRepo(),
   };
 }
