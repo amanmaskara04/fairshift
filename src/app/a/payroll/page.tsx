@@ -22,7 +22,7 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
         <a href={`/api/payroll?month=${month}`} className={buttonVariants({ size: "sm" })} download>
           <Download aria-hidden="true" className="size-4" />
           {t("export")}

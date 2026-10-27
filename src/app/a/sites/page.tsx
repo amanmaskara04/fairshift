@@ -24,7 +24,7 @@ export default async function SitesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <ul className="grid gap-4 lg:grid-cols-2">
         {cards.map(({ site, onSite, assigned }) => {
           const profile = getSectorProfile(site.sector);

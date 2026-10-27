@@ -9,7 +9,6 @@ import { isMonthKey, monthKey } from "@/core/period";
 import { formatDuration, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { SpeakButton } from "@/components/speak-button";
 import { ExplainPay } from "@/components/worker/explain-pay";
 
@@ -36,7 +35,7 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
         <SpeakButton text={sentences.join(" ")} />
       </div>
 
@@ -57,22 +56,20 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
         ))}
       </nav>
 
-      <Card className="rise-in bg-brand text-brand-foreground">
-        <p className="font-semibold">{t("net")}</p>
-        <p className="text-4xl font-bold" data-testid="net-pay">
+      <section className="receipt rise-in my-3 px-5 py-6">
+        <p className="eyebrow">{t("net")}</p>
+        <p className="figure mt-1 text-[2.6rem] leading-none font-semibold" data-testid="net-pay">
           {formatINR(payslip.net)}
         </p>
-        <p>{t("daysWorked", { days: daysWorked })}</p>
-      </Card>
-
-      <Card>
+        <p className="mt-2 font-semibold text-brand">{t("daysWorked", { days: daysWorked })}</p>
+        <div className="my-4 border-t-2 border-dashed border-border" aria-hidden="true" />
         <dl className="divide-y divide-border">
           <div className="flex items-center justify-between gap-2 py-3">
             <dt>
               {t("regular")}
               <span className="block text-sm text-muted-foreground">{formatDuration(regular?.minutes ?? 0)}</span>
             </dt>
-            <dd className="whitespace-nowrap font-bold">{formatINR(regular?.amount ?? 0)}</dd>
+            <dd className="figure whitespace-nowrap font-semibold">{formatINR(regular?.amount ?? 0)}</dd>
           </div>
           {overtime && (
             <div className="flex items-center justify-between gap-2 py-3" data-testid="overtime-line">
@@ -84,21 +81,21 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
                   {formatDuration(overtime.minutes ?? 0)} · {t(`basis.${payslip.overtimeBasis}`)}
                 </span>
               </dt>
-              <dd className="whitespace-nowrap font-bold">{formatINR(overtime.amount)}</dd>
+              <dd className="figure whitespace-nowrap font-semibold">{formatINR(overtime.amount)}</dd>
             </div>
           )}
           <div className="flex items-center justify-between gap-2 py-3">
             <dt className="font-semibold">{t("gross")}</dt>
-            <dd className="whitespace-nowrap font-bold">{formatINR(payslip.gross)}</dd>
+            <dd className="figure whitespace-nowrap font-semibold">{formatINR(payslip.gross)}</dd>
           </div>
           {payslip.deductions.map((d) => (
             <div key={d.label} className="flex items-center justify-between gap-2 py-3">
               <dt>{t(`deduction.${d.label}`)}</dt>
-              <dd className="whitespace-nowrap font-bold">− {formatINR(d.amount)}</dd>
+              <dd className="figure whitespace-nowrap font-semibold">− {formatINR(d.amount)}</dd>
             </div>
           ))}
         </dl>
-      </Card>
+      </section>
 
       <ExplainPay month={month} sentences={sentences} />
     </div>

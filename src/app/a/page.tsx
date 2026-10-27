@@ -43,17 +43,17 @@ export default async function AdminOverview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-2xl font-bold">{t("overview")}</h1>
+      <h1 className="text-3xl font-extrabold">{t("overview")}</h1>
 
       <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         {kpis.map(({ label, value, detail, Icon }) => (
           <li key={label}>
-            <Card className="h-full rounded-admin">
+            <Card className="h-full rounded-admin border-t-4 border-t-accent">
               <div className="flex items-center justify-between text-muted-foreground">
                 <span className="font-medium">{label}</span>
                 <Icon aria-hidden="true" className="size-5" />
               </div>
-              <p className="mt-2 text-3xl font-bold">{value}</p>
+              <p className="font-display figure mt-2 text-4xl font-extrabold">{value}</p>
               <p className="text-sm text-muted-foreground">{detail}</p>
             </Card>
           </li>

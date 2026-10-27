@@ -17,7 +17,7 @@ export default async function FeedbackPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
         <SpeakButton text={`${t("title")}. ${t("anonymous")}`} />
       </div>
       <p className="flex items-center gap-2 rounded-worker bg-brand-soft p-3 font-semibold text-brand-soft-foreground">

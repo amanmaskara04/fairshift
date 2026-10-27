@@ -3,15 +3,16 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+  "inline-flex items-center justify-center gap-2 font-bold transition-[transform,background-color,box-shadow] duration-100 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
   {
     variants: {
       variant: {
-        primary: "bg-brand text-brand-foreground hover:opacity-90",
-        secondary: "bg-brand-soft text-brand-soft-foreground hover:opacity-90",
-        outline: "border-2 border-border bg-card text-card-foreground hover:bg-muted",
+        primary: "bg-brand text-brand-foreground hover:bg-brand/90",
+        accent: "bg-accent text-accent-foreground border-2 border-ink hover:brightness-95",
+        secondary: "bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/80",
+        outline: "border-2 border-ink bg-card text-card-foreground hover:bg-muted",
         ghost: "text-foreground hover:bg-muted",
-        danger: "bg-danger text-status-foreground hover:opacity-90",
+        danger: "bg-danger text-status-foreground hover:bg-danger/90",
       },
       size: {
         sm: "min-h-10 px-3 text-sm rounded-admin",

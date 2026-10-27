@@ -32,7 +32,7 @@ export default async function SkillsPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
         <SpeakButton text={`${t("title")}. ${t("summary", { count: skills.length, verified })}`} />
       </div>
       <p className="text-muted-foreground">{t("summary", { count: skills.length, verified })}</p>
