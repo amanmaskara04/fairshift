@@ -4,6 +4,8 @@
  */
 import { scryptSync } from "node:crypto";
 import { Org, Site, Worker, Admin, Shift, Hazard, FeedbackEntry, Skill } from "../repos/types";
+import { getISTWeekBucket } from "@/core/time";
+import { cohortKey } from "@/core/anonymity";
 
 // Simple seeded PRNG (mulberry32)
 function mulberry32(seed: number) {
@@ -292,6 +294,25 @@ export function getSeedData() {
     }
   }
 
+  // Open shifts today, so the dashboard shows people on site. Ramesh and Sunita stay
+  // checked out so their check-in demo works.
+  const onSiteNow: [string, string, number][] = [
+    ["w1002", "site1", 3.5],
+    ["w1003", "site1", 3],
+    ["w1004", "site1", 2.5],
+    ["w2002", "site2", 4],
+    ["w2004", "site3", 2],
+  ];
+  for (const [workerId, siteId, hoursAgo] of onSiteNow) {
+    shifts.push({
+      id: `shift-${workerId}-open`,
+      workerId,
+      siteId,
+      inAt: new Date(now.getTime() - hoursAgo * MS_PER_HOUR),
+      method: "qr",
+    });
+  }
+
   // ── Hazards ──
   const hazards: Hazard[] = [
     {
@@ -363,8 +384,8 @@ export function getSeedData() {
     [3, 3, 2], [1, 2, 3], [2, 2, 2], [3, 3, 1],
   ];
 
-  const weekBucket = getWeekBucketStr(now);
-  const prevWeekBucket = getWeekBucketStr(new Date(now.getTime() - 7 * MS_PER_DAY));
+  const weekBucket = getISTWeekBucket(now);
+  const prevWeekBucket = getISTWeekBucket(new Date(now.getTime() - 7 * MS_PER_DAY));
 
   const feedback: FeedbackEntry[] = [];
   let fbId = 1;
@@ -376,7 +397,7 @@ export function getSeedData() {
       id: `fb${fbId++}`,
       orgId: "org1",
       siteId: "site1",
-      cohort: "org1:site1",
+      cohort: cohortKey("site1", "all"),
       weekBucket: i < 7 ? weekBucket : prevWeekBucket,
       scores: { pay: scores[0], safety: scores[1], respect: scores[2] },
       comment: i % 3 === 0 ? "Working conditions need improvement" : undefined,
@@ -394,7 +415,7 @@ export function getSeedData() {
       id: `fb${fbId++}`,
       orgId: "org2",
       siteId: site,
-      cohort: `org2:${site}`,
+      cohort: cohortKey(site, "all"),
       weekBucket: i < 7 ? weekBucket : prevWeekBucket,
       scores: { pay: scores[0], safety: scores[1], respect: scores[2] },
       comment: i % 4 === 0 ? "Manager is good but we need more supplies" : undefined,
@@ -416,17 +437,5 @@ export function getSeedData() {
     { id: "sk8", workerId: "w2004", title: "Phlebotomy", issuer: "City Care Hospital", date: new Date("2025-04-20"), verifiedBy: "admin2" },
   ];
 
-  return { orgs, sites, workers, admins, shifts, hazards, feedback, skills };
-}
-
-/** Simple week bucket helper for seed data (avoids importing core) */
-function getWeekBucketStr(date: Date): string {
-  // Get IST date
-  const istOffset = 5.5 * 60 * 60 * 1000;
-  const ist = new Date(date.getTime() + istOffset);
-  const year = ist.getUTCFullYear();
-  const jan1 = new Date(Date.UTC(year, 0, 1));
-  const dayOfYear = Math.floor((ist.getTime() - jan1.getTime()) / (24 * 60 * 60 * 1000));
-  const weekNum = Math.ceil((dayOfYear + jan1.getUTCDay() + 1) / 7);
-  return `${year}-W${String(weekNum).padStart(2, "0")}`;
+  return { orgs, sites, workers, admins, shifts, hazards, feedback, skills, feedbackGuards: new Set<string>() };
 }

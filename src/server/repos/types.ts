@@ -64,7 +64,8 @@ export interface Hazard {
   severity: "critical" | "high" | "medium" | "low";
   transcript?: string;
   transcriptEn?: string;
-  photoPath?: string;
+  location?: string;
+  photoDataUrl?: string;
   status: "received" | "in_progress" | "fixed" | "dismissed";
   assigneeUid?: string;
   timeline: { status: string; at: Date; by?: string }[];
@@ -143,6 +144,12 @@ export interface FeedbackRepo {
   create(entry: FeedbackEntry): Promise<void>;
 }
 
+/** One-way HMAC keys that stop double voting without storing who voted. */
+export interface FeedbackGuardRepo {
+  has(key: string): Promise<boolean>;
+  add(key: string): Promise<void>;
+}
+
 export interface SkillRepo {
   getByWorker(workerId: string): Promise<Skill[]>;
   create(skill: Skill): Promise<void>;
@@ -157,4 +164,5 @@ export interface Repos {
   hazards: HazardRepo;
   feedback: FeedbackRepo;
   skills: SkillRepo;
+  feedbackGuards: FeedbackGuardRepo;
 }

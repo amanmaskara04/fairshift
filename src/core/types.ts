@@ -45,7 +45,10 @@ export interface Shift {
   inAt: Date;
   outAt?: Date;
   method: 'qr' | 'geo' | 'manual';
+  /** Idempotency key of the check-in operation */
   clientOpId?: string;
+  /** Idempotency key of the check-out operation */
+  outOpId?: string;
   syncedFromOffline?: boolean;
 }
 
