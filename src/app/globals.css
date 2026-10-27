@@ -163,8 +163,8 @@ h2,
   background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--ink-line) 12px 24px);
 }
 
-/* Printed card: ink outline with an offset block shadow, like a stamped register page */
-.print-card {
+/* Stamp: ink outline with an offset block shadow. Used once per screen at most (hero card). */
+.stamp {
   background: var(--card);
   color: var(--card-foreground);
   border: 2px solid var(--ink-line);
@@ -174,14 +174,14 @@ h2,
     box-shadow 0.12s ease;
 }
 
-a.print-card:hover,
-button.print-card:hover {
+a.stamp:hover,
+button.stamp:hover {
   transform: translate(-1px, -1px);
   box-shadow: 5px 5px 0 var(--ink-line);
 }
 
-a.print-card:active,
-button.print-card:active {
+a.stamp:active,
+button.stamp:active {
   transform: translate(3px, 3px);
   box-shadow: 1px 1px 0 var(--ink-line);
 }
@@ -285,4 +285,40 @@ button.print-card:active {
 }
 .stagger > *:nth-child(6) {
   animation-delay: 250ms;
+}
+
+/* Ruled card: hairline ink border, no shadow — the default interactive surface */
+.print-card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 1.5px solid color-mix(in srgb, var(--ink-line) 85%, transparent);
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease,
+    border-color 0.15s ease;
+}
+
+a.print-card:hover,
+button.print-card:hover {
+  background: color-mix(in srgb, var(--accent) 12%, var(--card));
+  transform: translateY(-1px);
+}
+
+a.print-card:active,
+button.print-card:active {
+  transform: translateY(1px);
+}
+
+/* Section rule with label, like a register heading */
+.rule-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.rule-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
 }

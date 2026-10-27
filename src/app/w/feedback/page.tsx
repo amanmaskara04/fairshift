@@ -6,6 +6,7 @@ import { feedbackHmacSecret } from "@/server/secrets";
 import { hasAnsweredThisWeek } from "@/server/services/feedback";
 import { Card } from "@/components/ui/card";
 import { SpeakButton } from "@/components/speak-button";
+import { PageHeader } from "@/components/page-header";
 import { SuccessCheck } from "@/components/success-check";
 import { FeedbackForm } from "@/components/worker/feedback-form";
 
@@ -16,10 +17,7 @@ export default async function FeedbackPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-        <SpeakButton text={`${t("title")}. ${t("anonymous")}`} />
-      </div>
+      <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("anonymous")}`} />} />
       <p className="flex items-center gap-2 rounded-worker bg-brand-soft p-3 font-semibold text-brand-soft-foreground">
         <Lock aria-hidden="true" className="size-5 shrink-0" />
         {t("anonymous")}

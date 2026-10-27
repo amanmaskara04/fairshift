@@ -5,6 +5,7 @@ import { getRepos } from "@/server/repos";
 import { trackedReportIds } from "@/server/actions/hazards";
 import { getSectorProfile } from "@/core/sectors";
 import { SpeakButton } from "@/components/speak-button";
+import { PageHeader } from "@/components/page-header";
 import { HazardIcon } from "@/components/hazard-icon";
 import { HazardStatusBadge } from "@/components/hazard-status";
 import { HazardReporter } from "@/components/worker/hazard-reporter";
@@ -26,10 +27,7 @@ export default async function ReportPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-        <SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />
-      </div>
+      <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />} />
 
       <HazardReporter categories={[...getSectorProfile(org.sector).hazardCategories]} />
 

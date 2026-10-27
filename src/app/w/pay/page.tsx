@@ -10,6 +10,7 @@ import { formatDuration, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { SpeakButton } from "@/components/speak-button";
+import { PageHeader } from "@/components/page-header";
 import { ExplainPay } from "@/components/worker/explain-pay";
 
 function monthLabel(key: string): string {
@@ -34,20 +35,17 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-        <SpeakButton text={sentences.join(" ")} />
-      </div>
+      <PageHeader title={t("title")} action={<SpeakButton text={sentences.join(" ")} />} />
 
-      <nav aria-label={t("period")} className="flex gap-2">
+      <nav aria-label={t("period")} className="grid grid-cols-3 gap-1 rounded-worker border border-border bg-card p-1">
         {months.map((m) => (
           <Link
             key={m}
             href={`/w/pay?m=${m}`}
             aria-current={m === month ? "page" : undefined}
             className={cn(
-              "flex min-h-12 flex-1 items-center justify-center gap-1 rounded-worker border-2 font-semibold",
-              m === month ? "border-brand bg-brand text-brand-foreground" : "border-border",
+              "flex min-h-11 items-center justify-center gap-1 rounded-admin text-sm font-bold",
+              m === month ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted",
             )}
           >
             <CalendarDays aria-hidden="true" className="size-4" />

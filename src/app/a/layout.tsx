@@ -20,7 +20,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
   return (
     <div className="admin flex min-h-dvh flex-col">
       <div className="hazard-tape" aria-hidden="true" />
-      <header className="flex items-center justify-between gap-2 border-b-2 border-ink bg-background px-4 py-2">
+      <header className="flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2">
         <div className="flex items-center gap-3">
           <BrandMark className="text-lg" />
           <span aria-hidden="true" className="h-5 w-px bg-border" />
@@ -39,7 +39,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
       </header>
       <div className="flex flex-1 flex-col md:flex-row">
         <Sidebar />
-        <main id="main" className="flex-1 p-4 md:p-6">
+        <main id="main" className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8">
           {children}
         </main>
       </div>

@@ -75,6 +75,13 @@
       "maxConsecutiveDays": "You worked many days without a day off.",
       "maxConsecutiveNights": "You worked many night shifts in a row.",
       "maxWeeklyHours": "You worked more than 48 hours this week."
+    },
+    "today": "Today",
+    "quickActions": "What do you need?",
+    "tileHints": {
+      "pay": "See this month's payslip",
+      "report": "Tell us about something unsafe",
+      "feedback": "Share how work feels — no name"
     }
   },
   "pay": {
@@ -219,7 +226,11 @@
       "already_in": "You are already checked in.",
       "not_in": "You are not checked in.",
       "camera": "Camera did not open. Please allow the camera and try again."
-    }
+    },
+    "howTitle": "How it works",
+    "step1": "Find the FairShift QR code at the gate or ward desk.",
+    "step2": "Tap the button and point your camera at it.",
+    "step3": "No internet? It is saved and sent later."
   },
   "admin": {
     "overview": "Overview",

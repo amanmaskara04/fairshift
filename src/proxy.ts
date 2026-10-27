@@ -13,10 +13,12 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
+  // Scripts: per-request nonce + strict-dynamic (the XSS-critical part). Styles: 'unsafe-inline' because
+  // libraries (Recharts, Sonner) inject <style> tags and style attributes at runtime that cannot carry a nonce.
   const cspHeader = `
     default-src 'self';
     script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ""};
-    style-src 'self' ${isDev ? "'unsafe-inline'" : `'nonce-${nonce}'`};
+    style-src 'self' 'unsafe-inline';
     img-src 'self' blob: data:;
     font-src 'self';
     object-src 'none';

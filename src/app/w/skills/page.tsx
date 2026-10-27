@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { SpeakButton } from "@/components/speak-button";
+import { PageHeader } from "@/components/page-header";
 
 function formatDate(date: Date): string {
   return new Intl.DateTimeFormat("en-IN", { month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(date);
@@ -31,10 +32,7 @@ export default async function SkillsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-        <SpeakButton text={`${t("title")}. ${t("summary", { count: skills.length, verified })}`} />
-      </div>
+      <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("summary", { count: skills.length, verified })}`} />} />
       <p className="text-muted-foreground">{t("summary", { count: skills.length, verified })}</p>
 
       <ul className="flex flex-col gap-2">
