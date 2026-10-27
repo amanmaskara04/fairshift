@@ -1,0 +1,169 @@
+{
+  "common": {
+    "appName": "FairShift",
+    "loading": "लोड हो रहा है...",
+    "error": "कुछ गड़बड़ हुई",
+    "retry": "फिर कोशिश करें",
+    "save": "सेव करें",
+    "cancel": "रद्द करें",
+    "back": "वापस",
+    "next": "आगे",
+    "done": "हो गया",
+    "close": "बंद करें",
+    "logout": "लॉग आउट",
+    "comingSoon": "जल्द आ रहा है",
+    "offline": "इंटरनेट नहीं है",
+    "offlineMessage": "आपका डेटा सुरक्षित है। इंटरनेट आने पर अपने आप भेजा जाएगा।",
+    "skipToContent": "मुख्य भाग पर जाएं"
+  },
+  "landing": {
+    "title": "FairShift",
+    "subtitle": "सही काम। सही पैसा। आपकी आवाज़।",
+    "chooseLanguage": "अपनी भाषा चुनें",
+    "continue": "आगे बढ़ें"
+  },
+  "login": {
+    "workerTab": "कामगार",
+    "adminTab": "एडमिन",
+    "enterCode": "अपना कोड डालें",
+    "enterPin": "पिन डालें",
+    "email": "ईमेल",
+    "password": "पासवर्ड",
+    "loginButton": "लॉग इन",
+    "demoTitle": "डेमो देखें",
+    "demoRamesh": "रमेश (निर्माण कामगार)",
+    "demoSunita": "सुनीता (अस्पताल कामगार)",
+    "demoPriya": "प्रिया (एडमिन)",
+    "errorInvalid": "गलत कोड या पिन। फिर कोशिश करें।",
+    "errorLocked": "बहुत बार कोशिश की। 15 मिनट बाद फिर करें।",
+    "errorGeneral": "कुछ गड़बड़ हुई। फिर कोशिश करें।",
+    "deleteDigit": "आख़िरी अंक मिटाएँ",
+    "keypad": "नंबर कीपैड"
+  },
+  "worker": {
+    "greeting": "नमस्ते, {name}!",
+    "home": "होम",
+    "statusCheckedIn": "{time} पर चेक इन किया",
+    "statusNotCheckedIn": "चेक इन नहीं किया",
+    "todayHours": "आज {hours} घंटे {minutes} मिनट",
+    "tiles": {
+      "checkin": "चेक इन",
+      "checkout": "चेक आउट",
+      "pay": "मेरी तनख़्वाह",
+      "report": "ख़तरा बताएं",
+      "feedback": "अपनी बात कहें",
+      "skills": "मेरे हुनर"
+    },
+    "nav": {
+      "home": "होम",
+      "pay": "पैसा",
+      "report": "ख़तरा",
+      "me": "मैं",
+      "label": "मुख्य मेनू"
+    }
+  },
+  "pay": {
+    "title": "मेरी तनख़्वाह",
+    "period": "अवधि",
+    "regular": "सामान्य घंटे",
+    "overtime": "ओवरटाइम",
+    "gross": "कुल कमाई",
+    "deductions": "कटौती",
+    "net": "आपको मिलेगा",
+    "listen": "सुनें",
+    "whyThisAmount": "इतना क्यों?"
+  },
+  "report": {
+    "title": "ख़तरा बताएं",
+    "holdToSpeak": "दबाकर बोलें",
+    "orTapIcon": "या आइकन दबाएं",
+    "addPhoto": "फोटो लगाएं (ज़रूरी नहीं)",
+    "hideMyName": "मेरा नाम छुपाएं",
+    "send": "रिपोर्ट भेजें",
+    "sent": "रिपोर्ट भेज दी!",
+    "status": {
+      "received": "मिल गई",
+      "inProgress": "काम चल रहा है",
+      "fixed": "ठीक हो गया"
+    },
+    "categories": {
+      "fall_from_height": "गिरना",
+      "scaffolding": "मचान",
+      "electrical": "बिजली",
+      "heat_stress": "गर्मी",
+      "ppe_missing": "सुरक्षा किट नहीं",
+      "machinery": "मशीन",
+      "needle_stick": "सुई",
+      "chemical_biohazard": "रासायनिक",
+      "patient_aggression": "हमला",
+      "slip": "फिसलन",
+      "lifting_injury": "भारी सामान",
+      "machinery_guard": "मशीन गार्ड",
+      "noise": "शोर",
+      "chemical": "रासायनिक",
+      "chemical_labs": "लैब रासायनिक",
+      "fire_exit": "आग निकास"
+    }
+  },
+  "feedback": {
+    "title": "अपनी बात कहें",
+    "question1": "क्या आपकी तनख़्वाह सही है?",
+    "question2": "क्या आप सुरक्षित महसूस करते हैं?",
+    "question3": "क्या आपका मैनेजर सम्मान से बात करता है?",
+    "addComment": "कुछ और कहना है? (ज़रूरी नहीं)",
+    "anonymous": "आपके जवाब गुप्त हैं",
+    "submit": "भेजें",
+    "thanks": "आपकी राय के लिए धन्यवाद!"
+  },
+  "skills": {
+    "title": "मेरे हुनर",
+    "addSkill": "हुनर जोड़ें",
+    "verified": "पक्का किया",
+    "pending": "जाँच में"
+  },
+  "checkin": {
+    "title": "चेक इन",
+    "scanQR": "QR कोड स्कैन करें",
+    "success": "चेक इन हो गया!",
+    "alreadyIn": "आप पहले से चेक इन हैं",
+    "checkoutSuccess": "चेक आउट हो गया!"
+  },
+  "admin": {
+    "overview": "सारांश",
+    "hazards": "ख़तरे",
+    "people": "लोग",
+    "feedback": "राय",
+    "payroll": "वेतन",
+    "sites": "साइट",
+    "kiosk": "QR कियोस्क",
+    "onSiteNow": "अभी साइट पर",
+    "overtimeThisWeek": "इस हफ़्ते ओवरटाइम",
+    "openHazards": "खुले ख़तरे",
+    "feedbackMood": "राय का मूड",
+    "atRiskWorkers": "ख़तरे में कामगार",
+    "orgName": "संगठन",
+    "navLabel": "एडमिन मेनू",
+    "sector": {
+      "construction": "निर्माण",
+      "hospital": "अस्पताल",
+      "campus": "कैंपस",
+      "factory": "फ़ैक्टरी"
+    },
+    "ofWorkers": "{count} मज़दूरों में से",
+    "urgentCount": "{count} गंभीर",
+    "responses": "{count} जवाब",
+    "fatigueRulesBroken": "पिछले 14 दिनों में थकान नियम टूटा"
+  },
+  "offline": {
+    "title": "इंटरनेट नहीं है",
+    "message": "इंटरनेट कनेक्शन जाँचें। आपका डेटा सुरक्षित है।"
+  },
+  "a11y": {
+    "speakButton": "ज़ोर से पढ़ें",
+    "languageSwitch": "भाषा बदलें",
+    "navHome": "होम पर जाएं",
+    "navPay": "पैसा पर जाएं",
+    "navReport": "ख़तरा पर जाएं",
+    "navMe": "प्रोफ़ाइल पर जाएं"
+  }
+}
