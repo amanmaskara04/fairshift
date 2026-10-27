@@ -39,3 +39,12 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# serwist
+public/sw*
+public/swe-worker*
+
+# test output
+/coverage
+/test-results
+/playwright-report

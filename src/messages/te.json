@@ -1,0 +1,169 @@
+{
+  "common": {
+    "appName": "FairShift",
+    "loading": "లోడ్ అవుతోంది...",
+    "error": "ఏదో తప్పు జరిగింది",
+    "retry": "మళ్ళీ ప్రయత్నించండి",
+    "save": "సేవ్ చేయండి",
+    "cancel": "రద్దు చేయండి",
+    "back": "వెనక్కి",
+    "next": "తదుపరి",
+    "done": "అయిపోయింది",
+    "close": "మూసివేయండి",
+    "logout": "లాగ్ అవుట్",
+    "comingSoon": "త్వరలో వస్తోంది",
+    "offline": "ఇంటర్నెట్ లేదు",
+    "offlineMessage": "మీ డేటా భద్రంగా ఉంది. ఇంటర్నెట్ వచ్చాక అదే పంపబడుతుంది.",
+    "skipToContent": "ముఖ్య భాగానికి వెళ్ళండి"
+  },
+  "landing": {
+    "title": "FairShift",
+    "subtitle": "న్యాయమైన పని. న్యాయమైన జీతం. మీ గొంతు.",
+    "chooseLanguage": "మీ భాషను ఎంచుకోండి",
+    "continue": "ముందుకు వెళ్ళండి"
+  },
+  "login": {
+    "workerTab": "కార్మికుడు",
+    "adminTab": "అడ్మిన్",
+    "enterCode": "మీ కోడ్ నమోదు చేయండి",
+    "enterPin": "పిన్ నమోదు చేయండి",
+    "email": "ఈమెయిల్",
+    "password": "పాస్‌వర్డ్",
+    "loginButton": "లాగిన్",
+    "demoTitle": "డెమో చూడండి",
+    "demoRamesh": "రమేష్ (నిర్మాణ కార్మికుడు)",
+    "demoSunita": "సునీత (ఆసుపత్రి కార్మికురాలు)",
+    "demoPriya": "ప్రియ (అడ్మిన్)",
+    "errorInvalid": "తప్పు కోడ్ లేదా పిన్. మళ్ళీ ప్రయత్నించండి.",
+    "errorLocked": "చాలా సార్లు ప్రయత్నించారు. 15 నిమిషాలు ఆగండి.",
+    "errorGeneral": "ఏదో తప్పు జరిగింది. మళ్ళీ ప్రయత్నించండి.",
+    "deleteDigit": "చివరి అంకె తొలగించు",
+    "keypad": "నంబర్ కీప్యాడ్"
+  },
+  "worker": {
+    "greeting": "నమస్తే, {name}!",
+    "home": "హోమ్",
+    "statusCheckedIn": "{time} కి చెక్ ఇన్ అయ్యారు",
+    "statusNotCheckedIn": "చెక్ ఇన్ కాలేదు",
+    "todayHours": "ఈ రోజు {hours} గంటలు {minutes} నిమిషాలు",
+    "tiles": {
+      "checkin": "చెక్ ఇన్",
+      "checkout": "చెక్ అవుట్",
+      "pay": "నా జీతం",
+      "report": "ప్రమాదం చెప్పండి",
+      "feedback": "మీ మాట చెప్పండి",
+      "skills": "నా నైపుణ్యాలు"
+    },
+    "nav": {
+      "home": "హోమ్",
+      "pay": "జీతం",
+      "report": "ప్రమాదం",
+      "me": "నేను",
+      "label": "ప్రధాన మెనూ"
+    }
+  },
+  "pay": {
+    "title": "నా జీతం",
+    "period": "కాలం",
+    "regular": "సాధారణ గంటలు",
+    "overtime": "అదనపు సమయం",
+    "gross": "మొత్తం సంపాదన",
+    "deductions": "తగ్గింపులు",
+    "net": "మీకు వస్తుంది",
+    "listen": "వినండి",
+    "whyThisAmount": "ఇంత ఎందుకు?"
+  },
+  "report": {
+    "title": "ప్రమాదం చెప్పండి",
+    "holdToSpeak": "నొక్కి పట్టి మాట్లాడండి",
+    "orTapIcon": "లేదా బొమ్మ నొక్కండి",
+    "addPhoto": "ఫోటో జోడించండి (తప్పనిసరి కాదు)",
+    "hideMyName": "నా పేరు దాచండి",
+    "send": "రిపోర్ట్ పంపండి",
+    "sent": "రిపోర్ట్ పంపబడింది!",
+    "status": {
+      "received": "అందింది",
+      "inProgress": "పని జరుగుతోంది",
+      "fixed": "సరి చేయబడింది"
+    },
+    "categories": {
+      "fall_from_height": "పడిపోవడం",
+      "scaffolding": "అంచె",
+      "electrical": "విద్యుత్",
+      "heat_stress": "ఎండ వేడి",
+      "ppe_missing": "రక్షణ సామాగ్రి లేదు",
+      "machinery": "యంత్రం",
+      "needle_stick": "సూది",
+      "chemical_biohazard": "రసాయనం",
+      "patient_aggression": "దాడి",
+      "slip": "జారడం",
+      "lifting_injury": "బరువు ఎత్తడం",
+      "machinery_guard": "యంత్ర కవచం",
+      "noise": "శబ్దం",
+      "chemical": "రసాయనం",
+      "chemical_labs": "ల్యాబ్ రసాయనం",
+      "fire_exit": "అగ్ని నిష్క్రమణ"
+    }
+  },
+  "feedback": {
+    "title": "మీ మాట చెప్పండి",
+    "question1": "మీ జీతం న్యాయంగా ఉందా?",
+    "question2": "మీరు సురక్షితంగా ఉన్నారా?",
+    "question3": "మీ మేనేజర్ గౌరవంగా ఉన్నారా?",
+    "addComment": "ఇంకా ఏమైనా చెప్పాలా? (తప్పనిసరి కాదు)",
+    "anonymous": "మీ సమాధానాలు రహస్యం",
+    "submit": "పంపండి",
+    "thanks": "మీ అభిప్రాయానికి ధన్యవాదాలు!"
+  },
+  "skills": {
+    "title": "నా నైపుణ్యాలు",
+    "addSkill": "నైపుణ్యం జోడించండి",
+    "verified": "ధృవీకరించబడింది",
+    "pending": "పెండింగ్‌లో ఉంది"
+  },
+  "checkin": {
+    "title": "చెక్ ఇన్",
+    "scanQR": "QR కోడ్ స్కాన్ చేయండి",
+    "success": "చెక్ ఇన్ అయింది!",
+    "alreadyIn": "మీరు ఇప్పటికే చెక్ ఇన్ అయ్యారు",
+    "checkoutSuccess": "చెక్ అవుట్ అయింది!"
+  },
+  "admin": {
+    "overview": "సారాంశం",
+    "hazards": "ప్రమాదాలు",
+    "people": "వ్యక్తులు",
+    "feedback": "అభిప్రాయాలు",
+    "payroll": "జీతాల పట్టిక",
+    "sites": "సైట్‌లు",
+    "kiosk": "QR కియోస్క్",
+    "onSiteNow": "ఇప్పుడు సైట్‌లో",
+    "overtimeThisWeek": "ఈ వారం అదనపు సమయం",
+    "openHazards": "తెరిచిన ప్రమాదాలు",
+    "feedbackMood": "అభిప్రాయ మూడ్",
+    "atRiskWorkers": "ప్రమాదంలో ఉన్న కార్మికులు",
+    "orgName": "సంస్థ",
+    "navLabel": "అడ్మిన్ మెనూ",
+    "sector": {
+      "construction": "నిర్మాణం",
+      "hospital": "ఆసుపత్రి",
+      "campus": "క్యాంపస్",
+      "factory": "ఫ్యాక్టరీ"
+    },
+    "ofWorkers": "{count} కార్మికులలో",
+    "urgentCount": "{count} అత్యవసరం",
+    "responses": "{count} స్పందనలు",
+    "fatigueRulesBroken": "గత 14 రోజుల్లో అలసట నియమం ఉల్లంఘన"
+  },
+  "offline": {
+    "title": "ఇంటర్నెట్ లేదు",
+    "message": "ఇంటర్నెట్ కనెక్షన్ చెక్ చేయండి. మీ డేటా భద్రంగా ఉంది."
+  },
+  "a11y": {
+    "speakButton": "బిగ్గరగా చదవండి",
+    "languageSwitch": "భాష మార్చండి",
+    "navHome": "హోమ్‌కి వెళ్ళండి",
+    "navPay": "జీతానికి వెళ్ళండి",
+    "navReport": "ప్రమాదానికి వెళ్ళండి",
+    "navMe": "ప్రొఫైల్‌కి వెళ్ళండి"
+  }
+}

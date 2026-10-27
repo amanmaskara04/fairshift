@@ -1,0 +1,169 @@
+{
+  "common": {
+    "appName": "FairShift",
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "save": "Save",
+    "cancel": "Cancel",
+    "back": "Back",
+    "next": "Next",
+    "done": "Done",
+    "close": "Close",
+    "logout": "Log out",
+    "comingSoon": "Coming soon",
+    "offline": "You are offline",
+    "offlineMessage": "Your data is saved. It will sync when you are back online.",
+    "skipToContent": "Skip to content"
+  },
+  "landing": {
+    "title": "FairShift",
+    "subtitle": "Fair work. Fair pay. Your voice.",
+    "chooseLanguage": "Choose your language",
+    "continue": "Continue"
+  },
+  "login": {
+    "workerTab": "Worker",
+    "adminTab": "Admin",
+    "enterCode": "Enter your code",
+    "enterPin": "Enter PIN",
+    "email": "Email",
+    "password": "Password",
+    "loginButton": "Log in",
+    "demoTitle": "Try the demo",
+    "demoRamesh": "Ramesh (Construction worker)",
+    "demoSunita": "Sunita (Hospital worker)",
+    "demoPriya": "Priya (Admin)",
+    "errorInvalid": "Wrong code or PIN. Please try again.",
+    "errorLocked": "Too many tries. Please wait 15 minutes.",
+    "errorGeneral": "Something went wrong. Please try again.",
+    "deleteDigit": "Delete last digit",
+    "keypad": "Number keypad"
+  },
+  "worker": {
+    "greeting": "Hello, {name}!",
+    "home": "Home",
+    "statusCheckedIn": "Checked in at {time}",
+    "statusNotCheckedIn": "Not checked in",
+    "todayHours": "{hours}h {minutes}m today",
+    "tiles": {
+      "checkin": "Check in",
+      "checkout": "Check out",
+      "pay": "My pay",
+      "report": "Report danger",
+      "feedback": "Speak up",
+      "skills": "My skills"
+    },
+    "nav": {
+      "home": "Home",
+      "pay": "Pay",
+      "report": "Report",
+      "me": "Me",
+      "label": "Main menu"
+    }
+  },
+  "pay": {
+    "title": "My pay",
+    "period": "Period",
+    "regular": "Regular hours",
+    "overtime": "Overtime",
+    "gross": "Total earned",
+    "deductions": "Deductions",
+    "net": "You receive",
+    "listen": "Listen",
+    "whyThisAmount": "Why this amount?"
+  },
+  "report": {
+    "title": "Report danger",
+    "holdToSpeak": "Hold and speak",
+    "orTapIcon": "or tap an icon",
+    "addPhoto": "Add photo (optional)",
+    "hideMyName": "Hide my name",
+    "send": "Send report",
+    "sent": "Report sent!",
+    "status": {
+      "received": "Received",
+      "inProgress": "In progress",
+      "fixed": "Fixed"
+    },
+    "categories": {
+      "fall_from_height": "Fall",
+      "scaffolding": "Scaffolding",
+      "electrical": "Electrical",
+      "heat_stress": "Heat",
+      "ppe_missing": "PPE missing",
+      "machinery": "Machine",
+      "needle_stick": "Needle",
+      "chemical_biohazard": "Chemical",
+      "patient_aggression": "Aggression",
+      "slip": "Slip",
+      "lifting_injury": "Lifting",
+      "machinery_guard": "Machine guard",
+      "noise": "Noise",
+      "chemical": "Chemical",
+      "chemical_labs": "Lab chemical",
+      "fire_exit": "Fire exit"
+    }
+  },
+  "feedback": {
+    "title": "Speak up",
+    "question1": "Is your pay fair?",
+    "question2": "Do you feel safe?",
+    "question3": "Is your manager respectful?",
+    "addComment": "Add a comment (optional)",
+    "anonymous": "Your answers are anonymous",
+    "submit": "Submit",
+    "thanks": "Thank you for your feedback!"
+  },
+  "skills": {
+    "title": "My skills",
+    "addSkill": "Add skill",
+    "verified": "Verified",
+    "pending": "Pending"
+  },
+  "checkin": {
+    "title": "Check in",
+    "scanQR": "Scan the QR code",
+    "success": "Checked in!",
+    "alreadyIn": "You are already checked in",
+    "checkoutSuccess": "Checked out!"
+  },
+  "admin": {
+    "overview": "Overview",
+    "hazards": "Hazards",
+    "people": "People",
+    "feedback": "Feedback",
+    "payroll": "Payroll",
+    "sites": "Sites",
+    "kiosk": "QR Kiosk",
+    "onSiteNow": "On site now",
+    "overtimeThisWeek": "Overtime this week",
+    "openHazards": "Open hazards",
+    "feedbackMood": "Feedback mood",
+    "atRiskWorkers": "At-risk workers",
+    "orgName": "Organization",
+    "navLabel": "Admin menu",
+    "sector": {
+      "construction": "Construction",
+      "hospital": "Hospital",
+      "campus": "Campus",
+      "factory": "Factory"
+    },
+    "ofWorkers": "of {count} workers",
+    "urgentCount": "{count} high or critical",
+    "responses": "{count} responses",
+    "fatigueRulesBroken": "Fatigue rule broken in last 14 days"
+  },
+  "offline": {
+    "title": "You are offline",
+    "message": "Check your internet connection. Your saved data is safe."
+  },
+  "a11y": {
+    "speakButton": "Read aloud",
+    "languageSwitch": "Change language",
+    "navHome": "Go to home",
+    "navPay": "Go to pay",
+    "navReport": "Go to report",
+    "navMe": "Go to profile"
+  }
+}
