@@ -168,3 +168,15 @@ body {
     transform: translateY(8px);
   }
 }
+
+/* Chart marks: #0d9488 passes the dataviz validator on both light and dark surfaces */
+:root {
+  --chart-1: #0d9488;
+  --chart-grid: #e5e5e5;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --chart-grid: #333333;
+  }
+}

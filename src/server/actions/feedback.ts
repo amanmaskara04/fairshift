@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
@@ -29,6 +28,5 @@ export async function submitFeedbackAction(input: unknown): Promise<{ ok: true }
     now: new Date(),
     hmacSecret: feedbackHmacSecret(),
   });
-  revalidatePath("/a/feedback");
   return result;
 }

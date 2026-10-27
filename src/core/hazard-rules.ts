@@ -2,7 +2,7 @@
 // Certain hazard categories have minimum severity floors.
 // An AI hint can raise severity but never lower it below the floor.
 
-import { HazardCategory, HazardSeverity } from './types';
+import { HazardCategory, HazardSeverity, HazardStatus } from './types';
 
 /**
  * Severity levels ordered from lowest to highest.
@@ -49,4 +49,23 @@ export function resolveSeverity(
 
   // Return the higher of aiHint and floor
   return severityIndex(aiHint) >= severityIndex(floor) ? aiHint : floor;
+}
+
+/**
+ * Allowed status moves for a hazard. A fixed hazard is final (report a new one if it recurs);
+ * a dismissed one can be reopened.
+ */
+const TRANSITIONS: Record<HazardStatus, HazardStatus[]> = {
+  received: ['in_progress', 'fixed', 'dismissed'],
+  in_progress: ['fixed', 'dismissed'],
+  fixed: [],
+  dismissed: ['received'],
+};
+
+export function nextStatuses(status: HazardStatus): HazardStatus[] {
+  return TRANSITIONS[status];
+}
+
+export function canTransition(from: HazardStatus, to: HazardStatus): boolean {
+  return TRANSITIONS[from].includes(to);
 }
