@@ -1,5 +1,91 @@
-import { ComingSoon } from "@/components/coming-soon";
+import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Download } from "lucide-react";
+import { requireRole } from "@/server/dal";
+import { getRepos } from "@/server/repos";
+import { buildPayroll } from "@/server/services/payroll";
+import { isMonthKey, monthKey } from "@/core/period";
+import { formatDuration, formatINR } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 
-export default function Page() {
-  return <ComingSoon titleKey="admin.payroll" />;
+export default async function PayrollPage({ searchParams }: PageProps<"/a/payroll">) {
+  const session = await requireRole("admin");
+  const t = await getTranslations("admin.payrollPage");
+  const months = [0, -1, -2].map((offset) => monthKey(new Date(), offset));
+  const requested = (await searchParams).m;
+  const month = typeof requested === "string" && isMonthKey(requested) && months.includes(requested) ? requested : months[0];
+  const rows = await buildPayroll(getRepos(), session.orgId, month);
+  const totals = rows.reduce((acc, r) => ({ gross: acc.gross + r.gross, net: acc.net + r.net, ot: acc.ot + r.overtimeMinutes }), { gross: 0, net: 0, ot: 0 });
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <a href={`/api/payroll?month=${month}`} className={buttonVariants({ size: "sm" })} download>
+          <Download aria-hidden="true" className="size-4" />
+          {t("export")}
+        </a>
+      </div>
+      <nav aria-label={t("month")} className="flex gap-2">
+        {months.map((m) => (
+          <Link
+            key={m}
+            href={`/a/payroll?m=${m}`}
+            aria-current={m === month ? "page" : undefined}
+            className={cn(buttonVariants({ size: "sm", variant: m === month ? "primary" : "outline" }))}
+          >
+            {m}
+          </Link>
+        ))}
+      </nav>
+      <p className="text-muted-foreground">{t("intro")}</p>
+      <Card className="overflow-x-auto rounded-admin p-0">
+        <table className="w-full min-w-[720px] text-left">
+          <caption className="sr-only">{t("title")}</caption>
+          <thead className="bg-muted text-sm text-muted-foreground">
+            <tr>
+              <th scope="col" className="p-3 font-medium">{t("worker")}</th>
+              <th scope="col" className="p-3 font-medium">{t("days")}</th>
+              <th scope="col" className="p-3 font-medium">{t("regular")}</th>
+              <th scope="col" className="p-3 font-medium">{t("overtime")}</th>
+              <th scope="col" className="p-3 text-right font-medium">{t("gross")}</th>
+              <th scope="col" className="p-3 text-right font-medium">{t("pf")}</th>
+              <th scope="col" className="p-3 text-right font-medium">{t("net")}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r) => (
+              <tr key={r.workerId} className="border-t border-border">
+                <th scope="row" className="p-3 font-semibold">
+                  {r.name}
+                  <span className="block text-sm font-normal text-muted-foreground">
+                    #{r.code} · {t(`basis.${r.basis}`)}
+                  </span>
+                </th>
+                <td className="p-3">{r.daysWorked}</td>
+                <td className="p-3 whitespace-nowrap">{formatDuration(r.regularMinutes)}</td>
+                <td className="p-3 whitespace-nowrap">{r.overtimeMinutes ? formatDuration(r.overtimeMinutes) : "—"}</td>
+                <td className="p-3 text-right whitespace-nowrap">{formatINR(r.gross)}</td>
+                <td className="p-3 text-right whitespace-nowrap">{formatINR(r.deductions)}</td>
+                <td className="p-3 text-right font-bold whitespace-nowrap">{formatINR(r.net)}</td>
+              </tr>
+            ))}
+          </tbody>
+          <tfoot className="border-t-2 border-border font-bold">
+            <tr>
+              <th scope="row" className="p-3">{t("total")}</th>
+              <td className="p-3" />
+              <td className="p-3" />
+              <td className="p-3 whitespace-nowrap">{formatDuration(totals.ot)}</td>
+              <td className="p-3 text-right whitespace-nowrap">{formatINR(totals.gross)}</td>
+              <td className="p-3" />
+              <td className="p-3 text-right whitespace-nowrap">{formatINR(totals.net)}</td>
+            </tr>
+          </tfoot>
+        </table>
+      </Card>
+    </div>
+  );
 }

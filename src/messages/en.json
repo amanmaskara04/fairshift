@@ -238,7 +238,126 @@
     "ofWorkers": "of {count} workers",
     "urgentCount": "{count} high or critical",
     "responses": "{count} responses",
-    "fatigueRulesBroken": "Fatigue rule broken in last 14 days"
+    "fatigueRulesBroken": "Fatigue rule broken in last 14 days",
+    "acrossTeam": "across the team",
+    "needsAttention": "Needs attention",
+    "allClear": "Nothing urgent right now.",
+    "riskScore": "Risk {score}",
+    "charts": {
+      "attendance": "Workers present per day (last 14 days)",
+      "overtime": "Overtime hours per week",
+      "workersUnit": "workers",
+      "hoursUnit": "hours"
+    },
+    "ai": {
+      "title": "AI transparency",
+      "intro": "Recent AI calls. Only metadata is kept — never what workers said.",
+      "none": "No AI calls yet.",
+      "feature": "Feature",
+      "model": "Model",
+      "latency": "Time",
+      "fallback": "Fallback used",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "risk": {
+      "none": "No risk signals",
+      "overtime": "Overtime",
+      "missedDays": "Missed days",
+      "mood": "Low team mood",
+      "hazards": "Open hazards",
+      "payDisputes": "Pay disputes"
+    },
+    "fatigue": {
+      "none": "OK",
+      "maxDailyHours": "Long day",
+      "minRestHours": "Short rest",
+      "maxConsecutiveDays": "No day off",
+      "maxConsecutiveNights": "Night shifts in a row",
+      "maxWeeklyHours": "Over 48h/week"
+    },
+    "hazardsPage": {
+      "title": "Hazards",
+      "intro": "Highest severity first. Workers see every status change on their phone.",
+      "empty": "Nothing here.",
+      "photoAlt": "Photo attached by the worker",
+      "anonymous": "Anonymous",
+      "reopen": "Reopen",
+      "start": "Start work",
+      "markFixed": "Mark fixed",
+      "dismiss": "Dismiss"
+    },
+    "peoplePage": {
+      "title": "People",
+      "intro": "Sorted by quit risk. Every score shows why.",
+      "worker": "Worker",
+      "status": "Status",
+      "thisWeek": "This week",
+      "fatigue": "Fatigue rules",
+      "risk": "Quit risk",
+      "onSite": "On site",
+      "offSite": "Off site",
+      "overtime": "{hours} overtime",
+      "method": "Quit risk is a transparent weighted score (0–100) from overtime and its trend, missed working days, team mood (only from groups of 5+), open hazards at the site and pay disputes. It is a prompt to talk, not a judgement."
+    },
+    "feedbackPage": {
+      "title": "Feedback",
+      "privacy": "Answers are anonymous. Groups smaller than {k} are hidden so no one can be identified.",
+      "hidden": "Hidden to protect anonymity ({count} of {k} responses needed).",
+      "responses": "{count} responses",
+      "themes": "Themes",
+      "q": {
+        "pay": "Fair pay",
+        "safety": "Feels safe",
+        "respect": "Respect"
+      },
+      "theme": {
+        "pay": "Pay",
+        "hours": "Hours",
+        "safety": "Safety",
+        "respect": "Respect",
+        "facilities": "Facilities"
+      }
+    },
+    "brief": {
+      "title": "Weekly brief",
+      "working": "Writing…",
+      "refresh": "Refresh",
+      "generate": "Generate brief",
+      "privacy": "Built only from totals — no names or comments are sent to the AI.",
+      "byGemini": "Written by Gemini from totals",
+      "byTemplate": "Standard summary (AI unavailable)"
+    },
+    "payrollPage": {
+      "title": "Payroll",
+      "export": "Export CSV",
+      "month": "Month",
+      "intro": "Hours and pay are calculated by tested code from check-in records. Overtime is paid at 2×.",
+      "worker": "Worker",
+      "days": "Days",
+      "regular": "Regular",
+      "overtime": "Overtime",
+      "gross": "Gross",
+      "pf": "PF",
+      "net": "Net",
+      "total": "Total",
+      "basis": {
+        "daily": "daily wage",
+        "monthly": "monthly",
+        "hourly": "hourly"
+      }
+    },
+    "sitesPage": {
+      "title": "Sites",
+      "people": "{onSite} on site now · {assigned} assigned",
+      "rules": "Working-time rules",
+      "rulesValue": "{daily}h/day · {weekly}h/week · OT {ot}×",
+      "geofence": "Geofence",
+      "geofenceValue": "{radius} m radius",
+      "noGeofence": "QR only",
+      "hazardTypes": "Hazard types for this sector",
+      "openKiosk": "Open QR kiosk"
+    }
   },
   "offline": {
     "title": "You are offline",
