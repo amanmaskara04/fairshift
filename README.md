@@ -95,7 +95,7 @@ Worker phone (PWA)            Admin browser
  Gemini API: 3.5 Flash-Lite (audio → JSON), 3.8 Flash (fallback, weekly brief)
 ```
 
-- **Data** sits behind a `Repos` interface. It is in-memory today (deterministic seed: 2 orgs, 3 sites, 12 workers, 3 weeks of shifts); Firestore plugs in behind the same interface.
+- **Data** sits behind a `Repos` interface: **MongoDB** in production (`MONGODB_URI`; an empty database is auto-seeded and indexed on first connect), deterministic in-memory seed for local dev and tests (2 orgs, 3 sites, 12 workers, 3 weeks of shifts).
 - **AI fallback chain:** fast model → fallback model → keyword classifier (en/hi/ta/te) → keyless demo fixtures → *"not understood, tap an icon"*. The app never invents what a worker said.
 - **Prompt-injection boundary:**
   - User text is fenced as `<untrusted>`.
@@ -125,7 +125,7 @@ Worker phone (PWA)            Admin browser
 ```bash
 gcloud run deploy fairshift --source . --region asia-south1 --allow-unauthenticated \
   --set-env-vars DEMO_MODE=true \
-  --set-secrets SESSION_SECRET=fairshift-session:latest,FEEDBACK_HMAC_SECRET=fairshift-feedback:latest,GEMINI_API_KEY=gemini-key:latest
+  --set-secrets SESSION_SECRET=fairshift-session:latest,FEEDBACK_HMAC_SECRET=fairshift-feedback:latest,GEMINI_API_KEY=gemini-key:latest,MONGODB_URI=mongodb-uri:latest
 ```
 
 The multi-stage `Dockerfile` runs as a non-root user on port 8080 with a health check. CI (`.github/workflows/ci.yml`) runs lint, typecheck, coverage, audit and e2e, then builds the image and smoke-tests it.
@@ -142,7 +142,6 @@ The multi-stage `Dockerfile` runs as a non-root user on port 8080 with a health 
 
 ## Roadmap
 
-- Firestore repository and Firebase Auth behind the existing interfaces.
 - IVR / missed-call reporting for feature phones.
 - Payslip links over WhatsApp/SMS.
 - State-specific labour rules (the defaults are 8 h/day, 48 h/week and 2× overtime; notification dates vary by state).
