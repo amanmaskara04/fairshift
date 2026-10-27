@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Noto_Sans, Noto_Sans_Devanagari, Noto_Sans_Tamil, Noto_Sans_Telugu } from "next/font/google";
+import { Archivo, IBM_Plex_Mono, Noto_Sans, Noto_Sans_Devanagari, Noto_Sans_Tamil, Noto_Sans_Telugu } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { SerwistProvider } from "@serwist/turbopack/react";
@@ -8,6 +8,10 @@ import "./globals.css";
 
 // Self-hosted at build time (no runtime call to Google), so CSP keeps font-src 'self'.
 const latin = Noto_Sans({ subsets: ["latin"], weight: ["400", "700"], display: "swap", variable: "--font-latin" });
+// Signage-style display face for headings, and a ledger mono for money and hours (Latin glyphs only;
+// Indic text falls through to the Noto face for that script).
+const archivo = Archivo({ subsets: ["latin"], weight: ["600", "800"], display: "swap", variable: "--font-archivo" });
+const plexMono = IBM_Plex_Mono({ subsets: ["latin"], weight: ["500", "600"], display: "swap", variable: "--font-plex-mono" });
 const devanagari = Noto_Sans_Devanagari({
   subsets: ["devanagari"],
   weight: ["400", "700"],
@@ -31,7 +35,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0f766e",
+  themeColor: "#1e5b4a",
   width: "device-width",
   initialScale: 1,
 };
@@ -42,7 +46,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const font = FONT_FOR_LOCALE[locale] ?? FONT_FOR_LOCALE.en;
 
   return (
-    <html lang={locale} className={`${latin.variable} ${font.variable} h-full antialiased`}>
+    <html lang={locale} className={`${latin.variable} ${font.variable} ${archivo.variable} ${plexMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col font-sans" style={{ ["--font-active" as string]: `var(${font.cssVar}), var(--font-latin)` }}>
         <a href="#main" className="skip-link">
           {t("skipToContent")}

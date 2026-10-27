@@ -12,7 +12,7 @@ export default async function KioskIndex() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <p className="text-muted-foreground">{t("intro")}</p>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sites.map((site) => (

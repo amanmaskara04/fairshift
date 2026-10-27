@@ -57,7 +57,7 @@ export default async function WorkerHome() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("greeting", { name: firstName })}</h1>
+        <h1 className="text-3xl font-extrabold">{t("greeting", { name: firstName })}</h1>
         <SpeakButton text={`${t("greeting", { name: firstName })}. ${status}. ${hours}.`} />
       </div>
 
@@ -74,26 +74,28 @@ export default async function WorkerHome() {
         </Card>
       )}
 
-      <Card aria-live="polite" className="flex items-center gap-3">
+      <Card aria-live="polite" className="flex items-center gap-4 border-0 bg-brand text-brand-foreground">
         {openShift ? (
-          <BadgeCheck aria-hidden="true" className="size-10 shrink-0 text-success" />
+          <BadgeCheck aria-hidden="true" className="size-12 shrink-0 text-accent" />
         ) : (
-          <Clock aria-hidden="true" className="size-10 shrink-0 text-muted-foreground" />
+          <Clock aria-hidden="true" className="size-12 shrink-0 opacity-80" />
         )}
         <div>
-          <p className="font-bold">{status}</p>
-          <p className="text-muted-foreground">{hours}</p>
+          <p className="text-lg font-bold">{status}</p>
+          <p className="figure text-2xl font-semibold">{hours}</p>
         </div>
       </Card>
 
-      <ul className="grid grid-cols-2 gap-3">
+      <ul className="stagger grid grid-cols-2 gap-4">
         {TILES.map(({ href, key, Icon }) => (
           <li key={href}>
             <Link
               href={href}
-              className="flex min-h-32 flex-col items-center justify-center gap-2 rounded-worker border-2 border-border bg-card p-3 text-center text-lg font-bold hover:border-brand"
+              className="print-card flex min-h-36 flex-col items-start justify-between gap-3 rounded-worker p-4 text-left text-lg leading-tight font-bold"
             >
-              <Icon aria-hidden="true" className="size-10 text-brand" />
+              <span className="flex size-12 items-center justify-center rounded-admin bg-accent text-accent-foreground">
+                <Icon aria-hidden="true" className="size-7" />
+              </span>
               {key === "checkin" && openShift ? t("tiles.checkout") : t(`tiles.${key}`)}
             </Link>
           </li>

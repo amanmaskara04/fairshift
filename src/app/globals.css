@@ -1,45 +1,52 @@
 @import "tailwindcss";
 
 /*
- * Design tokens (docs/03 §4). Every text/background pair below meets WCAG AA (4.5:1):
- * white on --brand #0f766e = 5.5:1 (the brief's #0d9488 fails at 3.7:1, so it is decoration only).
- * Status colours keep white text in both themes: danger 6.5:1, warning 5.0:1, success 5.0:1.
+ * FairShift design system — "worksite ledger".
+ * Warm paper, ink, bottle green and hi-vis marigold: the materials of a site register,
+ * a payslip and a safety sign. Contrast (computed, WCAG 2.1):
+ *   ink/paper 15.2 · muted/paper 6.3 · paper-on-green 7.8 · ink-on-marigold 9.3
+ *   white on danger 6.4 / warning 5.3 / success 6.3 · dark mode pairs all ≥ 7.6
  */
 :root {
-  --brand: #0f766e;
-  --brand-foreground: #ffffff;
-  --brand-soft: #ccfbf1;
-  --brand-soft-foreground: #134e4a;
-  --accent: #d97706;
-  --danger: #b91c1c;
-  --warning: #b45309;
-  --success: #15803d;
-  --status-foreground: #ffffff;
-  --radius-worker: 14px;
-  --radius-admin: 8px;
-  --background: #ffffff;
-  --foreground: #171717;
-  --muted: #f5f5f5;
-  --muted-foreground: #525252;
-  --border: #d4d4d4;
-  --card: #ffffff;
-  --card-foreground: #171717;
+  --brand: #1e5b4a;
+  --brand-foreground: #fffdf8;
+  --brand-soft: #e3ede6;
+  --brand-soft-foreground: #1e5b4a;
+  --accent: #f2b33d;
+  --accent-foreground: #1c1b18;
+  --danger: #b3261e;
+  --warning: #9a5b00;
+  --success: #2e6b2f;
+  --status-foreground: #fffdf8;
+  --radius-worker: 10px;
+  --radius-admin: 6px;
+  --background: #f5f0e6;
+  --foreground: #1c1b18;
+  --muted: #ebe4d6;
+  --muted-foreground: #5c574d;
+  --border: #d6cdbb;
+  --ink-line: #1c1b18;
+  --card: #fffdf8;
+  --card-foreground: #1c1b18;
+  --chart-1: #2f8f6b;
+  --chart-grid: #e2dacb;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --brand: #2dd4bf;
-    --brand-foreground: #042f2e;
-    --brand-soft: #134e4a;
-    --brand-soft-foreground: #ccfbf1;
-    --accent: #f59e0b;
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --muted: #262626;
-    --muted-foreground: #a3a3a3;
-    --border: #404040;
-    --card: #171717;
-    --card-foreground: #ededed;
+    --brand: #7fd1b2;
+    --brand-foreground: #0f1f1a;
+    --brand-soft: #1f3b33;
+    --brand-soft-foreground: #e3ede6;
+    --background: #14130f;
+    --foreground: #f2ede3;
+    --muted: #262420;
+    --muted-foreground: #b5ae9f;
+    --border: #3a372f;
+    --ink-line: #f2ede3;
+    --card: #1e1d18;
+    --card-foreground: #f2ede3;
+    --chart-grid: #33302a;
   }
 }
 
@@ -49,6 +56,7 @@
   --color-brand-soft: var(--brand-soft);
   --color-brand-soft-foreground: var(--brand-soft-foreground);
   --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-danger: var(--danger);
   --color-warning: var(--warning);
   --color-success: var(--success);
@@ -58,11 +66,14 @@
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
+  --color-ink: var(--ink-line);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --radius-worker: var(--radius-worker);
   --radius-admin: var(--radius-admin);
   --font-sans: var(--font-active), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-archivo), var(--font-active), ui-sans-serif, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 /* Worker routes: larger text for low-literacy users */
@@ -88,12 +99,32 @@ body {
   background: var(--background);
   color: var(--foreground);
   min-height: 100dvh;
+  font-feature-settings: "kern", "liga";
+}
+
+h1,
+h2,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+/* Money and hours line up like a ledger */
+.figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
 }
 
 :focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--accent-foreground);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -113,9 +144,9 @@ body {
   left: 16px;
   z-index: 100;
   padding: 8px 16px;
-  background: var(--brand);
-  color: var(--brand-foreground);
-  border-radius: 0 0 8px 8px;
+  background: var(--accent);
+  color: var(--accent-foreground);
+  border-radius: 0 0 6px 6px;
   font-weight: 700;
   text-decoration: none;
 }
@@ -124,7 +155,76 @@ body {
   top: 0;
 }
 
-/* Success tick: circle then check mark draw in */
+/* ── Signature details ─────────────────────────────────────────────── */
+
+/* Hazard tape: the one decorative motif, used as a thin rule */
+.hazard-tape {
+  height: 6px;
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, var(--ink-line) 12px 24px);
+}
+
+/* Printed card: ink outline with an offset block shadow, like a stamped register page */
+.print-card {
+  background: var(--card);
+  color: var(--card-foreground);
+  border: 2px solid var(--ink-line);
+  box-shadow: 4px 4px 0 var(--ink-line);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+a.print-card:hover,
+button.print-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 var(--ink-line);
+}
+
+a.print-card:active,
+button.print-card:active {
+  transform: translate(3px, 3px);
+  box-shadow: 1px 1px 0 var(--ink-line);
+}
+
+/* Receipt edge: perforated top and bottom for the payslip */
+.receipt {
+  position: relative;
+  background: var(--card);
+  border-left: 2px dashed var(--border);
+  border-right: 2px dashed var(--border);
+}
+
+.receipt::before,
+.receipt::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: radial-gradient(circle at 8px 0, transparent 6px, var(--card) 6.5px) repeat-x;
+  background-size: 16px 10px;
+}
+
+.receipt::before {
+  top: -10px;
+  transform: rotate(180deg);
+}
+
+.receipt::after {
+  bottom: -10px;
+}
+
+/* Small uppercase label used above figures */
+.eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ── Motion (all disabled by prefers-reduced-motion above) ─────────── */
+
 .success-check-circle {
   stroke-dasharray: 151;
   stroke-dashoffset: 151;
@@ -143,7 +243,6 @@ body {
   }
 }
 
-/* Recording pulse for the hold-to-talk mic */
 .mic-pulse {
   animation: mic-pulse 1.2s ease-out infinite;
 }
@@ -157,7 +256,6 @@ body {
   }
 }
 
-/* Gentle entrance for cards and tiles */
 .rise-in {
   animation: rise-in 0.4s ease-out both;
 }
@@ -169,14 +267,22 @@ body {
   }
 }
 
-/* Chart marks: #0d9488 passes the dataviz validator on both light and dark surfaces */
-:root {
-  --chart-1: #0d9488;
-  --chart-grid: #e5e5e5;
+/* Staggered entrance for tile grids */
+.stagger > * {
+  animation: rise-in 0.35s ease-out both;
 }
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --chart-grid: #333333;
-  }
+.stagger > *:nth-child(2) {
+  animation-delay: 50ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 100ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 150ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 200ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 250ms;
 }

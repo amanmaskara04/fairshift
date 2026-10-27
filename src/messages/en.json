@@ -20,7 +20,13 @@
     "title": "FairShift",
     "subtitle": "Fair work. Fair pay. Your voice.",
     "chooseLanguage": "Choose your language",
-    "continue": "Continue"
+    "continue": "Continue",
+    "sdg": "UN SDG 8 · Decent work",
+    "promiseHours": "Every hour you work is recorded — overtime included.",
+    "promisePay": "A payslip you can read and hear, in your language.",
+    "promiseVoice": "Report danger or speak up safely, without your name.",
+    "languageHint": "You can change it any time.",
+    "footer": "Built for construction sites, hospitals, campuses and factories across India."
   },
   "login": {
     "workerTab": "Worker",
@@ -38,7 +44,8 @@
     "errorLocked": "Too many tries. Please wait 15 minutes.",
     "errorGeneral": "Something went wrong. Please try again.",
     "deleteDigit": "Delete last digit",
-    "keypad": "Number keypad"
+    "keypad": "Number keypad",
+    "title": "Sign in to your workplace"
   },
   "worker": {
     "greeting": "Hello, {name}!",

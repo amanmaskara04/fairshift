@@ -27,7 +27,7 @@ export default async function ReportPage() {
   return (
     <div className="flex flex-col gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t("title")}</h1>
+        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
         <SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />
       </div>
 
@@ -45,7 +45,7 @@ export default async function ReportPage() {
               <li key={h.id}>
                 <Link
                   href={`/w/report/${h.id}`}
-                  className="flex min-h-16 items-center gap-3 rounded-worker border-2 border-border bg-card p-3 hover:border-brand"
+                  className="print-card flex min-h-16 items-center gap-3 rounded-worker p-3"
                 >
                   <HazardIcon category={h.category} className="size-8 shrink-0 text-brand" />
                   <span className="flex-1 font-semibold">{t(`categories.${h.category}`)}</span>

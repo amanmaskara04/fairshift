@@ -59,7 +59,7 @@ export function FeedbackForm() {
         </p>
       )}
       {QUESTIONS.map((q) => (
-        <fieldset key={q.key} className="rounded-worker border-2 border-border p-3">
+        <fieldset key={q.key} className="rounded-worker border-2 border-ink bg-card p-3">
           <legend className="flex w-full items-center justify-between gap-2 px-1 text-lg font-bold">
             {t(q.label)}
             <SpeakButton text={t(q.label)} />
@@ -77,7 +77,7 @@ export function FeedbackForm() {
                   onClick={() => setAnswers((prev) => ({ ...prev, [q.key]: face.value }))}
                   className={cn(
                     "flex min-h-20 flex-col items-center justify-center rounded-worker border-2 text-4xl",
-                    selected ? "border-brand bg-brand-soft" : "border-border",
+                    selected ? "border-ink bg-accent text-accent-foreground" : "border-border bg-card",
                   )}
                 >
                   <span aria-hidden="true">{face.emoji}</span>

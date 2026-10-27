@@ -8,6 +8,8 @@ const THEME_COLORS = [
   "brand-soft",
   "brand-soft-foreground",
   "accent",
+  "accent-foreground",
+  "ink",
   "danger",
   "warning",
   "success",

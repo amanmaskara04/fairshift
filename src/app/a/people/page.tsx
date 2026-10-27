@@ -20,7 +20,7 @@ export default async function PeoplePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-2xl font-bold">{t("title")}</h1>
+      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <p className="text-muted-foreground">{t("intro")}</p>
       <Card className="overflow-x-auto rounded-admin p-0">
         <table className="w-full min-w-[760px] text-left">

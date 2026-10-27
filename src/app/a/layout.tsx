@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { LanguageSwitch } from "@/components/language-switch";
 import { Sidebar } from "@/components/admin/sidebar";
+import { BrandMark } from "@/components/brand-mark";
 
 export default async function AdminLayout({ children }: LayoutProps<"/a">) {
   const session = await requireRole("admin");
@@ -18,9 +19,11 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
 
   return (
     <div className="admin flex min-h-dvh flex-col">
-      <header className="flex items-center justify-between gap-2 border-b border-border bg-card px-4 py-2">
+      <div className="hazard-tape" aria-hidden="true" />
+      <header className="flex items-center justify-between gap-2 border-b-2 border-ink bg-background px-4 py-2">
         <div className="flex items-center gap-3">
-          <span className="text-lg font-bold text-brand">FairShift</span>
+          <BrandMark className="text-lg" />
+          <span aria-hidden="true" className="h-5 w-px bg-border" />
           <span className="font-semibold">{org?.name}</span>
           {org && <Badge tone="brand">{t(`sector.${org.sector}`)}</Badge>}
         </div>

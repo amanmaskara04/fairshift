@@ -187,7 +187,7 @@ export function HazardReporter({ categories }: { categories: string[] }) {
             <button
               type="button"
               onClick={() => pickCategory(category)}
-              className="flex min-h-24 w-full flex-col items-center justify-center gap-1 rounded-worker border-2 border-border bg-card p-2 text-center font-semibold hover:border-brand"
+              className="print-card flex min-h-24 w-full flex-col items-center justify-center gap-1 rounded-worker p-2 text-center font-bold"
             >
               <HazardIcon category={category} className="size-8 text-brand" />
               {t(`categories.${category}`)}
