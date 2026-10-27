@@ -73,9 +73,18 @@ test("voice endpoint understands a typed report and rejects outsiders", async ({
   expect(anonymous.status()).toBe(401);
 
   await loginAs(page, /Ramesh/);
-  const response = await page.request.post("/api/voice/hazard", { multipart: { text: "बिजली का तार खुला है" } });
-  expect(response.ok()).toBe(true);
-  expect(await response.json()).toMatchObject({ understood: true, category: "electrical" });
+  // What the phone sends after recognising speech in each language: words are kept exactly as spoken.
+  const spoken: [string, string][] = [
+    ["en", "There is an exposed electric wire near the tank"],
+    ["hi", "बिजली का तार खुला है"],
+    ["ta", "தண்ணீர் தொட்டி அருகே மின் கம்பி வெளியே தெரிகிறது"],
+    ["te", "ట్యాంక్ దగ్గర కరెంట్ వైర్ బయట ఉంది"],
+  ];
+  for (const [locale, text] of spoken) {
+    const response = await page.request.post("/api/voice/hazard", { multipart: { text, locale } });
+    expect(response.ok()).toBe(true);
+    expect(await response.json(), locale).toMatchObject({ understood: true, category: "electrical", transcript: text });
+  }
 });
 
 test("feedback is accepted once per week", async ({ page }) => {

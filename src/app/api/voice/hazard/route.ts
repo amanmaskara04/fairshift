@@ -2,7 +2,6 @@ import { z } from "zod";
 import { getSession } from "@/server/session";
 import { getRepos } from "@/server/repos";
 import { RateLimiter } from "@/server/rate-limit";
-import { isDemoMode } from "@/server/config";
 import { isSameOrigin, tooLarge } from "@/server/http";
 import { getSectorProfile } from "@/core/sectors";
 import { extractHazard } from "@/ai/hazard";
@@ -46,7 +45,7 @@ export async function POST(request: Request) {
     text: text.success ? text.data : undefined,
     sector: org.sector,
     categories: getSectorProfile(org.sector).hazardCategories,
-    demo: isDemoMode(),
+    locale: z.enum(["en", "hi", "ta", "te"]).catch("en").parse(form.get("locale")),
   });
   return Response.json(result ? { understood: true, ...result } : { understood: false });
 }
