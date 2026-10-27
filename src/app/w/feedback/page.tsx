@@ -16,7 +16,7 @@ export default async function FeedbackPage() {
   const answered = await hasAnsweredThisWeek(getRepos(), session.uid, new Date(), feedbackHmacSecret());
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-2xl">
       <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("anonymous")}`} />} />
       <p className="flex items-center gap-2 rounded-worker bg-brand-soft p-3 font-semibold text-brand-soft-foreground">
         <Lock aria-hidden="true" className="size-5 shrink-0" />

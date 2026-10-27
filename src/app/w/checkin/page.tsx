@@ -22,7 +22,7 @@ export default async function CheckinPage() {
   const hint = checkedIn ? t("checkoutHint") : t("hint");
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-2xl">
       <PageHeader title={title} action={<SpeakButton text={`${title}. ${hint}`} />}>
         {hint}
       </PageHeader>

@@ -23,7 +23,9 @@ const ACTIONS = [
 ] as const;
 
 function formatTimeIST(date: Date): string {
-  return new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }).format(date);
+  return new Intl.DateTimeFormat("en-IN", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" }).format(
+    date,
+  );
 }
 
 export default async function WorkerHome() {
@@ -45,7 +47,9 @@ export default async function WorkerHome() {
   const todayMinutes = minutesByDay(todayShifts).get(today) ?? 0;
 
   // Only the last 7 days, so the nudge is about recent strain, not old history.
-  const recent = shifts.filter((s): s is ClosedShift => Boolean(s.outAt) && now.getTime() - s.inAt.getTime() <= SEVEN_DAYS_MS);
+  const recent = shifts.filter(
+    (s): s is ClosedShift => Boolean(s.outAt) && now.getTime() - s.inAt.getTime() <= SEVEN_DAYS_MS,
+  );
   const fatigueKeys = org
     ? [...new Set(checkFatigue(recent, getSectorProfile(org.sector).fatigueRules, now).map((a) => a.messageKey))]
     : [];
@@ -56,42 +60,67 @@ export default async function WorkerHome() {
   const hours = t("todayHours", { hours: Math.floor(todayMinutes / 60), minutes: todayMinutes % 60 });
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader eyebrow={todayLabel(locale)} title={greeting} action={<SpeakButton text={`${greeting}. ${status}. ${hours}.`} />} />
+    <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:items-start md:gap-x-10 md:gap-y-8">
+      <div className="md:col-span-2">
+        <PageHeader
+          eyebrow={todayLabel(locale)}
+          title={greeting}
+          action={<SpeakButton text={`${greeting}. ${status}. ${hours}.`} />}
+        />
+      </div>
 
-      <section aria-labelledby="today-card" className="stamp rise-in flex flex-col gap-4 rounded-worker p-5" aria-live="polite">
-        <div className="flex items-center justify-between">
-          <h2 id="today-card" className="eyebrow">
-            {t("today")}
-          </h2>
-          <span className="flex items-center gap-2 text-sm font-bold">
-            <span aria-hidden="true" className={cn("size-2.5 rounded-full", openShift ? "bg-success" : "bg-muted-foreground")} />
-            {status}
-          </span>
-        </div>
-        <p className="figure text-5xl leading-none font-semibold" aria-label={hours}>
-          {formatDuration(todayMinutes)}
-        </p>
-        <Link href="/w/checkin" className={cn(buttonVariants({ variant: openShift ? "outline" : "accent", size: "lg" }), "w-full")}>
-          {openShift ? <LogOut aria-hidden="true" className="size-6" /> : <LogIn aria-hidden="true" className="size-6" />}
-          {openShift ? t("tiles.checkout") : t("tiles.checkin")}
-        </Link>
-      </section>
-
-      {fatigueKeys.length > 0 && (
-        <section role="alert" className="flex items-start gap-3 rounded-worker border-l-[6px] border-warning bg-card p-4">
-          <BatteryLow aria-hidden="true" className="mt-0.5 size-7 shrink-0 text-warning" />
-          <div className="flex-1">
-            <p className="font-bold">{t("fatigue.title")}</p>
-            {fatigueKeys.map((key) => (
-              <p key={key} className="text-muted-foreground">
-                {t(key)}
-              </p>
-            ))}
+      <div className="flex flex-col gap-6">
+        <section
+          aria-labelledby="today-card"
+          className="stamp rise-in flex flex-col gap-4 rounded-worker p-5"
+          aria-live="polite"
+        >
+          <div className="flex items-center justify-between">
+            <h2 id="today-card" className="eyebrow">
+              {t("today")}
+            </h2>
+            <span className="flex items-center gap-2 text-sm font-bold">
+              <span
+                aria-hidden="true"
+                className={cn("size-2.5 rounded-full", openShift ? "bg-success" : "bg-muted-foreground")}
+              />
+              {status}
+            </span>
           </div>
-          <SpeakButton text={[t("fatigue.title"), ...fatigueKeys.map((key) => t(key))].join(". ")} />
+          <p className="figure text-5xl leading-none font-semibold" aria-label={hours}>
+            {formatDuration(todayMinutes)}
+          </p>
+          <Link
+            href="/w/checkin"
+            className={cn(buttonVariants({ variant: openShift ? "outline" : "accent", size: "lg" }), "w-full")}
+          >
+            {openShift ? (
+              <LogOut aria-hidden="true" className="size-6" />
+            ) : (
+              <LogIn aria-hidden="true" className="size-6" />
+            )}
+            {openShift ? t("tiles.checkout") : t("tiles.checkin")}
+          </Link>
         </section>
-      )}
+
+        {fatigueKeys.length > 0 && (
+          <section
+            role="alert"
+            className="flex items-start gap-3 rounded-worker border-l-[6px] border-warning bg-card p-4"
+          >
+            <BatteryLow aria-hidden="true" className="mt-0.5 size-7 shrink-0 text-warning" />
+            <div className="flex-1">
+              <p className="font-bold">{t("fatigue.title")}</p>
+              {fatigueKeys.map((key) => (
+                <p key={key} className="text-muted-foreground">
+                  {t(key)}
+                </p>
+              ))}
+            </div>
+            <SpeakButton text={[t("fatigue.title"), ...fatigueKeys.map((key) => t(key))].join(". ")} />
+          </section>
+        )}
+      </div>
 
       <section aria-labelledby="actions" className="flex flex-col gap-3">
         <h2 id="actions" className="eyebrow rule-label">

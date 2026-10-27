@@ -30,9 +30,19 @@ export default async function AdminOverview() {
   const aiCalls = recentAiCalls().slice(0, 5);
 
   const kpis = [
-    { label: t("onSiteNow"), value: String(workers.filter((w) => w.onSite).length), detail: t("ofWorkers", { count: workers.length }), Icon: Users },
+    {
+      label: t("onSiteNow"),
+      value: String(workers.filter((w) => w.onSite).length),
+      detail: t("ofWorkers", { count: workers.length }),
+      Icon: Users,
+    },
     { label: t("overtimeThisWeek"), value: formatDuration(overtimeMin), detail: t("acrossTeam"), Icon: Clock },
-    { label: t("openHazards"), value: String(openHazards.length), detail: t("urgentCount", { count: urgentHazards.length }), Icon: TriangleAlert },
+    {
+      label: t("openHazards"),
+      value: String(openHazards.length),
+      detail: t("urgentCount", { count: urgentHazards.length }),
+      Icon: TriangleAlert,
+    },
     {
       label: t("feedbackMood"),
       value: snapshot.moodAverage === null ? "—" : `${snapshot.moodAverage.toFixed(1)} / 3`,
@@ -46,15 +56,16 @@ export default async function AdminOverview() {
     <div className="flex flex-col gap-6">
       <PageHeader eyebrow={todayLabel(locale)} title={t("overview")} />
 
-      <ul className="grid overflow-hidden rounded-admin border border-ink bg-card sm:grid-cols-2 xl:grid-cols-5">
-        {kpis.map(({ label, value, detail, Icon }, i) => (
-          <li key={label} className={i > 0 ? "border-t border-border sm:border-t-0 sm:border-l xl:[&:nth-child(n)]:border-l" : ""}>
+      {/* gap-px over the border colour draws hairline dividers that stay correct at every column count. */}
+      <ul className="grid grid-cols-2 gap-px overflow-hidden rounded-admin border border-ink bg-border xl:grid-cols-5 [&>li:last-child]:col-span-2 xl:[&>li:last-child]:col-span-1">
+        {kpis.map(({ label, value, detail, Icon }) => (
+          <li key={label} className="bg-card">
             <div className="flex h-full flex-col gap-1 p-4">
               <span className="eyebrow flex items-center gap-2">
                 <Icon aria-hidden="true" className="size-4" />
                 {label}
               </span>
-              <span className="figure text-4xl leading-tight font-semibold">{value}</span>
+              <span className="figure text-3xl leading-tight font-semibold sm:text-4xl">{value}</span>
               <span className="text-sm text-muted-foreground">{detail}</span>
             </div>
           </li>
