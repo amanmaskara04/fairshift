@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-bold transition-[transform,background-color,box-shadow] duration-100 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 cursor-pointer",
+  "inline-flex items-center justify-center gap-2 font-bold cursor-pointer select-none transition-[transform,background-color,box-shadow,filter] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-[0_3px_0_0_var(--ink-line)] active:translate-y-0 active:shadow-none active:duration-75 disabled:pointer-events-none disabled:opacity-60",
   {
     variants: {
       variant: {
@@ -11,7 +11,7 @@ export const buttonVariants = cva(
         accent: "bg-accent text-accent-foreground border-2 border-ink hover:brightness-95",
         secondary: "bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/80",
         outline: "border-2 border-ink bg-card text-card-foreground hover:bg-muted",
-        ghost: "text-foreground hover:bg-muted",
+        ghost: "text-foreground hover:bg-muted hover:shadow-none hover:translate-y-0",
         danger: "bg-danger text-status-foreground hover:bg-danger/90",
       },
       size: {

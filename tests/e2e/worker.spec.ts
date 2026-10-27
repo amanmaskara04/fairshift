@@ -108,8 +108,11 @@ test("admin kiosk shows a rotating QR for its own site only", async ({ page }) =
   await expect(page.getByTestId("kiosk-qr").locator("svg")).toBeVisible();
   await expectNoA11yViolations(page);
 
-  const other = await page.goto("/a/kiosk/site2");
-  expect(other?.status()).toBe(404);
+  // Another org's site: the page streams (loading UI) so the status may be 200, but it must render
+  // the not-found page and never a QR code.
+  await page.goto("/a/kiosk/site2");
+  await expect(page.getByText("This page could not be found.")).toBeVisible();
+  await expect(page.getByTestId("kiosk-qr")).toHaveCount(0);
 });
 
 test("sync endpoint rejects bad input and unauthenticated calls", async ({ page, request }) => {

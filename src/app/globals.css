@@ -322,3 +322,23 @@ button.print-card:active {
   height: 1px;
   background: var(--border);
 }
+
+/* Taps register immediately on phones (no double-tap-zoom wait) */
+button,
+a,
+[role="button"],
+[role="radio"],
+[role="tab"],
+label {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Custom submit tiles (language picker, demo logins) get the same press feedback */
+button[type="submit"]:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+button[aria-busy="true"] {
+  cursor: wait;
+}

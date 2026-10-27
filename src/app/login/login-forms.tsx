@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Delete } from "lucide-react";
+import { Delete, Loader2 } from "lucide-react";
 import { loginAdmin, loginWorker, type LoginState } from "@/server/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
@@ -110,7 +110,8 @@ function WorkerForm() {
         )}
       </div>
 
-      <Button type="submit" size="lg" disabled={pending}>
+      <Button type="submit" size="lg" disabled={pending} aria-busy={pending || undefined}>
+        {pending ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : null}
         {t("loginButton")}
       </Button>
     </form>
@@ -131,7 +132,8 @@ function AdminForm() {
         <Label htmlFor="admin-password">{t("password")}</Label>
         <Input id="admin-password" name="password" type="password" autoComplete="current-password" required className="mt-1" />
       </div>
-      <Button type="submit" disabled={pending}>
+      <Button type="submit" disabled={pending} aria-busy={pending || undefined}>
+        {pending ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : null}
         {t("loginButton")}
       </Button>
     </form>

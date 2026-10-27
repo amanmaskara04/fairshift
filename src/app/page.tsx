@@ -4,6 +4,7 @@ import { setLocale } from "@/server/actions/auth";
 import { cn } from "@/lib/utils";
 import { BrandMark } from "@/components/brand-mark";
 import { WavesBackground } from "@/components/waves-background";
+import { SubmitButton } from "@/components/ui/submit-button";
 
 // Each language is shown in its own script so a reader recognises it instantly.
 const LANGUAGES = [
@@ -54,9 +55,9 @@ export default async function LandingPage() {
             {LANGUAGES.map((lang) => {
               const active = locale === lang.code;
               return (
-                <button
+                <SubmitButton
+                  unstyled
                   key={lang.code}
-                  type="submit"
                   name="locale"
                   value={lang.code}
                   lang={lang.code}
@@ -71,7 +72,7 @@ export default async function LandingPage() {
                     {lang.hint}
                     <ArrowRight aria-hidden="true" className="size-4 transition-transform group-hover:translate-x-1" />
                   </span>
-                </button>
+                </SubmitButton>
               );
             })}
           </form>

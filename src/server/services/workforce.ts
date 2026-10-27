@@ -79,8 +79,12 @@ export async function buildOrgSnapshot(repos: Repos, orgId: string, now: Date): 
 
   const allShifts: ClosedShift[] = [];
   const health: WorkerHealth[] = [];
+  const shiftsByWorker = new Map<string, Awaited<ReturnType<Repos["shifts"]["getByWorkers"]>>>();
+  for (const s of await repos.shifts.getByWorkers(workers.map((w) => w.id))) {
+    shiftsByWorker.set(s.workerId, [...(shiftsByWorker.get(s.workerId) ?? []), s]);
+  }
   for (const worker of workers) {
-    const shifts = await repos.shifts.getByWorker(worker.id);
+    const shifts = shiftsByWorker.get(worker.id) ?? [];
     const closed = shifts.filter((s): s is ClosedShift => Boolean(s.outAt));
     allShifts.push(...closed);
     const recent = closed.filter((s) => now.getTime() - s.inAt.getTime() <= LOOKBACK_DAYS * DAY_MS);
