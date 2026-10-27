@@ -26,7 +26,7 @@ export default async function ReportPage() {
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-2xl">
       <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />} />
 
       <HazardReporter categories={[...getSectorProfile(org.sector).hazardCategories]} />

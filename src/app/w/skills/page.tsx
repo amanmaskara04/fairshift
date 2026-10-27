@@ -31,7 +31,7 @@ export default async function SkillsPage() {
   const verified = skills.filter((s) => s.verifiedBy).length;
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-2xl">
       <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("summary", { count: skills.length, verified })}`} />} />
       <p className="text-muted-foreground">{t("summary", { count: skills.length, verified })}</p>
 

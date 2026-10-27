@@ -38,6 +38,8 @@ export const viewport: Viewport = {
   themeColor: "#1e5b4a",
   width: "device-width",
   initialScale: 1,
+  // Lets env(safe-area-inset-*) keep the tab bar clear of Android gesture bars and notches.
+  viewportFit: "cover",
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

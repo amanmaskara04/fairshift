@@ -34,7 +34,7 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
   const overtime = payslip.lines.find((l) => l.kind === "overtime");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-2xl">
       <PageHeader title={t("title")} action={<SpeakButton text={sentences.join(" ")} />} />
 
       <nav aria-label={t("period")} className="grid grid-cols-3 gap-1 rounded-worker border border-border bg-card p-1">

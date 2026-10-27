@@ -22,7 +22,51 @@ export default async function PeoplePage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-3xl font-extrabold">{t("title")}</h1>
       <p className="text-muted-foreground">{t("intro")}</p>
-      <Card className="overflow-x-auto rounded-admin p-0">
+
+      {/* Phones: one card per worker, every column visible without sideways scrolling. */}
+      <ul className="flex flex-col gap-3 md:hidden">
+        {snapshot.workers.map((w) => (
+          <li key={w.worker.id}>
+            <Card className="flex flex-col gap-3 rounded-admin">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-bold">{w.worker.name}</p>
+                  <p className="truncate text-sm text-muted-foreground">{siteOf.get(w.worker.siteId)}</p>
+                </div>
+                <Badge tone={riskTone(w.risk.score)}>
+                  {t("risk")} {w.risk.score}
+                </Badge>
+              </div>
+              <dl className="grid grid-cols-2 gap-2 text-sm">
+                <div>
+                  <dt className="eyebrow">{t("status")}</dt>
+                  <dd>
+                    <Badge tone={w.onSite ? "success" : "neutral"}>{w.onSite ? t("onSite") : t("offSite")}</Badge>
+                  </dd>
+                </div>
+                <div>
+                  <dt className="eyebrow">{t("thisWeek")}</dt>
+                  <dd className="figure">
+                    {formatDuration(w.weekMinutes)}
+                    {w.overtimeThisWeek > 0 && <span className="block text-muted-foreground">{t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}</span>}
+                  </dd>
+                </div>
+              </dl>
+              <div className="flex flex-col gap-1">
+                <p className="eyebrow">{t("fatigue")}</p>
+                <FatigueReasons alerts={w.fatigue} />
+              </div>
+              <div className="flex flex-col gap-1">
+                <p className="eyebrow">{t("risk")}</p>
+                <RiskReasons risk={w.risk} />
+              </div>
+            </Card>
+          </li>
+        ))}
+      </ul>
+
+      {/* Laptops: the full comparison table. */}
+      <Card className="hidden overflow-x-auto rounded-admin p-0 md:block">
         <table className="w-full min-w-[760px] text-left">
           <caption className="sr-only">{t("title")}</caption>
           <thead className="bg-muted text-sm text-muted-foreground">

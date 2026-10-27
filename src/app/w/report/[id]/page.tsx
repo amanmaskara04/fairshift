@@ -29,7 +29,7 @@ export default async function ReportDetail({ params, searchParams }: PageProps<"
   const statusText = t(`status.${hazard.status}`);
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-2xl">
       <Link href="/w/report" className="flex min-h-12 items-center gap-2 font-semibold text-brand">
         <ArrowLeft aria-hidden="true" className="size-5" />
         {t("myReports")}

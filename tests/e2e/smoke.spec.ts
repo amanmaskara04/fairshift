@@ -58,7 +58,7 @@ test("a worker cannot open admin pages", async ({ page }) => {
 test("demo admin sees live KPIs", async ({ page }) => {
   await demoLogin(page, /Priya/);
   await expect(page).toHaveURL(/\/a$/);
-  await expect(page.getByText("BuildRight Constructions")).toBeVisible();
+  await expect(page.getByText("BuildRight Constructions").filter({ visible: true })).toBeVisible();
   await expect(page.getByText("Open hazards", { exact: true })).toBeVisible();
   await expectNoA11yViolations(page);
 });
