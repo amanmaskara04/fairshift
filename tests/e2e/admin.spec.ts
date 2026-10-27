@@ -26,6 +26,7 @@ test("overview shows KPIs, attention items and charts", async ({ page }) => {
 });
 
 test("a worker's report reaches the admin, and the status change reaches the worker", async ({ browser }) => {
+  test.setTimeout(90_000); // drives two browsers end to end
   const worker = await (await browser.newContext()).newPage();
   await loginAs(worker, /Ramesh/);
   await worker.goto("/w/report");
