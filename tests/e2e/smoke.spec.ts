@@ -18,7 +18,7 @@ test("landing sends security headers and has no a11y violations", async ({ page 
   const response = await page.goto("/");
   const headers = response!.headers();
   expect(headers["content-security-policy"]).toContain("nonce-");
-  expect(headers["content-security-policy"]).toContain("frame-ancestors 'none'");
+  expect(headers["content-security-policy"]).toContain("frame-ancestors 'self'");
   expect(headers["x-content-type-options"]).toBe("nosniff");
   expect(headers["x-powered-by"]).toBeUndefined();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();

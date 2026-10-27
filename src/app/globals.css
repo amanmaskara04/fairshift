@@ -105,13 +105,14 @@ body {
 h1,
 h2,
 .font-display {
-  font-family: var(--font-display);
+  /* Referenced directly: @theme inline does not emit --font-display as a runtime variable. */
+  font-family: var(--font-archivo), var(--font-active), ui-sans-serif, sans-serif;
   letter-spacing: -0.01em;
 }
 
 /* Money and hours line up like a ledger */
 .figure {
-  font-family: var(--font-mono);
+  font-family: var(--font-plex-mono), ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
 }

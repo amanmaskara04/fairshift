@@ -31,6 +31,88 @@ Pick a language, then tap a demo login:
 
 The app runs **with no API key and no cloud account**. Seeded in-memory data and deterministic AI fallbacks make the demo impossible to break.
 
+**Pitch deck:** open `/pitch` on the running app (arrow keys to move between slides).
+
+## Who uses it
+
+| User | Where they are | What they need from FairShift |
+|---|---|---|
+| **Shift worker** (mason, ward attendant, cleaner, line operator) | Budget Android phone, patchy data, may not read well, speaks Tamil / Hindi / Telugu | Proof of hours, a payslip they understand, a safe way to report danger and speak up, a record of their skills |
+| **Supervisor / site manager** | Laptop or phone at the site office | See who is on site, who is overworked, which hazards are open, who might quit, and export payroll |
+| **Gate kiosk** | A spare phone or tablet at the site gate or ward desk | Show a rotating QR code that workers scan to check in |
+| **Next employer** | Anywhere, via a shared link | Verify a worker's skills without seeing anything else about them |
+
+## User flow
+
+```mermaid
+flowchart TD
+    A([Worker opens FairShift<br/>installable PWA]) --> B[Pick language in its own script<br/>English · हिन्दी · தமிழ் · తెలుగు]
+    B --> C[Log in: employee code + 4-digit PIN<br/>big keypad, no typing]
+    C --> D{Worker home<br/>today's hours · rest warning}
+    D -->|Arrive at gate| E[Scan rotating site QR]
+    E -->|online| E1[Shift starts ✓]
+    E -->|offline| E2[Saved on phone ☁️<br/>syncs when back online]
+    D -->|Payday| F[Payslip: regular + 2× overtime − PF<br/>🔊 read aloud · 'Why this amount?']
+    D -->|See danger| G[Tap mic, speak in any language<br/>or tap an icon]
+    G --> G1[Gemini turns speech into<br/>category · severity · location]
+    G1 --> G2[Worker confirms → report sent<br/>name hidden by default]
+    D -->|Weekly| H[3 emoji questions + comment<br/>anonymous, once a week]
+    D -->|Changing jobs| I[Skill passport QR<br/>for the next employer]
+
+    G2 --> M[(MongoDB)]
+    E1 --> M
+    E2 -.-> M
+    H -->|names & numbers redacted| M
+
+    M --> N{Manager dashboard}
+    N --> N1[Needs attention:<br/>urgent hazards · fatigue · quit risk]
+    N --> N2[Hazard board → Start work → Fixed]
+    N2 -->|status shows on worker's phone| G2
+    N --> N3[Feedback: groups of 5+ only<br/>+ Gemini weekly brief from totals]
+    N --> N4[Payroll CSV export]
+```
+
+## Architecture
+
+```mermaid
+flowchart LR
+    subgraph Client["Worker phone / manager browser"]
+        UI[React Server Components<br/>+ small client islands]
+        SW[Service worker<br/>offline page + queue]
+        IDB[(IndexedDB<br/>offline check-ins)]
+    end
+
+    subgraph Run["Google Cloud Run · asia-south1 · Next.js 16"]
+        PX[proxy.ts<br/>nonce CSP · security headers · auth redirect]
+        SA[Server Actions & API routes<br/>requireRole · Zod · rate limits]
+        CORE[core/ — pure, unit-tested<br/>IST time · overtime · pay · fatigue<br/>quit risk · QR tokens · k-anonymity]
+        AI[ai/ — Gemini client<br/>schemas · fallbacks · PII redaction]
+        REPO[repos/ — one interface<br/>MongoDB or in-memory seed]
+    end
+
+    GEM[Gemini 3.5 Flash-Lite<br/>audio → JSON]
+    DB[(MongoDB Atlas<br/>Mumbai)]
+    SM[Secret Manager]
+
+    UI --> PX --> SA
+    SW <--> IDB
+    SA --> CORE
+    SA --> AI --> GEM
+    SA --> REPO --> DB
+    SM -. secrets .-> Run
+```
+
+**Why this shape:** the model never produces a number. Gemini only *understands* (speech → structured report, numbers → plain words); every amount, hour and score comes from `src/core`, so it is testable and the same every time.
+
+## What makes FairShift different
+
+1. **Voice-first in four Indian languages.** Workers speak a hazard in Tamil, Hindi or Telugu; the app turns it into a structured report and reads every screen aloud.
+2. **"The AI understands, the code computes."** Payslips and risk scores never come from the model, and AI rewording is rejected if a single number changes.
+3. **Anonymity enforced by design.** Feedback is stored with no worker id (a one-way HMAC only blocks double votes), timestamps are kept to the day, names and phone numbers are redacted, and managers only see groups of 5 or more.
+4. **Works offline on a cheap phone.** Check-ins queue on the device and sync later without duplicates; the rotating QR still validates offline scans for 12 hours.
+5. **Explainable early warnings.** Every quit-risk score shows its reasons, so managers get a prompt to talk, not a black-box label.
+6. **One app, many sectors.** Construction and hospital rules (pay basis, night shifts, hazard types) are configuration, not separate products.
+
 ## How it maps to the brief
 
 | Judging criterion | What FairShift does | Evidence |
@@ -118,7 +200,7 @@ Worker phone (PWA)            Admin browser
 | `npm run lint` (`--max-warnings=0`) | clean |
 | `npm run typecheck` (strict) | clean |
 | `npm run coverage` | **117 tests**, `src/core` **99% lines / 96% branches** |
-| `npm run e2e` (Playwright, Pixel 7 + desktop) | **21 tests**, axe **0 WCAG 2.1 AA violations** on every tested page |
+| `npm run e2e` (Playwright, Pixel 7 + desktop) | **24 tests**, axe **0 WCAG 2.1 AA violations** on every tested page |
 
 ## Deploy to Cloud Run
 
@@ -150,4 +232,4 @@ The multi-stage `Dockerfile` runs as a non-root user on port 8080 with a health 
 ## Credits
 
 - The landing background is adapted from the "Waves" canvas demo in the team's animation library (`D:/Animations`), optimised for low-end phones.
-- Built with AI assistance (Claude Code, Antigravity), as the rules allow.
+- Built with AI coding assistants (including Google Antigravity agent runs) and Gemini, as the rules allow.
