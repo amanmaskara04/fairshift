@@ -31,8 +31,10 @@ export function Sidebar() {
                 href={href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-2 whitespace-nowrap rounded-admin px-3 font-medium",
-                  current ? "bg-brand text-brand-foreground" : "hover:bg-muted",
+                  "flex min-h-11 items-center gap-2 whitespace-nowrap rounded-admin px-3 font-semibold",
+                  current
+                    ? "bg-card text-foreground shadow-[inset_4px_0_0_var(--accent)] ring-1 ring-border"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 <Icon aria-hidden="true" className="size-5" />

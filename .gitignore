@@ -49,3 +49,6 @@ public/swe-worker*
 /test-results
 /playwright-report
 !.env.example
+
+.vercel
+.env*

@@ -18,7 +18,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label={t("label")} className="sticky bottom-0 border-t-2 border-ink bg-background">
+    <nav aria-label={t("label")} className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur-sm">
       <ul className="mx-auto grid max-w-md grid-cols-4">
         {ITEMS.map(({ href, key, Icon }) => {
           const current = href === "/w" ? pathname === "/w" : pathname.startsWith(href);

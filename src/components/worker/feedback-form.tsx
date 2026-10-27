@@ -59,7 +59,7 @@ export function FeedbackForm() {
         </p>
       )}
       {QUESTIONS.map((q) => (
-        <fieldset key={q.key} className="rounded-worker border-2 border-ink bg-card p-3">
+        <fieldset key={q.key} className="rounded-worker border border-border bg-card p-4">
           <legend className="flex w-full items-center justify-between gap-2 px-1 text-lg font-bold">
             {t(q.label)}
             <SpeakButton text={t(q.label)} />

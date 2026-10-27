@@ -20,7 +20,7 @@ export function LoginForms() {
 
   return (
     <section className="flex flex-col gap-4">
-      <div role="tablist" aria-label={t("loginButton")} className="grid grid-cols-2 gap-2">
+      <div role="tablist" aria-label={t("loginButton")} className="grid grid-cols-2 gap-1 rounded-worker border border-border bg-background p-1">
         {(["worker", "admin"] as const).map((value) => (
           <Button
             key={value}
@@ -28,7 +28,7 @@ export function LoginForms() {
             id={`tab-${value}`}
             aria-selected={tab === value}
             aria-controls={`panel-${value}`}
-            variant={tab === value ? "primary" : "outline"}
+            variant={tab === value ? "primary" : "ghost"}
             onClick={() => setTab(value)}
           >
             {t(value === "worker" ? "workerTab" : "adminTab")}

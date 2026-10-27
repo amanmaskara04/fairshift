@@ -104,7 +104,7 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
       )}
 
       {checkedIn ? (
-        <Button size="lg" className="min-h-24 text-2xl" onClick={submitCheckOut} disabled={pending}>
+        <Button size="lg" className="min-h-20 text-xl" onClick={submitCheckOut} disabled={pending}>
           <LogOut aria-hidden="true" className="size-8" />
           {t("checkoutButton")}
         </Button>
@@ -125,7 +125,7 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
           </Button>
         </Card>
       ) : (
-        <Button size="lg" className="min-h-24 text-2xl" onClick={() => setPhase("explain")} disabled={pending}>
+        <Button variant="accent" size="lg" className="min-h-20 text-xl" onClick={() => setPhase("explain")} disabled={pending}>
           <ScanLine aria-hidden="true" className="size-8" />
           {t("scanQR")}
         </Button>

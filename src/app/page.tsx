@@ -44,7 +44,7 @@ export default async function LandingPage() {
           </ul>
         </section>
 
-        <section aria-labelledby="choose-language" className="print-card rounded-worker p-5 md:p-7">
+        <section aria-labelledby="choose-language" className="stamp rounded-worker p-5 md:p-7">
           <h2 id="choose-language" className="font-display mb-1 text-2xl font-extrabold">
             {t("chooseLanguage")}
           </h2>

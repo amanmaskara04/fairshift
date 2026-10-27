@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { Activity, BatteryLow, Clock, Cpu, Smile, TriangleAlert, Users } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
@@ -8,6 +8,7 @@ import { recentAiCalls } from "@/ai/log";
 import { formatDuration } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { PageHeader, todayLabel } from "@/components/page-header";
 import { HazardIcon } from "@/components/hazard-icon";
 import { BarChartCard } from "@/components/admin/bar-chart-card";
 import { FatigueReasons, RiskReasons, riskTone } from "@/components/admin/reason-chips";
@@ -16,7 +17,7 @@ const RISK_ATTENTION = 40;
 
 export default async function AdminOverview() {
   const session = await requireRole("admin");
-  const [t, tr] = await Promise.all([getTranslations("admin"), getTranslations("report")]);
+  const [t, tr, locale] = await Promise.all([getTranslations("admin"), getTranslations("report"), getLocale()]);
   const snapshot = await buildOrgSnapshot(getRepos(), session.orgId, new Date());
   if (!snapshot) return null;
   const { workers, hazards, feedback } = snapshot;
@@ -43,19 +44,19 @@ export default async function AdminOverview() {
 
   return (
     <div className="flex flex-col gap-6">
-      <h1 className="text-3xl font-extrabold">{t("overview")}</h1>
+      <PageHeader eyebrow={todayLabel(locale)} title={t("overview")} />
 
-      <ul className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
-        {kpis.map(({ label, value, detail, Icon }) => (
-          <li key={label}>
-            <Card className="h-full rounded-admin border-t-4 border-t-accent">
-              <div className="flex items-center justify-between text-muted-foreground">
-                <span className="font-medium">{label}</span>
-                <Icon aria-hidden="true" className="size-5" />
-              </div>
-              <p className="font-display figure mt-2 text-4xl font-extrabold">{value}</p>
-              <p className="text-sm text-muted-foreground">{detail}</p>
-            </Card>
+      <ul className="grid overflow-hidden rounded-admin border border-ink bg-card sm:grid-cols-2 xl:grid-cols-5">
+        {kpis.map(({ label, value, detail, Icon }, i) => (
+          <li key={label} className={i > 0 ? "border-t border-border sm:border-t-0 sm:border-l xl:[&:nth-child(n)]:border-l" : ""}>
+            <div className="flex h-full flex-col gap-1 p-4">
+              <span className="eyebrow flex items-center gap-2">
+                <Icon aria-hidden="true" className="size-4" />
+                {label}
+              </span>
+              <span className="figure text-4xl leading-tight font-semibold">{value}</span>
+              <span className="text-sm text-muted-foreground">{detail}</span>
+            </div>
           </li>
         ))}
       </ul>

@@ -3,7 +3,7 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 // Status is never conveyed by colour alone: callers always pass an icon and a word.
-const badgeVariants = cva("inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-sm font-semibold", {
+const badgeVariants = cva("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-sm font-semibold", {
   variants: {
     tone: {
       neutral: "bg-muted text-foreground",
