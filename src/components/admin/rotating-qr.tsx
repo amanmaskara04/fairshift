@@ -34,13 +34,13 @@ export function RotatingQr({ siteId, initialToken }: { siteId: string; initialTo
       </div>
       <figcaption className="figure flex items-center gap-2 font-bold" aria-live="off">
         <svg viewBox="0 0 36 36" className="size-8 -rotate-90" aria-hidden="true">
-          <circle cx="18" cy="18" r="15" fill="none" stroke="rgb(243 242 236 / 0.2)" strokeWidth="4" />
+          <circle cx="18" cy="18" r="15" fill="none" stroke="var(--line)" strokeWidth="4" />
           <circle
             cx="18"
             cy="18"
             r="15"
             fill="none"
-            stroke="var(--accent)"
+            stroke="var(--primary)"
             strokeWidth="4"
             strokeDasharray={`${progress * 94.2} 94.2`}
             style={{ transition: "stroke-dasharray 1s linear" }}

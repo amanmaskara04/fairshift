@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { signToken, toUnixSeconds, verifyToken } from "@/core/signed-token";
 import { buildWorkHistory, sharedSections, verifiedTotals, type SiteInfo } from "@/core/work-history";
-import { backTarget, logicalParent, MAX_STACK, recordVisit } from "@/core/nav-stack";
+import { backTarget, logicalParent, MAX_STACK, navDirection, recordVisit } from "@/core/nav-stack";
 import { minutesByDay } from "@/core/overtime";
 import { dayShifts, ist } from "../helpers";
 
@@ -109,5 +109,19 @@ describe("navigation stack", () => {
     let stack: string[] = [];
     for (let i = 0; i < MAX_STACK + 10; i++) stack = recordVisit(stack, `/w/report/h${i}`);
     expect(stack).toHaveLength(MAX_STACK);
+  });
+});
+
+describe("navDirection (Mac-style slide direction)", () => {
+  it.each([
+    ["/w", "/w/pay", "forward"],
+    ["/w/skills", "/w/report", "back"],
+    ["/w/report", "/w/report/haz-1", "forward"],
+    ["/w/report/haz-1", "/w/report", "back"],
+    ["/w/report/haz-1", "/w/pay", "back"],
+    ["/a", "/a/payroll", "forward"],
+    ["/a/kiosk", "/a/hazards", "back"],
+  ] as const)("%s → %s slides %s", (from, to, direction) => {
+    expect(navDirection(from, to)).toBe(direction);
   });
 });

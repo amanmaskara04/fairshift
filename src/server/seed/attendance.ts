@@ -9,7 +9,6 @@ import type { Shift } from "@/core/types";
 import type { Worker } from "../repos/types";
 
 const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
 const IST_OFFSET_MS = 5.5 * HOUR_MS;
 export const HISTORY_DAYS = 130;
 

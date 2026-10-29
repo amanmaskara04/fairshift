@@ -6,12 +6,14 @@ import { cn } from "@/lib/utils";
 const badgeVariants = cva("inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2.5 py-0.5 text-sm font-bold", {
   variants: {
     tone: {
-      neutral: "bg-muted text-foreground",
-      brand: "bg-brand-soft text-brand-soft-foreground",
-      signal: "bg-accent text-accent-foreground",
-      danger: "bg-danger text-status-foreground",
-      warning: "bg-warning text-status-foreground",
-      success: "bg-success text-status-foreground",
+      neutral: "bg-surface-2 text-ink",
+      brand: "bg-primary-soft text-primary-strong",
+      signal: "bg-accent text-on-accent",
+      danger: "bg-danger-soft text-danger",
+      warning: "bg-warning-soft text-warning-ink",
+      success: "bg-success-soft text-success",
+      info: "bg-info-soft text-[#2558b5]",
+      solidDanger: "bg-danger text-white",
     },
   },
   defaultVariants: { tone: "neutral" },

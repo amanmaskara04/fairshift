@@ -69,8 +69,8 @@ export function Deck() {
       }}
     >
       <div className="hazard-tape" aria-hidden="true" />
-      <div className="h-1 bg-muted" aria-hidden="true">
-        <div className="h-full bg-brand transition-[width] duration-300" style={{ width: `${((index + 1) / total) * 100}%` }} />
+      <div className="h-1 bg-surface-2" aria-hidden="true">
+        <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${((index + 1) / total) * 100}%` }} />
       </div>
 
       <main id="main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 py-8 md:px-10 md:py-12">
@@ -88,7 +88,7 @@ export function Deck() {
         </section>
       </main>
 
-      <nav aria-label="Slides" className="sticky bottom-0 border-t border-border bg-background/95 backdrop-blur-sm">
+      <nav aria-label="Slides" className="sticky bottom-0 border-t border-line bg-paper/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 md:px-10">
           <Button variant="outline" size="sm" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous slide">
             <ChevronLeft aria-hidden="true" className="size-4" />

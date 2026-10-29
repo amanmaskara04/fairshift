@@ -1,49 +1,89 @@
-import { notFound } from "next/navigation";
-import { getTranslations } from "next-intl/server";
-import { BadgeCheck } from "lucide-react";
+import type { Metadata } from "next";
+import { getLocale, getTranslations } from "next-intl/server";
+import { BadgeCheck, CalendarCheck } from "lucide-react";
 import { getRepos } from "@/server/repos";
-import { workerIdFromPassport } from "@/server/passport";
-import { Card } from "@/components/ui/card";
-import { BrandMark } from "@/components/brand-mark";
+import { readPassportToken } from "@/server/passport";
+import { passportData } from "@/server/services/passport";
+import { sharedSections } from "@/core/work-history";
+import { formatDay, formatDuration } from "@/lib/format";
+import { PublicShell } from "@/components/public-shell";
+import { VerificationError } from "@/components/verification-error";
+import { WorkHistoryList } from "@/components/work-history";
 
-/** Public, read-only skill passport for a future employer. Shows only verified skills and first name + initial. */
+export const metadata: Metadata = { title: "Skill passport", robots: { index: false } };
+
+/**
+ * Public, read-only skill passport for a future employer. Shows first name + initial and only
+ * the sections the worker chose; verified skills only. The link is signed and expires.
+ */
 export default async function PassportPage({ params }: PageProps<"/passport/[token]">) {
   const { token } = await params;
-  const workerId = workerIdFromPassport(token);
-  const repos = getRepos();
-  const worker = workerId ? await repos.workers.getById(workerId) : undefined;
-  if (!worker) notFound();
-  const [skills, org, t] = await Promise.all([
-    repos.skills.getByWorker(worker.id),
-    repos.orgs.getById(worker.orgId),
-    getTranslations("skills"),
-  ]);
-  const [first, last] = worker.name.split(" ");
-  const verified = skills.filter((s) => s.verifiedBy);
+  const claims = readPassportToken(token, new Date());
+  if (!claims.ok) return <VerificationError kind="passport" reason={claims.reason === "expired" ? "expired" : "invalid"} />;
+  const [data, t, locale] = await Promise.all([passportData(getRepos(), claims.workerId), getTranslations("passport"), getLocale()]);
+  if (!data) return <VerificationError kind="passport" reason="invalid" />;
+
+  const [first, last] = data.worker.name.split(" ");
+  const verifiedSkills = data.skills.filter((s) => s.verifiedBy);
+  const sections = sharedSections(verifiedSkills, data.history, claims.share);
+  const day = (date: Date) => formatDay(date.toISOString().slice(0, 10), locale);
 
   return (
-    <main id="main" className="worker mx-auto flex w-full max-w-md flex-1 flex-col gap-5 px-5 py-8">
-      <BrandMark />
-      <section className="slab flex flex-col gap-2 rounded-[28px] p-6">
-        <BadgeCheck aria-hidden="true" className="size-8 text-accent" />
+    <PublicShell wide>
+      <section className="hero-card flex flex-col gap-2 p-6">
+        <BadgeCheck aria-hidden="true" className="size-9 text-primary" />
         <h1 className="font-display text-3xl leading-tight font-extrabold">{t("passportOf", { name: `${first} ${last?.[0] ?? ""}.` })}</h1>
-        <p className="text-slab-muted">{t("passportIssuer", { org: org?.name ?? "" })}</p>
+        <p className="text-ink-2">
+          {data.worker.jobTitle} · {t("issuedBy", { org: data.org.name })}
+        </p>
+        <p className="figure flex items-center gap-2 text-sm font-semibold">
+          <CalendarCheck aria-hidden="true" className="size-4 text-primary" />
+          {t("validity", { issued: day(claims.issuedAt), until: day(claims.expiresAt) })}
+        </p>
       </section>
-      <ul className="stagger flex flex-col gap-2.5">
-        {verified.map((skill) => (
-          <li key={skill.id}>
-            <Card className="flex items-center gap-3 rounded-2xl p-4">
-              <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success text-status-foreground">
-                <BadgeCheck className="size-6" />
-              </span>
-              <div>
-                <p className="font-bold">{skill.title}</p>
-                <p className="text-sm text-muted-foreground">{skill.issuer}</p>
-              </div>
-            </Card>
-          </li>
-        ))}
-      </ul>
-    </main>
+
+      {sections.totals && (
+        <dl className="grid grid-cols-2 gap-3">
+          <div className="card p-4">
+            <dt className="eyebrow">{t("totalDays")}</dt>
+            <dd className="figure text-3xl font-extrabold">{sections.totals.days}</dd>
+          </div>
+          <div className="card p-4">
+            <dt className="eyebrow">{t("totalHours")}</dt>
+            <dd className="figure text-3xl font-extrabold">{formatDuration(sections.totals.minutes)}</dd>
+          </div>
+        </dl>
+      )}
+
+      {sections.history && (
+        <section aria-labelledby="history" className="flex flex-col gap-3">
+          <h2 id="history" className="font-display text-2xl font-extrabold">
+            {t("historyTitle")}
+          </h2>
+          <WorkHistoryList entries={sections.history} showHours={claims.share.hours} locale={locale} />
+        </section>
+      )}
+
+      {sections.skills && (
+        <section aria-labelledby="skills" className="flex flex-col gap-3">
+          <h2 id="skills" className="font-display text-2xl font-extrabold">
+            {t("skillsTitle")}
+          </h2>
+          <ul className="stagger flex flex-col gap-2.5">
+            {sections.skills.map((skill) => (
+              <li key={skill.id} className="card flex items-center gap-3 p-4">
+                <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success text-white">
+                  <BadgeCheck className="size-6" />
+                </span>
+                <div>
+                  <p className="font-bold">{skill.title}</p>
+                  <p className="text-sm text-ink-2">{skill.issuer}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+    </PublicShell>
   );
 }

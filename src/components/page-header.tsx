@@ -12,7 +12,7 @@ export function PageHeader({ eyebrow, title, action, children }: { eyebrow?: str
         </h1>
         {action && <div className="shrink-0">{action}</div>}
       </div>
-      {children && <div className="max-w-prose text-muted-foreground">{children}</div>}
+      {children && <div className="max-w-prose text-ink-2">{children}</div>}
     </header>
   );
 }

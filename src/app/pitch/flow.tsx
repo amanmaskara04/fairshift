@@ -7,10 +7,10 @@ export function Node({ children, tone = "plain", className }: { children: ReactN
   return (
     <div
       className={cn(
-        "rounded-admin border-2 px-3 py-2 text-center text-sm leading-snug font-semibold md:text-base",
-        tone === "plain" && "border-ink bg-card",
-        tone === "accent" && "border-ink bg-accent text-accent-foreground",
-        tone === "brand" && "border-brand bg-brand text-brand-foreground",
+        "rounded-tile border-2 px-3 py-2 text-center text-sm leading-snug font-semibold md:text-base",
+        tone === "plain" && "border-ink bg-surface",
+        tone === "accent" && "border-ink bg-accent text-ink",
+        tone === "brand" && "border-primary bg-primary text-on-primary",
         tone === "ink" && "border-ink bg-foreground text-background",
         className,
       )}
@@ -23,7 +23,7 @@ export function Node({ children, tone = "plain", className }: { children: ReactN
 /** Arrow between nodes; vertical on phones, horizontal from md up unless `vertical`. */
 export function Arrow({ vertical = false, label }: { vertical?: boolean; label?: string }) {
   return (
-    <div aria-hidden="true" className={cn("flex shrink-0 items-center justify-center text-muted-foreground", vertical ? "flex-col" : "flex-col md:flex-row")}>
+    <div aria-hidden="true" className={cn("flex shrink-0 items-center justify-center text-ink-2", vertical ? "flex-col" : "flex-col md:flex-row")}>
       {vertical ? (
         <ArrowDown className="size-5" />
       ) : (

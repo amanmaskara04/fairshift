@@ -14,9 +14,9 @@ export default async function KioskPage({ params }: PageProps<"/a/kiosk/[siteId]
   const initialToken = await kioskTokenAction(site.id);
 
   return (
-    <div className="slab mx-auto flex max-w-xl flex-col items-center gap-4 rounded-[32px] px-5 py-8 text-center md:py-10">
+    <div className="hero-card mx-auto flex max-w-xl flex-col items-center gap-4 rounded-[32px] px-5 py-8 text-center md:py-10">
       <h1 className="font-display text-4xl font-extrabold">{site.name}</h1>
-      <p className="text-lg text-slab-muted">{t("scanHere")}</p>
+      <p className="text-lg text-ink-2">{t("scanHere")}</p>
       <RotatingQr siteId={site.id} initialToken={initialToken ?? ""} />
     </div>
   );

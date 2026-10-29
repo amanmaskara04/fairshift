@@ -1,29 +1,39 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { CircleHelp } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
-import { trackedReportIds } from "@/server/actions/hazards";
+import { trackedReports } from "@/server/actions/hazards";
+import { isReporter, sweepHazards } from "@/server/services/hazards";
 import { getSectorProfile } from "@/core/sectors";
+import type { Hazard } from "@/core/types";
 import { SpeakButton } from "@/components/speak-button";
 import { PageHeader } from "@/components/page-header";
 import { HazardIcon } from "@/components/hazard-icon";
-import { HazardStatusBadge } from "@/components/hazard-status";
+import { HazardAge, HazardStatusBadge } from "@/components/hazard-status";
+import { Badge } from "@/components/ui/badge";
 import { HazardReporter } from "@/components/worker/hazard-reporter";
+import { TrackByRef } from "@/components/worker/track-by-ref";
 
 export default async function ReportPage() {
   const session = await requireRole("worker");
   const t = await getTranslations("report");
   const repos = getRepos();
-  const [org, hazards, tracked] = await Promise.all([
-    repos.orgs.getById(session.orgId),
-    repos.hazards.getByOrg(session.orgId),
-    trackedReportIds(),
-  ]);
+  const now = new Date();
+  const [org, hazards, tracked] = await Promise.all([repos.orgs.getById(session.orgId), sweepHazards(repos, session.orgId, now), trackedReports()]);
   if (!org) return null;
 
-  const mine = hazards
-    .filter((h) => h.reporterId === session.uid || tracked.includes(h.id))
-    .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  // My reports: named ones, plus anonymous ones this phone holds a private reference for.
+  // A report merged into another one is followed through to where it now lives.
+  const trackedIds = new Set(tracked.map((r) => r.hazardId));
+  const byId = new Map(hazards.map((h) => [h.id, h]));
+  const mine = new Map<string, Hazard>();
+  for (const h of hazards) {
+    if (!isReporter(h, session.uid) && !trackedIds.has(h.id)) continue;
+    const shown = h.mergedInto ? byId.get(h.mergedInto) : h;
+    if (shown) mine.set(shown.id, shown);
+  }
+  const reports = [...mine.values()].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
     <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-3xl">
@@ -31,30 +41,37 @@ export default async function ReportPage() {
 
       <HazardReporter categories={[...getSectorProfile(org.sector).hazardCategories]} />
 
-      <section aria-labelledby="my-reports" className="flex flex-col gap-2">
+      <section aria-labelledby="my-reports" className="flex flex-col gap-3">
         <h2 id="my-reports" className="font-display text-2xl font-extrabold">
           {t("myReports")}
         </h2>
-        {mine.length === 0 ? (
-          <p className="text-muted-foreground">{t("noReports")}</p>
+        {reports.length === 0 ? (
+          <p className="text-ink-2">{t("noReports")}</p>
         ) : (
           <ul className="flex flex-col gap-2">
-            {mine.map((h) => (
+            {reports.map((h) => (
               <li key={h.id}>
-                <Link
-                  href={`/w/report/${h.id}`}
-                  className="tile flex min-h-16 items-center gap-3 rounded-2xl p-3"
-                >
-                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted">
+                <Link href={`/w/report/${h.id}`} className="tile flex min-h-16 flex-wrap items-center gap-3 p-3">
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-danger-soft text-danger">
                     <HazardIcon category={h.category} className="size-6" />
                   </span>
-                  <span className="flex-1 font-bold">{t(`categories.${h.category}`)}</span>
-                  <HazardStatusBadge status={h.status} />
+                  <span className="min-w-0 flex-1 font-bold">{t(`categories.${h.category}`)}</span>
+                  <span className="flex flex-wrap items-center justify-end gap-1.5">
+                    {h.status === "fixed" && h.confirmation === "pending" && (
+                      <Badge tone="info">
+                        <CircleHelp aria-hidden="true" className="size-4" />
+                        {t("confirm.badge")}
+                      </Badge>
+                    )}
+                    <HazardAge hazard={h} now={now} />
+                    <HazardStatusBadge status={h.status} />
+                  </span>
                 </Link>
               </li>
             ))}
           </ul>
         )}
+        <TrackByRef />
       </section>
     </div>
   );
