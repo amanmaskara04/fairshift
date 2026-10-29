@@ -134,15 +134,17 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                       <span className="min-w-0 flex-1">
                         <span className="block font-bold">{tr(`categories.${h.category}`)}</span>
                         <span className="block truncate text-sm text-ink-2">{h.reports[0]?.transcriptEn || h.reports[0]?.transcript}</span>
+                        <span className="mt-1.5 flex flex-wrap gap-1.5">
+                          {h.escalationLevel > 0 && (
+                            <Badge tone="solidDanger">
+                              <Siren aria-hidden="true" className="size-4" />
+                              {t("escalatedTo", { role: tr(`roles.${chain[Math.min(h.escalationLevel, chain.length) - 1]}`) })}
+                            </Badge>
+                          )}
+                          <HazardAge hazard={h} now={now} />
+                          <Badge tone="danger">{tr(`severity.${h.severity}`)}</Badge>
+                        </span>
                       </span>
-                      {h.escalationLevel > 0 && (
-                        <Badge tone="solidDanger">
-                          <Siren aria-hidden="true" className="size-4" />
-                          {t("escalatedTo", { role: tr(`roles.${chain[Math.min(h.escalationLevel, chain.length) - 1]}`) })}
-                        </Badge>
-                      )}
-                      <HazardAge hazard={h} now={now} />
-                      <Badge tone="danger">{tr(`severity.${h.severity}`)}</Badge>
                     </Link>
                   </li>
                 ))}

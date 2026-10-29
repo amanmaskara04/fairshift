@@ -2,16 +2,18 @@ import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 
 async function expectNoA11yViolations(page: Page) {
-  // Metadata streams in Next 16, and entrance animations fade in: wait for both before measuring.
+  // Metadata streams in Next 16: wait for the title before measuring.
   await expect(page).toHaveTitle(/FairShift/);
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(400);
   const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
   expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(", ")}`)).toEqual([]);
 }
 
 async function demoLogin(page: Page, name: RegExp) {
   await page.goto("/login");
-  await page.getByRole("button", { name }).click();
+  await page.getByRole("button", { name }).first().click();
+  // Login replaces history with home (?welcome=1, which the page then drops from the URL).
+  await page.waitForURL(/\/(w|a)(\?welcome=1)?$/);
 }
 
 test("landing sends security headers and has no a11y violations", async ({ page }) => {
@@ -25,12 +27,27 @@ test("landing sends security headers and has no a11y violations", async ({ page 
   await expectNoA11yViolations(page);
 });
 
-test("choosing Tamil switches the page language", async ({ page }) => {
+test("worker path: landing → language → login, in Tamil", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("button", { name: "தமிழ்" }).click();
+  await page.getByRole("link", { name: "I'm a worker" }).click();
+  await expect(page).toHaveURL(/\/start$/);
+  await expectNoA11yViolations(page);
+  await page.getByRole("button", { name: /தமிழ்/ }).click();
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.locator("html")).toHaveAttribute("lang", "ta");
   await expectNoA11yViolations(page);
+});
+
+test("the language menu switches language in place, without a history entry", async ({ page }) => {
+  await page.goto("/");
+  await page.goto("/login");
+  const before = await page.evaluate(() => history.length);
+  await page.getByRole("button", { name: "Change language" }).click();
+  await page.getByRole("menuitemradio", { name: /हिन्दी/ }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "hi");
+  expect(await page.evaluate(() => history.length)).toBe(before);
+  await page.goBack();
+  await expect(page).toHaveURL(/\/$/);
 });
 
 test("protected pages redirect to login without a session", async ({ page }) => {
@@ -40,26 +57,42 @@ test("protected pages redirect to login without a session", async ({ page }) => 
   await expect(page).toHaveURL(/\/login$/);
 });
 
-test("demo worker reaches the worker home", async ({ page }) => {
+test("demo worker reaches the worker home with the earnings counter", async ({ page }) => {
   await demoLogin(page, /Ramesh/);
   await expect(page).toHaveURL(/\/w$/);
   await expect(page.getByRole("heading", { name: /Ramesh/ })).toBeVisible();
-  await expect(page.getByRole("navigation", { name: "Main menu" })).toBeVisible();
+  await expect(page.getByTestId("earned-month")).toContainText("₹");
+  await expect(page.getByRole("navigation", { name: "Main menu" }).first()).toBeVisible();
   await expectNoA11yViolations(page);
+  // Login replaced the history entry: Back never returns to the PIN screen.
+  await page.goBack();
+  await expect(page).not.toHaveURL(/\/login/);
 });
 
 test("a worker cannot open admin pages", async ({ page }) => {
   await demoLogin(page, /Sunita/);
-  await expect(page).toHaveURL(/\/w$/);
   await page.goto("/a");
   await expect(page).toHaveURL(/\/w$/);
 });
 
-test("demo admin sees live KPIs", async ({ page }) => {
+test("both employers have demo logins and see their own organisation", async ({ page }) => {
   await demoLogin(page, /Priya/);
-  await expect(page).toHaveURL(/\/a$/);
   await expect(page.getByText("BuildRight Constructions").filter({ visible: true })).toBeVisible();
   await expect(page.getByText("Open hazards", { exact: true })).toBeVisible();
+  await expectNoA11yViolations(page);
+  await page.context().clearCookies();
+  await demoLogin(page, /Arjun/);
+  await expect(page.getByText("City Care Hospital").filter({ visible: true })).toBeVisible();
+});
+
+test("unknown pages and tampered share links get friendly pages, not raw errors", async ({ page }) => {
+  await page.goto("/does-not-exist");
+  await expect(page.getByRole("heading", { name: "We could not find this page" })).toBeVisible();
+  await expectNoA11yViolations(page);
+  await page.goto("/passport/eyJmYWtlIjp0cnVlfQ.forged");
+  await expect(page.getByRole("heading", { name: "This passport could not be verified" })).toBeVisible();
+  await page.goto("/certificate/eyJmYWtlIjp0cnVlfQ.forged");
+  await expect(page.getByRole("heading", { name: "This certificate could not be verified" })).toBeVisible();
   await expectNoA11yViolations(page);
 });
 
@@ -67,6 +100,6 @@ test("wrong PIN shows a friendly error", async ({ page }) => {
   await page.goto("/login");
   await page.getByLabel("Enter your code").fill("1001");
   await page.getByLabel("Enter PIN").fill("9999");
-  await page.getByRole("button", { name: "Log in" }).click();
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page.getByRole("alert").filter({ hasText: "Wrong code or PIN" })).toBeVisible();
 });

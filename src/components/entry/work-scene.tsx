@@ -56,7 +56,7 @@ function Person({ shirt, skin, head = "hardhat", legs = "still", arm }: PersonPr
 
 export function WorkScene() {
   return (
-    <div aria-hidden="true" className="work-scene pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-[52vh] min-h-[320px] overflow-hidden">
+    <div aria-hidden="true" className="work-scene pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-[52vh] min-h-[320px] overflow-hidden opacity-60">
       <SceneParallax>
         <svg viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" className="h-full w-full">
           {/* Far layer: sun, clouds, skyline */}
