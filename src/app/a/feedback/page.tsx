@@ -7,6 +7,7 @@ import { countThemes, THEMES } from "@/core/themes";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { WeeklyBrief } from "@/components/admin/weekly-brief";
+import { PageHeader } from "@/components/page-header";
 
 const QUESTIONS = ["pay", "safety", "respect"] as const;
 
@@ -26,11 +27,12 @@ export default async function FeedbackAdminPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-      <p className="flex items-center gap-2 text-muted-foreground">
-        <Lock aria-hidden="true" className="size-4" />
-        {t("privacy", { k: K_ANONYMITY })}
-      </p>
+      <PageHeader title={t("title")}>
+        <span className="flex items-center gap-2">
+          <Lock aria-hidden="true" className="size-4 shrink-0" />
+          {t("privacy", { k: K_ANONYMITY })}
+        </span>
+      </PageHeader>
 
       <WeeklyBrief />
 
@@ -39,8 +41,8 @@ export default async function FeedbackAdminPage() {
           const [siteId, week] = key.split("|");
           return (
             <li key={key}>
-              <Card className="flex h-full flex-col gap-3 rounded-admin">
-                <h2 className="flex items-center justify-between font-bold">
+              <Card className="flex h-full flex-col gap-3 p-4 md:p-5">
+                <h2 className="font-display flex items-center justify-between gap-2 text-lg font-extrabold">
                   {siteOf.get(siteId)}
                   <Badge>{week}</Badge>
                 </h2>
@@ -52,9 +54,9 @@ export default async function FeedbackAdminPage() {
                       {QUESTIONS.map((q) => {
                         const score = avg(gate.items.map((f) => f.scores[q]));
                         return (
-                          <div key={q} className="rounded-admin bg-muted p-2">
+                          <div key={q} className="rounded-2xl bg-muted p-3">
                             <dt className="text-sm text-muted-foreground">{t(`q.${q}`)}</dt>
-                            <dd className="text-xl font-bold">
+                            <dd className="figure text-2xl font-bold">
                               {score.toFixed(1)}
                               <span className="text-sm font-normal text-muted-foreground"> / 3</span>
                             </dd>
@@ -68,7 +70,7 @@ export default async function FeedbackAdminPage() {
                       {gate.items
                         .filter((f) => f.comment)
                         .map((f) => (
-                          <li key={f.id} className="rounded-admin border border-border p-2">
+                          <li key={f.id} className="rounded-xl border border-border p-2">
                             “{f.comment}”
                           </li>
                         ))}

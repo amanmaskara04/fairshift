@@ -26,7 +26,19 @@
     "promisePay": "A payslip you can read and hear, in your language.",
     "promiseVoice": "Report danger or speak up safely, without your name.",
     "languageHint": "You can change it any time.",
-    "footer": "Built for construction sites, hospitals, campuses and factories across India."
+    "footer": "Built for construction sites, hospitals, campuses and factories across India.",
+    "howTitle": "How it works",
+    "how1": "Scan the site QR to start your shift.",
+    "how2": "See every hour and rupee — and hear it read out loud.",
+    "how3": "Report danger by voice. Your name stays hidden.",
+    "forWorkersTitle": "For workers",
+    "forWorkersText": "Big buttons, voice and your own language. Works on any phone, even offline.",
+    "forManagersTitle": "For managers",
+    "forManagersText": "Live attendance, fatigue alerts and payroll that follows labour law.",
+    "chipOffline": "Works offline",
+    "chipVoice": "Voice in 4 languages",
+    "chipPrivate": "Name hidden by default",
+    "step": "Step {n}"
   },
   "login": {
     "workerTab": "Worker",
@@ -82,7 +94,11 @@
       "pay": "See this month's payslip",
       "report": "Tell us about something unsafe",
       "feedback": "Share how work feels — no name"
-    }
+    },
+    "thisWeek": "This week",
+    "weekOfLimit": "{used} of {limit}h allowed",
+    "onShiftFor": "On shift for",
+    "openTile": "Open"
   },
   "pay": {
     "title": "My pay",

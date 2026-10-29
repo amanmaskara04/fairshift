@@ -6,6 +6,7 @@ import { formatDuration } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { FatigueReasons, RiskReasons, riskTone } from "@/components/admin/reason-chips";
+import { PageHeader } from "@/components/page-header";
 
 export default async function PeoplePage() {
   const session = await requireRole("admin");
@@ -20,14 +21,13 @@ export default async function PeoplePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-      <p className="text-muted-foreground">{t("intro")}</p>
+      <PageHeader title={t("title")}>{t("intro")}</PageHeader>
 
       {/* Phones: one card per worker, every column visible without sideways scrolling. */}
       <ul className="flex flex-col gap-3 md:hidden">
         {snapshot.workers.map((w) => (
           <li key={w.worker.id}>
-            <Card className="flex flex-col gap-3 rounded-admin">
+            <Card className="flex flex-col gap-3 rounded-2xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-bold">{w.worker.name}</p>
@@ -66,38 +66,38 @@ export default async function PeoplePage() {
       </ul>
 
       {/* Laptops: the full comparison table. */}
-      <Card className="hidden overflow-x-auto rounded-admin p-0 md:block">
+      <Card className="hidden overflow-x-auto p-0 md:block">
         <table className="w-full min-w-[760px] text-left">
           <caption className="sr-only">{t("title")}</caption>
-          <thead className="bg-muted text-sm text-muted-foreground">
+          <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
             <tr>
-              <th scope="col" className="p-3 font-medium">{t("worker")}</th>
-              <th scope="col" className="p-3 font-medium">{t("status")}</th>
-              <th scope="col" className="p-3 font-medium">{t("thisWeek")}</th>
-              <th scope="col" className="p-3 font-medium">{t("fatigue")}</th>
-              <th scope="col" className="p-3 font-medium">{t("risk")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("worker")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("status")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("thisWeek")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("fatigue")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("risk")}</th>
             </tr>
           </thead>
           <tbody>
             {snapshot.workers.map((w) => (
-              <tr key={w.worker.id} className="border-t border-border align-top">
-                <th scope="row" className="p-3 font-semibold">
+              <tr key={w.worker.id} className="border-t border-border align-top transition-colors hover:bg-muted/50">
+                <th scope="row" className="px-4 py-3 font-semibold">
                   {w.worker.name}
                   <span className="block text-sm font-normal text-muted-foreground">{siteOf.get(w.worker.siteId)}</span>
                 </th>
-                <td className="p-3">
+                <td className="px-4 py-3">
                   <Badge tone={w.onSite ? "success" : "neutral"}>{w.onSite ? t("onSite") : t("offSite")}</Badge>
                 </td>
-                <td className="p-3 whitespace-nowrap">
+                <td className="px-4 py-3 whitespace-nowrap">
                   {formatDuration(w.weekMinutes)}
                   {w.overtimeThisWeek > 0 && (
                     <span className="block text-sm text-muted-foreground">{t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}</span>
                   )}
                 </td>
-                <td className="p-3">
+                <td className="px-4 py-3">
                   <FatigueReasons alerts={w.fatigue} />
                 </td>
-                <td className="p-3">
+                <td className="px-4 py-3">
                   <div className="flex flex-col gap-1">
                     <Badge tone={riskTone(w.risk.score)} className="w-fit">
                       {w.risk.score} / 100

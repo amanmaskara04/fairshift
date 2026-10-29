@@ -76,9 +76,9 @@ export function QrScanner({ onResult, onError, label }: { onResult: (text: strin
   }, [onResult, onError]);
 
   return (
-    <div className="relative overflow-hidden rounded-worker bg-black">
+    <div className="relative overflow-hidden rounded-[28px] bg-black">
       <video ref={videoRef} muted playsInline aria-label={label} className="aspect-square w-full object-cover" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-[15%] rounded-worker border-4 border-white/80" />
+      <div aria-hidden="true" className="viewfinder pointer-events-none absolute inset-[15%]" />
     </div>
   );
 }

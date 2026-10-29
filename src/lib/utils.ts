@@ -21,6 +21,10 @@ const THEME_COLORS = [
   "border",
   "card",
   "card-foreground",
+  "slab",
+  "slab-foreground",
+  "slab-muted",
+  "slab-line",
 ];
 
 const twMerge = extendTailwindMerge({

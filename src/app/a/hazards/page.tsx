@@ -10,6 +10,7 @@ import { SubmitButton } from "@/components/ui/submit-button";
 import { Card } from "@/components/ui/card";
 import { HazardIcon } from "@/components/hazard-icon";
 import { HazardStatusBadge } from "@/components/hazard-status";
+import { PageHeader } from "@/components/page-header";
 
 const COLUMNS: HazardStatus[] = ["received", "in_progress", "fixed"];
 const SEVERITY_RANK: Record<HazardSeverity, number> = { critical: 0, high: 1, medium: 2, low: 3 };
@@ -42,31 +43,32 @@ export default async function HazardsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-      <p className="text-muted-foreground">{t("intro")}</p>
+      <PageHeader title={t("title")}>{t("intro")}</PageHeader>
       <div className="grid gap-4 lg:grid-cols-3">
         {COLUMNS.map((column) => {
           const items = sorted.filter((h) => h.status === column);
           return (
-            <section key={column} aria-labelledby={`col-${column}`} className="flex flex-col gap-3 rounded-admin bg-muted p-3">
+            <section key={column} aria-labelledby={`col-${column}`} className="flex flex-col gap-3 rounded-worker border border-border bg-muted/60 p-3">
               <h2 id={`col-${column}`} className="flex items-center justify-between font-bold">
                 <HazardStatusBadge status={column} />
-                <span className="text-muted-foreground">{items.length}</span>
+                <span className="figure flex size-8 items-center justify-center rounded-full bg-card text-sm">{items.length}</span>
               </h2>
               {items.length === 0 && <p className="text-sm text-muted-foreground">{t("empty")}</p>}
               <ul className="flex flex-col gap-3">
                 {items.map((h) => (
                   <li key={h.id}>
-                    <Card className="flex flex-col gap-2 rounded-admin" data-testid="hazard-card">
+                    <Card className="flex flex-col gap-2.5 rounded-2xl p-4" data-testid="hazard-card">
                       <div className="flex items-center gap-2">
-                        <HazardIcon category={h.category} className="size-6 shrink-0 text-brand" />
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted">
+                          <HazardIcon category={h.category} className="size-5" />
+                        </span>
                         <span className="flex-1 font-bold">{tr(`categories.${h.category}`)}</span>
                         <Badge tone={SEVERITY_TONE[h.severity]}>{tr(`severity.${h.severity}`)}</Badge>
                       </div>
-                      {(h.transcriptEn || h.transcript) && <p className="text-sm">“{h.transcriptEn || h.transcript}”</p>}
+                      {(h.transcriptEn || h.transcript) && <p className="rounded-xl bg-muted px-3 py-2 text-sm">“{h.transcriptEn || h.transcript}”</p>}
                       {h.photoDataUrl && (
                         // eslint-disable-next-line @next/next/no-img-element -- data URL from the worker's phone
-                        <img src={h.photoDataUrl} alt={t("photoAlt")} className="max-h-40 rounded-admin object-cover" />
+                        <img src={h.photoDataUrl} alt={t("photoAlt")} className="max-h-40 rounded-xl object-cover" />
                       )}
                       <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                         <span className="flex items-center gap-1">

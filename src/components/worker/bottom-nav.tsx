@@ -18,17 +18,14 @@ function useIsCurrent() {
   return (href: string) => (href === "/w" ? pathname === "/w" : pathname.startsWith(href));
 }
 
-/** Phone: fixed thumb-reach tab bar, solid so content never shows through, clear of the gesture bar. */
+/** Phone: a floating evergreen tab bar in thumb reach, clear of the gesture bar. */
 export function BottomNav() {
   const t = useTranslations("worker.nav");
   const isCurrent = useIsCurrent();
 
   return (
-    <nav
-      aria-label={t("label")}
-      className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background pb-[env(safe-area-inset-bottom)] shadow-[0_-4px_16px_rgba(28,27,24,0.06)] md:hidden"
-    >
-      <ul className="mx-auto grid max-w-md grid-cols-4">
+    <nav aria-label={t("label")} className="fixed inset-x-0 bottom-0 z-20 px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] md:hidden">
+      <ul className="mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[26px] bg-slab p-1.5 shadow-[0_18px_40px_-18px_rgb(12_26_22/0.7)]">
         {ITEMS.map(({ href, key, Icon }) => {
           const current = isCurrent(href);
           return (
@@ -37,13 +34,11 @@ export function BottomNav() {
                 href={href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "flex min-h-16 flex-col items-center justify-center gap-0.5 text-xs font-bold",
-                  current ? "text-foreground" : "text-muted-foreground",
+                  "flex min-h-14 flex-col items-center justify-center gap-0.5 rounded-[20px] text-xs font-bold transition-colors duration-200",
+                  current ? "bg-accent text-accent-foreground" : "text-slab-muted hover:text-slab-foreground",
                 )}
               >
-                <span className={cn("flex h-8 w-14 items-center justify-center rounded-full transition-colors", current && "bg-accent text-accent-foreground")}>
-                  <Icon aria-hidden="true" className="size-5" />
-                </span>
+                <Icon aria-hidden="true" className="size-5" />
                 {t(key)}
               </Link>
             </li>
@@ -61,7 +56,7 @@ export function TopNav() {
 
   return (
     <nav aria-label={t("label")} className="hidden md:block">
-      <ul className="flex items-center gap-1">
+      <ul className="flex items-center gap-1 rounded-full bg-muted p-1">
         {ITEMS.map(({ href, key, Icon }) => {
           const current = isCurrent(href);
           return (
@@ -70,8 +65,8 @@ export function TopNav() {
                 href={href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors",
-                  current ? "bg-accent text-accent-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "flex min-h-10 items-center gap-2 rounded-full px-4 text-sm font-bold transition-colors duration-200",
+                  current ? "bg-brand text-brand-foreground" : "text-muted-foreground hover:bg-card hover:text-foreground",
                 )}
               >
                 <Icon aria-hidden="true" className="size-4" />
