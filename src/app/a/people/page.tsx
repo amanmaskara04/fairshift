@@ -141,7 +141,7 @@ export default async function PeoplePage() {
         </ul>
 
         {/* Laptops: the full comparison table. */}
-        <Card className="hidden overflow-x-auto p-0 md:block">
+        <Card className="hidden overflow-x-auto p-0 md:block" tabIndex={0} role="region" aria-label={t("title")}>
           <table className="w-full min-w-[760px] text-left">
             <caption className="sr-only">{t("title")}</caption>
             <thead className="border-b border-line text-xs tracking-wide text-ink-2 uppercase">

@@ -13,8 +13,8 @@ async function expectNoA11yViolations(page: Page) {
 
 async function loginAs(page: Page, name: RegExp) {
   await page.goto("/login");
-  await page.getByRole("button", { name }).click();
-  await page.waitForURL(/\/(w|a)$/);
+  await page.getByRole("button", { name }).first().click();
+  await page.waitForURL(/\/(w|a)(\?welcome=1)?$/);
 }
 
 test("overview shows KPIs, attention items and charts", async ({ page }) => {
@@ -40,26 +40,50 @@ test("a worker's report reaches the admin, and the status change reaches the wor
   await loginAs(admin, /Priya/);
   await admin.goto("/a/hazards");
   await expectNoA11yViolations(admin);
-  const card = admin.getByTestId("hazard-card").filter({ hasText: "Heat" }).filter({ hasText: "Ramesh" });
+  const heat = admin.getByRole("heading", { name: "Heat", exact: true });
+  const card = admin.getByTestId("hazard-card").filter({ has: heat }).filter({ hasText: "Ramesh Kumar" });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Start work" }).click();
-  await expect(admin.getByRole("region", { name: /In progress/ }).getByTestId("hazard-card").filter({ hasText: "Heat" })).toBeVisible();
+  await expect(admin.getByRole("region", { name: /In progress/ }).getByTestId("hazard-card").filter({ has: heat }).filter({ hasText: "Ramesh Kumar" })).toBeVisible();
 
   await worker.goto(reportUrl);
   await expect(worker.getByText("In progress").first()).toBeVisible();
 });
 
-test("people page explains fatigue and risk", async ({ page }) => {
+test("people page separates site conditions from individual risk, and approves a work certificate", async ({ page }) => {
   await loginAs(page, /Priya/);
   await page.goto("/a/people");
+  await expect(page.getByRole("heading", { name: "Site conditions" })).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("rowheader", { name: /Ramesh Kumar/ })).toBeVisible();
   await expectNoA11yViolations(page);
+
+  const request = page.getByRole("listitem").filter({ hasText: "Venkat Rao" });
+  await request.getByRole("button", { name: "Approve and sign" }).click();
+  await request.getByRole("link", { name: "View certificate" }).click();
+  await expect(page.getByRole("heading", { name: "Certificate of work" })).toBeVisible();
+  await expect(page.getByText(/Venkat Rao, Carpenter, worked \d+ days for BuildRight Constructions/)).toBeVisible();
+  await expectNoA11yViolations(page);
 });
 
-test("feedback page hides small groups and offers a brief", async ({ page }) => {
+test("dismissing a hazard needs a reason, which the worker then sees", async ({ page }) => {
+  await loginAs(page, /Priya/);
+  await page.goto("/a/hazards");
+  const card = page.locator("#haz-c4");
+  await card.getByRole("button", { name: "Dismiss" }).click();
+  const dialog = page.getByRole("dialog", { name: "Close without fixing" });
+  await expect(dialog.getByRole("button", { name: "Close report" })).toBeDisabled();
+  await dialog.getByRole("radio", { name: "Already fixed" }).check();
+  await dialog.getByRole("button", { name: "Close report" }).click();
+  await expect(page.getByRole("region", { name: /Closed/ }).locator("#haz-c4")).toBeVisible();
+});
+
+test("feedback page hides small groups, shows only issues with 5+ signers, and offers a brief", async ({ page }) => {
   await loginAs(page, /Priya/);
   await page.goto("/a/feedback");
+  await expect(page.getByRole("heading", { name: "Issues raised together" })).toBeVisible();
+  await expect(page.getByText(/Overtime list is announced at 6 pm/)).toBeVisible();
+  await expect(page.getByText(/No shade or rest area/)).toHaveCount(0); // 3 signers: invisible to management
   await expect(page.getByText(/Groups smaller than 5 are hidden/)).toBeVisible();
   await page.getByRole("button", { name: "Generate brief" }).click();
   await expect(page.getByText(/workers are on site now/)).toBeVisible();
@@ -70,7 +94,11 @@ test("payroll exports a CSV only for admins", async ({ page, request }) => {
   expect((await request.get("/api/payroll")).status()).toBe(401);
   await loginAs(page, /Priya/);
   await page.goto("/a/payroll");
+  await expect(page.getByRole("heading", { name: "FairPay Sentinel" })).toBeVisible();
+  await expect(page.getByRole("row", { name: /Ramesh Kumar/ }).getByText("Possible shortfall ₹907")).toBeVisible();
   await expectNoA11yViolations(page);
+  const template = await page.request.get("/api/payroll/template");
+  expect(await template.text()).toContain("paidOvertimeHours");
   const csv = await page.request.get("/api/payroll");
   expect(csv.headers()["content-type"]).toContain("text/csv");
   const text = await csv.text();

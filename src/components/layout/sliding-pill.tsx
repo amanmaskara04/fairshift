@@ -13,7 +13,9 @@ export function useSlidingPill(activeIndex: number): { listRef: RefObject<HTMLUL
   useLayoutEffect(() => {
     const list = listRef.current;
     const measure = () => {
-      const item = list?.children[activeIndex] as HTMLElement | undefined;
+      // The pill itself is a decorative (aria-hidden) child of the list: count only real items.
+      const items = list ? [...list.children].filter((el) => !el.hasAttribute("aria-hidden")) : [];
+      const item = items[activeIndex] as HTMLElement | undefined;
       if (!item) return setPillStyle({ opacity: 0 });
       setPillStyle({
         width: item.offsetWidth,
