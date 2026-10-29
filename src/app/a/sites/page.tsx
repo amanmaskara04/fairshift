@@ -7,6 +7,7 @@ import { getSectorProfile } from "@/core/sectors";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 
 export default async function SitesPage() {
   const session = await requireRole("admin");
@@ -24,16 +25,18 @@ export default async function SitesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
+      <PageHeader title={t("title")} />
       <ul className="grid gap-4 lg:grid-cols-2">
         {cards.map(({ site, onSite, assigned }) => {
           const profile = getSectorProfile(site.sector);
           return (
             <li key={site.id}>
-              <Card className="flex h-full flex-col gap-3 rounded-admin">
+              <Card className="flex h-full flex-col gap-4 p-5">
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="flex items-center gap-2 text-lg font-bold">
-                    <MapPin aria-hidden="true" className="size-5 text-brand" />
+                  <h2 className="font-display flex items-center gap-3 text-xl font-extrabold">
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                      <MapPin aria-hidden="true" className="size-5" />
+                    </span>
                     {site.name}
                   </h2>
                   <Badge tone="brand">{ta(`sector.${site.sector}`)}</Badge>
@@ -42,7 +45,7 @@ export default async function SitesPage() {
                   <Users aria-hidden="true" className="size-4" />
                   {t("people", { onSite, assigned })}
                 </p>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
+                <dl className="grid grid-cols-2 gap-2 text-sm [&>div]:rounded-2xl [&>div]:bg-muted [&>div]:p-3">
                   <div>
                     <dt className="text-muted-foreground">{t("rules")}</dt>
                     <dd>{t("rulesValue", { daily: profile.labourRules.dailyHrs, weekly: profile.labourRules.weeklyHrs, ot: profile.labourRules.otMultiplier })}</dd>
@@ -62,7 +65,7 @@ export default async function SitesPage() {
                     ))}
                   </ul>
                 </div>
-                <Link href={`/a/kiosk/${site.id}`} className={buttonVariants({ size: "sm", variant: "secondary", className: "mt-auto w-fit" })}>
+                <Link href={`/a/kiosk/${site.id}`} className={buttonVariants({ size: "sm", variant: "primary", className: "mt-auto w-fit" })}>
                   <QrCode aria-hidden="true" className="size-4" />
                   {t("openKiosk")}
                 </Link>

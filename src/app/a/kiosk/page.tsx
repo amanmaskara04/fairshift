@@ -3,7 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { MapPin, QrCode } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
-import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 
 export default async function KioskIndex() {
   const session = await requireRole("admin");
@@ -12,14 +12,14 @@ export default async function KioskIndex() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-      <p className="text-muted-foreground">{t("intro")}</p>
+      <PageHeader title={t("title")}>{t("intro")}</PageHeader>
       <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {sites.map((site) => (
           <li key={site.id}>
-            <Link href={`/a/kiosk/${site.id}`} className="block">
-              <Card className="flex items-center gap-3 rounded-admin hover:border-brand">
-                <QrCode aria-hidden="true" className="size-8 text-brand" />
+            <Link href={`/a/kiosk/${site.id}`} className="tile flex items-center gap-4 rounded-worker p-4">
+              <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-slab text-accent">
+                <QrCode aria-hidden="true" className="size-7" />
+              </span>
                 <div>
                   <p className="font-bold">{site.name}</p>
                   <p className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -27,7 +27,6 @@ export default async function KioskIndex() {
                     {t("open")}
                   </p>
                 </div>
-              </Card>
             </Link>
           </li>
         ))}

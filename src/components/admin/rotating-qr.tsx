@@ -27,18 +27,20 @@ export function RotatingQr({ siteId, initialToken }: { siteId: string; initialTo
   const progress = secondsLeft / ROTATE_SECONDS;
   return (
     <figure className="flex flex-col items-center gap-3">
-      <div className="rounded-admin bg-white p-4 shadow-lg" data-testid="kiosk-qr">
-        <QRCodeSVG value={token} size={320} level="M" title={t("qrLabel")} />
+      <div className="viewfinder rounded-[28px] p-3" data-testid="kiosk-qr">
+        <div className="rounded-3xl bg-white p-4">
+        <QRCodeSVG value={token} size={300} level="M" title={t("qrLabel")} className="h-auto max-w-full" />
+        </div>
       </div>
-      <figcaption className="flex items-center gap-2 font-semibold" aria-live="off">
+      <figcaption className="figure flex items-center gap-2 font-bold" aria-live="off">
         <svg viewBox="0 0 36 36" className="size-8 -rotate-90" aria-hidden="true">
-          <circle cx="18" cy="18" r="15" fill="none" stroke="var(--border)" strokeWidth="4" />
+          <circle cx="18" cy="18" r="15" fill="none" stroke="rgb(243 242 236 / 0.2)" strokeWidth="4" />
           <circle
             cx="18"
             cy="18"
             r="15"
             fill="none"
-            stroke="var(--brand)"
+            stroke="var(--accent)"
             strokeWidth="4"
             strokeDasharray={`${progress * 94.2} 94.2`}
             style={{ transition: "stroke-dasharray 1s linear" }}

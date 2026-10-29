@@ -22,7 +22,7 @@ export default async function CheckinPage() {
   const hint = checkedIn ? t("checkoutHint") : t("hint");
 
   return (
-    <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-2xl">
+    <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-3xl">
       <PageHeader title={title} action={<SpeakButton text={`${title}. ${hint}`} />}>
         {hint}
       </PageHeader>
@@ -33,14 +33,14 @@ export default async function CheckinPage() {
           <h2 id="how-it-works" className="eyebrow rule-label">
             {t("howTitle")}
           </h2>
-          <ol className="flex flex-col">
+          <ol className="stagger grid gap-3 md:grid-cols-3">
             {STEPS.map(({ key, Icon }, i) => (
-              <li key={key} className="flex items-start gap-4 border-b border-border py-3 last:border-0">
-                <span className="figure flex size-9 shrink-0 items-center justify-center rounded-full border-2 border-ink text-sm font-semibold">
+              <li key={key} className="sheet flex items-start gap-4 rounded-worker p-4 md:flex-col">
+                <span className="figure flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent font-bold text-accent-foreground">
                   {i + 1}
                 </span>
-                <span className="flex-1 pt-1">{t(key)}</span>
-                <Icon aria-hidden="true" className="mt-1 size-6 shrink-0 text-brand" />
+                <span className="flex-1 leading-snug">{t(key)}</span>
+                <Icon aria-hidden="true" className="mt-1 size-6 shrink-0 text-muted-foreground md:hidden" />
               </li>
             ))}
           </ol>

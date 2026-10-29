@@ -44,9 +44,9 @@ export function FeedbackForm() {
   if (result) {
     const text = t(result === "thanks" ? "thanks" : "alreadyAnswered");
     return (
-      <Card className="flex flex-col items-center gap-2 text-center" aria-live="polite">
+      <Card className="rise-in flex flex-col items-center gap-3 rounded-[28px] py-8 text-center" aria-live="polite">
         <SuccessCheck className="size-20" />
-        <p className="text-xl font-bold">{text}</p>
+        <p className="font-display text-2xl font-extrabold">{text}</p>
       </Card>
     );
   }
@@ -54,16 +54,20 @@ export function FeedbackForm() {
   return (
     <div className="flex flex-col gap-4">
       {error && (
-        <p role="alert" className="rounded-worker bg-danger p-3 font-semibold text-status-foreground">
+        <p role="alert" className="rounded-2xl bg-danger p-4 font-semibold text-status-foreground">
           {t("error")}
         </p>
       )}
-      {QUESTIONS.map((q) => (
-        <fieldset key={q.key} className="rounded-worker border border-border bg-card p-4">
-          <legend className="flex w-full items-center justify-between gap-2 px-1 text-lg font-bold">
-            {t(q.label)}
+      {QUESTIONS.map((q, i) => (
+        <fieldset key={q.key} className="sheet rounded-worker p-4 pt-3">
+          <legend className="sr-only">{t(q.label)}</legend>
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <p aria-hidden="true" className="flex items-center gap-3 text-lg leading-snug font-extrabold">
+              <span className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-muted text-sm">{i + 1}</span>
+              {t(q.label)}
+            </p>
             <SpeakButton text={t(q.label)} />
-          </legend>
+          </div>
           <div role="radiogroup" aria-label={t(q.label)} className="grid grid-cols-3 gap-2">
             {FACES.map((face) => {
               const selected = answers[q.key] === face.value;
@@ -76,8 +80,8 @@ export function FeedbackForm() {
                   aria-label={t(`faces.${face.label}`)}
                   onClick={() => setAnswers((prev) => ({ ...prev, [q.key]: face.value }))}
                   className={cn(
-                    "flex min-h-20 flex-col items-center justify-center rounded-worker border-2 text-4xl",
-                    selected ? "border-ink bg-accent text-accent-foreground" : "border-border bg-card",
+                    "flex min-h-24 flex-col items-center justify-center gap-1 rounded-2xl border text-4xl transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5 active:scale-95",
+                    selected ? "border-ink bg-accent text-accent-foreground" : "border-border bg-background hover:border-ink/50",
                   )}
                 >
                   <span aria-hidden="true">{face.emoji}</span>
@@ -88,18 +92,18 @@ export function FeedbackForm() {
           </div>
         </fieldset>
       ))}
-      <label className="flex flex-col gap-1 font-semibold">
+      <label className="flex flex-col gap-1.5 font-bold">
         {t("addComment")}
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           maxLength={500}
           rows={3}
-          className="rounded-worker border-2 border-border bg-card p-3 font-normal"
+          className="rounded-2xl border border-border bg-card p-4 font-normal transition-colors hover:border-ink/40 focus:border-ink"
         />
         <span className="text-sm font-normal text-muted-foreground">{t("commentHint")}</span>
       </label>
-      <Button size="lg" onClick={submit} disabled={!complete || pending}>
+      <Button variant="accent" size="lg" onClick={submit} disabled={!complete || pending}>
         {t("submit")}
       </Button>
     </div>

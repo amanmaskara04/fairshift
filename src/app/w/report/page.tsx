@@ -26,13 +26,13 @@ export default async function ReportPage() {
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
-    <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-2xl">
+    <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-3xl">
       <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />} />
 
       <HazardReporter categories={[...getSectorProfile(org.sector).hazardCategories]} />
 
       <section aria-labelledby="my-reports" className="flex flex-col gap-2">
-        <h2 id="my-reports" className="text-xl font-bold">
+        <h2 id="my-reports" className="font-display text-2xl font-extrabold">
           {t("myReports")}
         </h2>
         {mine.length === 0 ? (
@@ -43,10 +43,12 @@ export default async function ReportPage() {
               <li key={h.id}>
                 <Link
                   href={`/w/report/${h.id}`}
-                  className="print-card flex min-h-16 items-center gap-3 rounded-worker p-3"
+                  className="tile flex min-h-16 items-center gap-3 rounded-2xl p-3"
                 >
-                  <HazardIcon category={h.category} className="size-8 shrink-0 text-brand" />
-                  <span className="flex-1 font-semibold">{t(`categories.${h.category}`)}</span>
+                  <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-muted">
+                    <HazardIcon category={h.category} className="size-6" />
+                  </span>
+                  <span className="flex-1 font-bold">{t(`categories.${h.category}`)}</span>
                   <HazardStatusBadge status={h.status} />
                 </Link>
               </li>

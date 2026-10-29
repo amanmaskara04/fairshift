@@ -171,7 +171,7 @@ export function HazardReporter({ categories }: { categories: string[] }) {
   }
 
   const errorBox = error && (
-    <p role="alert" className="rounded-worker bg-danger p-3 font-semibold text-status-foreground">
+    <p role="alert" className="rounded-2xl bg-danger p-4 font-semibold text-status-foreground">
       {error}
     </p>
   );
@@ -182,14 +182,16 @@ export function HazardReporter({ categories }: { categories: string[] }) {
     return (
       <div className="flex flex-col gap-4">
         {errorBox}
-        <Card className="rise-in flex flex-col gap-3" aria-live="polite">
+        <Card className="rise-in flex flex-col gap-4 rounded-[28px]" aria-live="polite">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold">{t("confirmTitle")}</h2>
+            <h2 className="font-display text-2xl font-extrabold">{t("confirmTitle")}</h2>
             <SpeakButton text={`${heard} ${label}`} />
           </div>
-          {heard && <p className="italic">{heard}</p>}
-          <p className="flex items-center gap-3 text-xl font-bold">
-            <HazardIcon category={suggestion.category} className="size-10 text-brand" />
+          {heard && <p className="rounded-2xl bg-muted px-4 py-3 italic">{heard}</p>}
+          <p className="flex flex-wrap items-center gap-3 text-xl font-extrabold">
+            <span className="flex size-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
+              <HazardIcon category={suggestion.category} className="size-8" />
+            </span>
             {label}
             {suggestion.severityHint && (
               <Badge tone={SEVERITY_TONE[suggestion.severityHint]}>{t(`severity.${suggestion.severityHint}`)}</Badge>
@@ -198,14 +200,16 @@ export function HazardReporter({ categories }: { categories: string[] }) {
           {suggestion.locationHint && <p className="text-muted-foreground">{suggestion.locationHint}</p>}
         </Card>
 
-        <label className="flex min-h-12 items-center gap-3 rounded-worker border-2 border-border p-3 font-semibold">
-          <Camera aria-hidden="true" className="size-6" />
+        <label className="tile flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl p-3 font-bold">
+          <span className="flex size-10 items-center justify-center rounded-xl bg-muted">
+            <Camera aria-hidden="true" className="size-5" />
+          </span>
           {photo ? t("photoAdded") : t("addPhoto")}
           <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => onPhoto(e.target.files?.[0])} />
         </label>
 
-        <label className="flex min-h-12 items-center gap-3 rounded-worker border-2 border-border p-3 font-semibold">
-          <input type="checkbox" checked={hideName} onChange={(e) => setHideName(e.target.checked)} className="size-6 accent-brand" />
+        <label className="tile flex min-h-14 cursor-pointer items-center gap-3 rounded-2xl p-3 font-bold">
+          <input type="checkbox" checked={hideName} onChange={(e) => setHideName(e.target.checked)} className="ml-2 size-6 accent-brand" />
           <Lock aria-hidden="true" className="size-5" />
           {t("hideMyName")}
         </label>
@@ -227,7 +231,7 @@ export function HazardReporter({ categories }: { categories: string[] }) {
   return (
     <div className="flex flex-col gap-4">
       {errorBox}
-      <div className="flex flex-col items-center gap-2 py-2">
+      <div className="slab flex flex-col items-center gap-4 rounded-[28px] px-5 py-8">
         <button
           type="button"
           onClick={phase === "recording" ? stopListening : startListening}
@@ -235,32 +239,34 @@ export function HazardReporter({ categories }: { categories: string[] }) {
           aria-label={phase === "recording" ? t("stopRecording") : t("holdToSpeak")}
           aria-pressed={phase === "recording"}
           className={cn(
-            "flex size-24 items-center justify-center rounded-full text-status-foreground disabled:opacity-60",
-            phase === "recording" ? "mic-pulse bg-danger" : "bg-brand text-brand-foreground",
+            "flex size-28 items-center justify-center rounded-full transition-transform duration-200 hover:scale-105 active:scale-95 disabled:opacity-60",
+            phase === "recording" ? "mic-pulse bg-danger text-status-foreground" : "bg-accent text-accent-foreground shadow-[0_0_0_10px_rgb(197_240_106/0.14)]",
           )}
         >
           {phase === "recording" ? <Square aria-hidden="true" className="size-10" /> : <Mic aria-hidden="true" className="size-12" />}
         </button>
-        <p className="font-semibold" aria-live="assertive">
+        <p className="text-lg font-bold" aria-live="assertive">
           {phase === "recording" ? t("recording") : phase === "analyzing" ? t("analyzing") : t("tapToSpeak")}
         </p>
         {heard && (
-          <p lang={locale} className="max-w-full rounded-worker border border-border bg-card px-4 py-2 text-center italic" aria-live="polite">
+          <p lang={locale} className="max-w-full rounded-2xl bg-[rgb(243_242_236/0.1)] px-4 py-2 text-center italic" aria-live="polite">
             “{heard}”
           </p>
         )}
       </div>
 
-      <p className="text-center text-muted-foreground">{t("orTapIcon")}</p>
-      <ul className="grid grid-cols-3 gap-2">
+      <p className="eyebrow rule-label">{t("orTapIcon")}</p>
+      <ul className="stagger grid grid-cols-3 gap-2.5">
         {categories.map((category) => (
           <li key={category}>
             <button
               type="button"
               onClick={() => pickCategory(category)}
-              className="print-card flex min-h-24 w-full flex-col items-center justify-center gap-1 rounded-worker p-2 text-center font-bold"
+              className="tile flex min-h-28 w-full flex-col items-center justify-center gap-2 rounded-worker p-2 text-center text-[0.95rem] leading-tight font-bold"
             >
-              <HazardIcon category={category} className="size-8 text-brand" />
+              <span className="flex size-12 items-center justify-center rounded-2xl bg-brand-soft text-brand-soft-foreground">
+                <HazardIcon category={category} className="size-7" />
+              </span>
               {t(`categories.${category}`)}
             </button>
           </li>

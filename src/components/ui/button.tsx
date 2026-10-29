@@ -3,21 +3,21 @@ import type { ComponentProps } from "react";
 import { cn } from "@/lib/utils";
 
 export const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 font-bold cursor-pointer select-none transition-[transform,background-color,box-shadow,filter] duration-150 ease-out hover:-translate-y-0.5 hover:shadow-[0_3px_0_0_var(--ink-line)] active:translate-y-0 active:shadow-none active:duration-75 disabled:pointer-events-none disabled:opacity-60",
+  "inline-flex items-center justify-center gap-2 font-bold cursor-pointer select-none transition-[transform,background-color,box-shadow,color,border-color] duration-200 ease-[cubic-bezier(0.2,0.8,0.2,1)] hover:-translate-y-0.5 active:translate-y-0 active:scale-[0.98] active:duration-75 disabled:pointer-events-none disabled:opacity-55",
   {
     variants: {
       variant: {
-        primary: "bg-brand text-brand-foreground hover:bg-brand/90",
-        accent: "bg-accent text-accent-foreground border-2 border-ink hover:brightness-95",
-        secondary: "bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/80",
-        outline: "border-2 border-ink bg-card text-card-foreground hover:bg-muted",
-        ghost: "text-foreground hover:bg-muted hover:shadow-none hover:translate-y-0",
-        danger: "bg-danger text-status-foreground hover:bg-danger/90",
+        primary: "bg-brand text-brand-foreground hover:shadow-[0_10px_22px_-12px_var(--brand)]",
+        accent: "bg-accent text-accent-foreground hover:shadow-[0_10px_22px_-10px_rgb(12_26_22/0.45)]",
+        secondary: "bg-brand-soft text-brand-soft-foreground hover:bg-brand-soft/70",
+        outline: "border border-ink/25 bg-card text-card-foreground hover:border-ink",
+        ghost: "text-foreground hover:bg-muted hover:translate-y-0",
+        danger: "bg-danger text-status-foreground hover:shadow-[0_10px_22px_-12px_var(--danger)]",
       },
       size: {
-        sm: "min-h-10 px-3 text-sm rounded-admin",
-        md: "min-h-12 px-4 text-base rounded-admin",
-        lg: "min-h-16 px-6 text-lg rounded-worker",
+        sm: "min-h-10 px-4 text-sm rounded-full",
+        md: "min-h-12 px-5 text-base rounded-full",
+        lg: "min-h-16 px-6 text-lg rounded-[18px]",
         icon: "size-12 rounded-full",
       },
     },

@@ -20,7 +20,7 @@ export function LoginForms() {
 
   return (
     <section className="flex flex-col gap-4">
-      <div role="tablist" aria-label={t("loginButton")} className="grid grid-cols-2 gap-1 rounded-worker border border-border bg-background p-1">
+      <div role="tablist" aria-label={t("loginButton")} className="grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
         {(["worker", "admin"] as const).map((value) => (
           <Button
             key={value}
@@ -29,6 +29,7 @@ export function LoginForms() {
             aria-selected={tab === value}
             aria-controls={`panel-${value}`}
             variant={tab === value ? "primary" : "ghost"}
+            className={tab === value ? "" : "text-muted-foreground hover:bg-card"}
             onClick={() => setTab(value)}
           >
             {t(value === "worker" ? "workerTab" : "adminTab")}
@@ -47,7 +48,7 @@ function ErrorMessage({ state }: { state: LoginState }) {
   if (!state.error) return null;
   const key = state.error === "locked" ? "errorLocked" : state.error === "invalid" ? "errorInvalid" : "errorGeneral";
   return (
-    <p role="alert" className="rounded-admin bg-danger p-3 font-semibold text-status-foreground">
+    <p role="alert" className="rounded-2xl bg-danger p-3 font-semibold text-status-foreground">
       {t(key)}
     </p>
   );
@@ -86,7 +87,7 @@ function WorkerForm() {
             value={values[field]}
             onFocus={() => setActive(field)}
             onChange={(e) => setValues((prev) => ({ ...prev, [field]: e.target.value.replace(/\D/g, "") }))}
-            className={cn("mt-1 text-center text-2xl tracking-[0.4em]", active === field && "border-brand")}
+            className={cn("figure mt-1.5 min-h-14 text-center text-2xl tracking-[0.4em]", active === field && "border-ink ring-2 ring-accent")}
           />
         </div>
       ))}
@@ -98,9 +99,9 @@ function WorkerForm() {
           ) : (
             <Button
               key={key}
-              variant="outline"
+              variant="ghost"
               size="lg"
-              className="text-2xl"
+              className="figure rounded-2xl bg-muted text-2xl hover:-translate-y-0.5 hover:bg-brand-soft"
               aria-label={key === "back" ? t("deleteDigit") : key}
               onClick={() => press(key)}
             >
@@ -110,7 +111,7 @@ function WorkerForm() {
         )}
       </div>
 
-      <Button type="submit" size="lg" disabled={pending} aria-busy={pending || undefined}>
+      <Button type="submit" size="lg" variant="accent" disabled={pending} aria-busy={pending || undefined}>
         {pending ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : null}
         {t("loginButton")}
       </Button>

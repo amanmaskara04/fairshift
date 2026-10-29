@@ -31,19 +31,25 @@ export default async function SkillsPage() {
   const verified = skills.filter((s) => s.verifiedBy).length;
 
   return (
-    <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-2xl">
+    <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-3xl">
       <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("summary", { count: skills.length, verified })}`} />} />
       <p className="text-muted-foreground">{t("summary", { count: skills.length, verified })}</p>
 
-      <ul className="flex flex-col gap-2">
+      <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-start">
+      <ul className="stagger flex flex-col gap-2.5">
         {skills.map((skill) => (
           <li key={skill.id}>
-            <Card className="flex items-center justify-between gap-3">
-              <div>
-                <p className="font-bold">{skill.title}</p>
-                <p className="text-sm text-muted-foreground">
-                  {skill.issuer} · {formatDate(skill.date)}
-                </p>
+            <Card className="flex items-center justify-between gap-3 rounded-2xl p-4">
+              <div className="flex items-center gap-3">
+                <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand-soft-foreground">
+                  <BadgeCheck className="size-6" />
+                </span>
+                <div>
+                  <p className="font-bold">{skill.title}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {skill.issuer} · {formatDate(skill.date)}
+                  </p>
+                </div>
               </div>
               {skill.verifiedBy ? (
                 <Badge tone="success">
@@ -61,13 +67,14 @@ export default async function SkillsPage() {
         ))}
       </ul>
 
-      <Card className="flex flex-col items-center gap-3 text-center">
-        <h2 className="text-lg font-bold">{t("shareTitle")}</h2>
-        <p>{t("shareHint")}</p>
-        <div className="rounded-admin bg-white p-3">
+      <section className="slab flex flex-col items-center gap-3 rounded-[28px] p-6 text-center md:w-80">
+        <h2 className="font-display text-2xl font-extrabold">{t("shareTitle")}</h2>
+        <p className="text-slab-muted">{t("shareHint")}</p>
+        <div className="mt-1 rounded-3xl bg-white p-4 ring-8 ring-accent/25">
           <QRCodeSVG value={shareUrl} size={180} title={t("shareTitle")} />
         </div>
-      </Card>
+      </section>
+      </div>
 
       <form action={logout}>
         <SubmitButton variant="outline" size="lg" className="w-full">

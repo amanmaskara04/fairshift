@@ -9,6 +9,7 @@ import { formatDuration, formatINR } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { PageHeader } from "@/components/page-header";
 
 export default async function PayrollPage({ searchParams }: PageProps<"/a/payroll">) {
   const session = await requireRole("admin");
@@ -21,32 +22,35 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-3xl font-extrabold">{t("title")}</h1>
-        <a href={`/api/payroll?month=${month}`} className={buttonVariants({ size: "sm" })} download>
-          <Download aria-hidden="true" className="size-4" />
-          {t("export")}
-        </a>
-      </div>
-      <nav aria-label={t("month")} className="flex flex-wrap gap-2">
+      <PageHeader
+        title={t("title")}
+        action={
+          <a href={`/api/payroll?month=${month}`} className={buttonVariants({ size: "md", variant: "accent" })} download>
+            <Download aria-hidden="true" className="size-4" />
+            {t("export")}
+          </a>
+        }
+      >
+        {t("intro")}
+      </PageHeader>
+      <nav aria-label={t("month")} className="flex w-fit flex-wrap gap-1 rounded-full bg-muted p-1">
         {months.map((m) => (
           <Link
             key={m}
             href={`/a/payroll?m=${m}`}
             aria-current={m === month ? "page" : undefined}
-            className={cn(buttonVariants({ size: "sm", variant: m === month ? "primary" : "outline" }))}
+            className={cn(buttonVariants({ size: "sm", variant: m === month ? "primary" : "ghost" }), "figure", m !== month && "text-muted-foreground hover:bg-card")}
           >
             {m}
           </Link>
         ))}
       </nav>
-      <p className="text-muted-foreground">{t("intro")}</p>
 
       {/* Phones: a card per worker with net pay prominent, then the totals. */}
       <ul className="flex flex-col gap-3 md:hidden">
         {rows.map((r) => (
           <li key={r.workerId}>
-            <Card className="flex flex-col gap-2 rounded-admin">
+            <Card className="flex flex-col gap-2 rounded-2xl p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-bold">{r.name}</p>
@@ -77,54 +81,54 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
           </li>
         ))}
         <li>
-          <Card className="flex items-center justify-between rounded-admin border-ink bg-foreground text-background">
+          <Card className="slab flex items-center justify-between rounded-2xl border-0 p-4">
             <span className="font-bold">{t("total")}</span>
             <span className="figure text-lg font-semibold">{formatINR(totals.net)}</span>
           </Card>
         </li>
       </ul>
 
-      <Card className="hidden overflow-x-auto rounded-admin p-0 md:block">
+      <Card className="hidden overflow-x-auto p-0 md:block">
         <table className="w-full min-w-[720px] text-left">
           <caption className="sr-only">{t("title")}</caption>
-          <thead className="bg-muted text-sm text-muted-foreground">
+          <thead className="border-b border-border text-xs tracking-wide text-muted-foreground uppercase">
             <tr>
-              <th scope="col" className="p-3 font-medium">{t("worker")}</th>
-              <th scope="col" className="p-3 font-medium">{t("days")}</th>
-              <th scope="col" className="p-3 font-medium">{t("regular")}</th>
-              <th scope="col" className="p-3 font-medium">{t("overtime")}</th>
-              <th scope="col" className="p-3 text-right font-medium">{t("gross")}</th>
-              <th scope="col" className="p-3 text-right font-medium">{t("pf")}</th>
-              <th scope="col" className="p-3 text-right font-medium">{t("net")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("worker")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("days")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("regular")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">{t("overtime")}</th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">{t("gross")}</th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">{t("pf")}</th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">{t("net")}</th>
             </tr>
           </thead>
           <tbody>
             {rows.map((r) => (
-              <tr key={r.workerId} className="border-t border-border">
-                <th scope="row" className="p-3 font-semibold">
+              <tr key={r.workerId} className="border-t border-border transition-colors hover:bg-muted/50">
+                <th scope="row" className="px-4 py-3 font-semibold">
                   {r.name}
                   <span className="block text-sm font-normal text-muted-foreground">
                     #{r.code} · {t(`basis.${r.basis}`)}
                   </span>
                 </th>
-                <td className="p-3">{r.daysWorked}</td>
-                <td className="p-3 whitespace-nowrap">{formatDuration(r.regularMinutes)}</td>
-                <td className="p-3 whitespace-nowrap">{r.overtimeMinutes ? formatDuration(r.overtimeMinutes) : "—"}</td>
-                <td className="p-3 text-right whitespace-nowrap">{formatINR(r.gross)}</td>
-                <td className="p-3 text-right whitespace-nowrap">{formatINR(r.deductions)}</td>
-                <td className="p-3 text-right font-bold whitespace-nowrap">{formatINR(r.net)}</td>
+                <td className="px-4 py-3">{r.daysWorked}</td>
+                <td className="figure px-4 py-3 whitespace-nowrap">{formatDuration(r.regularMinutes)}</td>
+                <td className="figure px-4 py-3 whitespace-nowrap">{r.overtimeMinutes ? formatDuration(r.overtimeMinutes) : "—"}</td>
+                <td className="figure px-4 py-3 text-right whitespace-nowrap">{formatINR(r.gross)}</td>
+                <td className="figure px-4 py-3 text-right whitespace-nowrap">{formatINR(r.deductions)}</td>
+                <td className="figure px-4 py-3 text-right font-bold whitespace-nowrap">{formatINR(r.net)}</td>
               </tr>
             ))}
           </tbody>
-          <tfoot className="border-t-2 border-border font-bold">
+          <tfoot className="figure border-t-2 border-ink bg-muted/50 font-bold">
             <tr>
-              <th scope="row" className="p-3">{t("total")}</th>
-              <td className="p-3" />
-              <td className="p-3" />
-              <td className="p-3 whitespace-nowrap">{formatDuration(totals.ot)}</td>
-              <td className="p-3 text-right whitespace-nowrap">{formatINR(totals.gross)}</td>
-              <td className="p-3" />
-              <td className="p-3 text-right whitespace-nowrap">{formatINR(totals.net)}</td>
+              <th scope="row" className="px-4 py-3">{t("total")}</th>
+              <td className="px-4 py-3" />
+              <td className="px-4 py-3" />
+              <td className="figure px-4 py-3 whitespace-nowrap">{formatDuration(totals.ot)}</td>
+              <td className="figure px-4 py-3 text-right whitespace-nowrap">{formatINR(totals.gross)}</td>
+              <td className="px-4 py-3" />
+              <td className="figure px-4 py-3 text-right whitespace-nowrap">{formatINR(totals.net)}</td>
             </tr>
           </tfoot>
         </table>

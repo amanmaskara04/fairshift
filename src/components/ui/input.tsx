@@ -5,7 +5,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
   return (
     <input
       className={cn(
-        "min-h-12 w-full rounded-admin border-2 border-border bg-card px-3 text-base text-card-foreground placeholder:text-muted-foreground",
+        "min-h-12 w-full rounded-2xl border border-border bg-card px-4 text-base text-card-foreground transition-[border-color,box-shadow] placeholder:text-muted-foreground hover:border-ink/40 focus:border-ink",
         className,
       )}
       {...props}
@@ -14,5 +14,5 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
 }
 
 export function Label({ className, ...props }: ComponentProps<"label">) {
-  return <label className={cn("block font-semibold", className)} {...props} />;
+  return <label className={cn("block text-sm font-bold", className)} {...props} />;
 }

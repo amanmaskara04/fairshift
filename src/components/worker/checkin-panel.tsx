@@ -3,7 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { Camera, CloudUpload, LogOut, ScanLine } from "lucide-react";
+import { Camera, CloudUpload, LogOut, QrCode, ScanLine } from "lucide-react";
 import { checkInAction, checkOutAction, demoSiteTokenAction, type ActionResult } from "@/server/actions/attendance";
 import { enqueue, isNetworkError } from "@/lib/offline-queue";
 import { Button } from "@/components/ui/button";
@@ -84,9 +84,9 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
 
   if (phase === "done" || phase === "queued") {
     return (
-      <Card className="flex flex-col items-center gap-4 py-8 text-center" aria-live="polite">
+      <Card className="rise-in flex flex-col items-center gap-4 rounded-[28px] py-10 text-center" aria-live="polite">
         {phase === "done" ? <SuccessCheck /> : <CloudUpload aria-hidden="true" className="size-20 text-brand" />}
-        <p className="text-2xl font-bold">{message}</p>
+        <p className="font-display text-3xl font-extrabold">{message}</p>
         <SpeakButton text={message} />
         <Button size="lg" variant="outline" onClick={() => router.push("/w")}>
           {t("backHome")}
@@ -98,16 +98,18 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
   return (
     <div className="flex flex-col gap-4">
       {error && (
-        <p role="alert" className="rounded-worker bg-danger p-3 font-semibold text-status-foreground">
+        <p role="alert" className="rounded-2xl bg-danger p-4 font-semibold text-status-foreground">
           {error}
         </p>
       )}
 
       {checkedIn ? (
-        <Button size="lg" className="min-h-20 text-xl" onClick={submitCheckOut} disabled={pending}>
-          <LogOut aria-hidden="true" className="size-8" />
-          {t("checkoutButton")}
-        </Button>
+        <div className="slab flex flex-col gap-5 rounded-[28px] p-5 md:p-7">
+          <Button variant="accent" size="lg" className="min-h-20 text-xl" onClick={submitCheckOut} disabled={pending}>
+            <LogOut aria-hidden="true" className="size-8" />
+            {t("checkoutButton")}
+          </Button>
+        </div>
       ) : phase === "scanning" ? (
         <>
           <QrScanner onResult={submitCheckIn} onError={onCameraError} label={t("scanQR")} />
@@ -116,8 +118,10 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
           </Button>
         </>
       ) : phase === "explain" ? (
-        <Card className="flex flex-col items-center gap-4 text-center">
-          <Camera aria-hidden="true" className="size-16 text-brand" />
+        <Card className="rise-in flex flex-col items-center gap-4 rounded-[28px] text-center">
+          <span className="flex size-20 items-center justify-center rounded-3xl bg-brand-soft text-brand-soft-foreground">
+            <Camera aria-hidden="true" className="size-10" />
+          </span>
           <p className="text-lg">{t("cameraWhy")}</p>
           <SpeakButton text={t("cameraWhy")} />
           <Button size="lg" className="w-full" onClick={() => setPhase("scanning")}>
@@ -125,10 +129,15 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
           </Button>
         </Card>
       ) : (
-        <Button variant="accent" size="lg" className="min-h-20 text-xl" onClick={() => setPhase("explain")} disabled={pending}>
-          <ScanLine aria-hidden="true" className="size-8" />
-          {t("scanQR")}
-        </Button>
+        <div className="slab flex flex-col items-center gap-6 rounded-[28px] p-6 md:p-8">
+          <div className="viewfinder flex size-44 items-center justify-center" aria-hidden="true">
+            <QrCode className="size-24 text-slab-foreground/80" strokeWidth={1.4} />
+          </div>
+          <Button variant="accent" size="lg" className="min-h-20 w-full text-xl" onClick={() => setPhase("explain")} disabled={pending}>
+            <ScanLine aria-hidden="true" className="size-8" />
+            {t("scanQR")}
+          </Button>
+        </div>
       )}
 
       {demo && !checkedIn && phase !== "scanning" && (

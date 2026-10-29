@@ -16,14 +16,21 @@ const ITEMS = [
   { href: "/a/kiosk", key: "kiosk", Icon: QrCode },
 ] as const;
 
-export function Sidebar() {
+/** Admin navigation: a vertical rail on the dark sidebar, or a swipeable tab strip on phones. */
+export function Sidebar({ variant }: { variant: "rail" | "strip" }) {
   const t = useTranslations("admin");
   const pathname = usePathname();
+  const rail = variant === "rail";
 
   return (
-    <nav aria-label={t("navLabel")} className="sticky top-0 z-10 border-b border-border bg-background md:static md:w-56 md:shrink-0 md:border-r md:border-b-0">
-      {/* Phones: a swipeable tab strip with a fade on the right edge hinting there is more. */}
-      <ul className="flex snap-x gap-1 overflow-x-auto p-2 [mask-image:linear-gradient(to_right,black_85%,transparent)] [scrollbar-width:none] md:flex-col md:[mask-image:none]">
+    <nav aria-label={t("navLabel")}>
+      <ul
+        className={cn(
+          rail
+            ? "flex flex-col gap-1"
+            : "no-scrollbar flex snap-x gap-1.5 overflow-x-auto px-4 pb-3 [mask-image:linear-gradient(to_right,black_85%,transparent)]",
+        )}
+      >
         {ITEMS.map(({ href, key, Icon }) => {
           const current = href === "/a" ? pathname === "/a" : pathname.startsWith(href);
           return (
@@ -32,13 +39,14 @@ export function Sidebar() {
                 href={href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 items-center gap-2 whitespace-nowrap rounded-admin px-3 font-semibold transition-colors",
-                  current
-                    ? "bg-accent text-accent-foreground md:bg-card md:text-foreground md:shadow-[inset_4px_0_0_var(--accent)] md:ring-1 md:ring-border"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  "flex items-center gap-3 font-bold whitespace-nowrap transition-colors duration-200",
+                  rail ? "min-h-11 rounded-xl px-3" : "min-h-10 rounded-full px-4 text-sm",
+                  rail &&
+                    (current ? "bg-accent text-accent-foreground" : "text-slab-muted hover:bg-[rgb(243_242_236/0.08)] hover:text-slab-foreground"),
+                  !rail && (current ? "bg-brand text-brand-foreground" : "bg-muted text-muted-foreground hover:text-foreground"),
                 )}
               >
-                <Icon aria-hidden="true" className="size-5" />
+                <Icon aria-hidden="true" className={rail ? "size-5" : "size-4"} />
                 {t(key)}
               </Link>
             </li>
