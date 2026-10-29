@@ -1,235 +1,224 @@
-# FairShift — Decent Work Platform
+# FairShift — Decent Work, Counted Fairly
 
-**Prompt Wars 2026 × SRM ACM · UN SDG 8 (Decent Work & Economic Growth)**
+> **Prompt Wars 2026 × SRM ACM · UN SDG 8 (Decent Work & Economic Growth)**
+> A voice-first, four-language workplace app for daily-wage and shift workers — and an early-warning dashboard for the employers who want to treat them fairly. One codebase, **construction sites and hospitals**.
 
-A voice-first, multilingual PWA for daily-wage and shift workers, plus an early-warning dashboard for employers.
+[![CI](https://github.com/amanmaskara04/fairshift/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/amanmaskara04/fairshift/actions/workflows/ci.yml)
+![Unit tests](https://img.shields.io/badge/unit%20tests-250%20passing-2e8b57)
+![E2E tests](https://img.shields.io/badge/e2e%20tests-31%20passing-2e8b57)
+![axe](https://img.shields.io/badge/axe-0%20violations-2e8b57)
+![Languages](https://img.shields.io/badge/languages-EN%20·%20हिन्दी%20·%20தமிழ்%20·%20తెలుగు-0f6b5a)
+![Gemini](https://img.shields.io/badge/Google-Gemini%203.5%20%2F%203.8-4285F4)
+![Cloud Run](https://img.shields.io/badge/Google-Cloud%20Run-4285F4)
 
-- **Workers** get proof of their hours and a payslip they can understand (and hear).
-- **Workers** get a safe way to report hazards and to speak up anonymously, plus a portable skill record.
-- **Employers** see fatigue, safety and attrition risk early enough to act.
+**Live demo:** Cloud Run (`asia-south1`) — see [Deploy](#deploy-to-google-cloud-run) · Preview mirror: <https://fairshift-ashy.vercel.app>
+**One tap in, no sign-up:** open the app and tap a demo person below.
 
-One codebase serves **construction sites and hospitals** (campus and factory profiles included) through sector configuration.
-
-> **The AI understands; the code computes.** Gemini turns speech in Tamil, Hindi, Telugu or English into structured reports, and rewords explanations. Every rupee, hour, fatigue flag and risk score comes from pure, unit-tested TypeScript, never from the model.
-
-## Try it
-
-```bash
-npm install
-cp .env.example .env.local        # optional: add GEMINI_API_KEY for live AI
-npm run dev                        # http://localhost:3000
-```
-
-Pick a language, then tap a demo login:
-
-| Persona | Who | Shows |
+| Demo login | Who | Shows |
 |---|---|---|
-| **Ramesh** (code `1001`, PIN `1234`) | Mason, BuildRight Constructions, Chennai · Tamil | QR check-in, overtime on payslip, voice hazard report |
-| **Sunita** (code `2001`, PIN `1234`) | Ward attendant, City Care Hospital, Lucknow · Hindi | Night-shift fatigue warning, anonymous feedback, skill passport |
-| **Priya** (`priya@buildright.demo` / `demo1234`) | Site manager | Live KPIs, hazard queue, people risk, payroll CSV, QR kiosk |
-| **Dr. Arjun** (`arjun@citycare.demo` / `demo1234`) | Hospital admin | Same dashboard, hospital rules |
+| **Ramesh** · code `1001`, PIN `1234` | Mason, BuildRight Constructions, Chennai · Tamil | QR check-in, *earned so far*, **₹907 possible overtime shortfall**, BOCW progress **72/90 days**, voice hazard report |
+| **Sunita** · code `2001`, PIN `1234` | Ward attendant, City Care Hospital, Lucknow · Hindi | Night-shift fatigue warning, animated feedback faces, **“Me too” on a 4-of-5 issue → escalates live**, ESIC & e-Shram eligibility |
+| **Priya** · `priya@buildright.demo` / `demo1234` | Construction employer | Escalated hazards, pay sentinel, co-signed issues, certificate approvals, payroll CSV, QR kiosk |
+| **Dr. Arjun** · `arjun@citycare.demo` / `demo1234` | Hospital employer | The same dashboard with hospital rules, wards and escalation chain |
 
-The app runs **with no API key and no cloud account**. Seeded in-memory data and deterministic AI fallbacks make the demo impossible to break.
+The app runs **with no API key and no cloud account**: seeded data (generated relative to *today*) and deterministic fallbacks for every AI feature. A 3-minute judge walkthrough is in [`docs/demo-script.md`](docs/demo-script.md).
 
-**Pitch deck:** open `/pitch` on the running app (arrow keys to move between slides).
+---
 
-## Who uses it
+## At a glance
 
-| User | Where they are | What they need from FairShift |
+- **Problem.** India's 40+ crore unorganised workers can't prove their hours, can't read their payslips, fear speaking up, lose their work history when they change jobs, and miss the welfare they're entitled to because claiming it needs paperwork they don't have.
+- **Solution.** A phone app in their own language that **records every hour, checks every rupee against what was actually paid, lets workers raise issues safely in numbers, turns verified attendance into welfare eligibility and a signed work certificate**, and gives employers an honest early-warning dashboard.
+- **Why it's trustworthy.** *The AI phrases, the code computes.* Every rupee, hour, deadline, eligibility and risk score comes from pure, unit-tested TypeScript in [`src/core`](src/core). Gemini only understands speech, matches similar complaints, rewords explanations and reads aloud — and every one of those has a deterministic fallback.
+- **Google technology.** Gemini 3.5 Flash-Lite / 3.8 Flash (structured JSON output), Gemini 3.8 Flash-Lite TTS (Tamil/Telugu read-aloud), Cloud Run, Secret Manager, Cloud Build, Cloud Scheduler, Google Fonts (self-hosted).
+- **Evidence.** 250 unit tests + 31 Playwright end-to-end tests with axe accessibility scans on every screen; 95%+ coverage gate on the core; CI on every push.
+
+## Pain point → feature → code
+
+| Pain point (from the problem statement) | FairShift feature | Where |
 |---|---|---|
-| **Shift worker** (mason, ward attendant, cleaner, line operator) | Budget Android phone, patchy data, may not read well, speaks Tamil / Hindi / Telugu | Proof of hours, a payslip they understand, a safe way to report danger and speak up, a record of their skills |
-| **Supervisor / site manager** | Laptop or phone at the site office | See who is on site, who is overworked, which hazards are open, who might quit, and export payroll |
-| **Gate kiosk** | A spare phone or tablet at the site gate or ward desk | Show a rotating QR code that workers scan to check in |
-| **Next employer** | Anywhere, via a shared link | Verify a worker's skills without seeing anything else about them |
+| Unrecorded hours and unpaid overtime | QR check-in (rotating HMAC token, offline queue), payslip with 2× overtime, *“Why this amount?”* | [`core/overtime.ts`](src/core/overtime.ts) · [`core/pay.ts`](src/core/pay.ts) · [`w/checkin`](src/app/w/checkin) |
+| “The payslip says one thing, I was paid another” | **FairPay Sentinel**: compares attendance with what the employer recorded as paid; *Possible shortfall ₹907* with the arithmetic; one-tap review request → dispute workflow | [`core/pay-check.ts`](src/core/pay-check.ts) · [`services/disputes.ts`](src/server/services/disputes.ts) · [`w/pay`](src/app/w/pay/page.tsx) |
+| Wages below the legal minimum | Minimum-wage check per state/sector/skill (demo table, clearly labelled) | [`config/minimum-wage.ts`](src/config/minimum-wage.ts) |
+| Missed welfare benefits, no proof of days worked | **Benefits Unlocker**: BOCW board, e-Shram, ESIC, PM-SYM eligibility from verified days; progress ring; how-to-apply sheet; **HMAC-signed 90-day work certificate** | [`config/schemes.ts`](src/config/schemes.ts) · [`core/eligibility.ts`](src/core/eligibility.ts) · [`certificate/[token]`](src/app/certificate) |
+| Fear of retaliation for speaking up | Anonymous weekly feedback (groups of 5+), and **“Safe in numbers”** co-signed issues: invisible to management until 5 workers sign; signers never stored | [`core/cosign.ts`](src/core/cosign.ts) · [`services/issues.ts`](src/server/services/issues.ts) |
+| Unsafe sites, hazards ignored for days | Voice/photo hazard reports in 4 languages; **age timers**, severity deadlines, **auto-escalation** supervisor → site manager → safety officer; dismiss needs a reason; *“Is it really fixed?”* closes the loop; duplicates merged | [`core/hazard-lifecycle.ts`](src/core/hazard-lifecycle.ts) · [`core/hazard-duplicates.ts`](src/core/hazard-duplicates.ts) · [`config/hazard-sla.ts`](src/config/hazard-sla.ts) |
+| Fatigue, long shifts, night work | Sector fatigue rules (10h day, 11h rest, 3 nights in a row, 48h week) on the worker home and the manager board | [`core/fatigue.ts`](src/core/fatigue.ts) · [`core/sectors`](src/core/sectors) |
+| Lost career history when changing jobs | **Skill passport**: verified work history from attendance + skills, worker chooses what to share, **signed link that expires in 30 days** | [`core/work-history.ts`](src/core/work-history.ts) · [`core/signed-token.ts`](src/core/signed-token.ts) |
+| Employers learn about attrition too late | Explainable individual quit-risk (overtime trend, missed days, pay disputes) with **site conditions shown separately** | [`core/risk.ts`](src/core/risk.ts) · [`a/people`](src/app/a/people/page.tsx) |
+| Low literacy, many languages, cheap phones | 4 languages incl. native scripts, read-aloud everywhere (device voice → Gemini TTS fallback), voice input, big targets, offline, light SVG-only visuals | [`messages/`](src/messages) · [`lib/speak.ts`](src/lib/speak.ts) · [`api/tts`](src/app/api/tts/route.ts) |
 
-## User flow
+## Two sectors, one product
 
-```mermaid
-flowchart TD
-    A([Worker opens FairShift<br/>installable PWA]) --> B[Pick language in its own script<br/>English · हिन्दी · தமிழ் · తెలుగు]
-    B --> C[Log in: employee code + 4-digit PIN<br/>big keypad, no typing]
-    C --> D{Worker home<br/>today's hours · rest warning}
-    D -->|Arrive at gate| E[Scan rotating site QR]
-    E -->|online| E1[Shift starts ✓]
-    E -->|offline| E2[Saved on phone ☁️<br/>syncs when back online]
-    D -->|Payday| F[Payslip: regular + 2× overtime − PF<br/>🔊 read aloud · 'Why this amount?']
-    D -->|See danger| G[Tap mic, speak in any language<br/>or tap an icon]
-    G --> G1[Gemini turns speech into<br/>category · severity · location]
-    G1 --> G2[Worker confirms → report sent<br/>name hidden by default]
-    D -->|Weekly| H[3 emoji questions + comment<br/>anonymous, once a week]
-    D -->|Changing jobs| I[Skill passport QR<br/>for the next employer]
+| | Construction (BuildRight, Chennai) | Hospital (City Care, Lucknow) |
+|---|---|---|
+| Pay basis | Daily wage | Monthly salary |
+| Roster | Mon–Sat, Sunday rest | Rotating rest day, night shifts |
+| Fatigue rules | 10h day, 11h rest, 6 days, 48h week | 3+ nights in a row, 11h rest, 12h day, 48h week |
+| Hazard types | Fall, scaffolding, electrical, heat, PPE, machinery | Needle-stick, biohazard, patient aggression, slip, lifting, PPE |
+| Escalation chain | Supervisor → site manager → safety officer | Ward in-charge → nursing superintendent → safety officer / HR |
+| Welfare schemes | BOCW board (90 days of building work), e-Shram, PM-SYM | ESIC, e-Shram, PM-SYM |
 
-    G2 --> M[(MongoDB)]
-    E1 --> M
-    E2 -.-> M
-    H -->|names & numbers redacted| M
-
-    M --> N{Manager dashboard}
-    N --> N1[Needs attention:<br/>urgent hazards · fatigue · quit risk]
-    N --> N2[Hazard board → Start work → Fixed]
-    N2 -->|status shows on worker's phone| G2
-    N --> N3[Feedback: groups of 5+ only<br/>+ Gemini weekly brief from totals]
-    N --> N4[Payroll CSV export]
-```
+Everything that differs is **configuration** ([`core/sectors`](src/core/sectors), [`config/`](src/config)); campus and factory profiles are included.
 
 ## Architecture
 
 ```mermaid
 flowchart LR
-    subgraph Client["Worker phone / manager browser"]
-        UI[React Server Components<br/>+ small client islands]
-        SW[Service worker<br/>offline page + queue]
-        IDB[(IndexedDB<br/>offline check-ins)]
+    subgraph Phone["Worker phone · manager laptop"]
+        UI["React 19 Server Components<br/>+ small client islands"]
+        SW["Service worker<br/>offline page + queue"]
+        IDB[("IndexedDB<br/>offline check-ins")]
+        TTS1["Device voice"]
     end
 
     subgraph Run["Google Cloud Run · asia-south1 · Next.js 16"]
-        PX[proxy.ts<br/>nonce CSP · security headers · auth redirect]
-        SA[Server Actions & API routes<br/>requireRole · Zod · rate limits]
-        CORE[core/ — pure, unit-tested<br/>IST time · overtime · pay · fatigue<br/>quit risk · QR tokens · k-anonymity]
-        AI[ai/ — Gemini client<br/>schemas · fallbacks · PII redaction]
-        REPO[repos/ — one interface<br/>MongoDB or in-memory seed]
+        PX["proxy.ts<br/>nonce CSP · headers · auth redirect"]
+        SA["Server Actions & API routes<br/>requireRole · Zod · rate limits"]
+        CORE["core/ — pure, deterministic, unit-tested<br/>overtime · pay · pay-check · eligibility · co-sign<br/>hazard lifecycle · duplicates · risk · signed tokens"]
+        CFG["config/ — schemes · minimum wages · SLAs"]
+        AI["ai/ — Gemini client · JSON schemas<br/>fallbacks · PII redaction · TTS cache"]
+        REPO["repos/ — one interface<br/>MongoDB or in-memory seed"]
     end
 
-    GEM[Gemini 3.5 Flash-Lite<br/>audio → JSON]
-    DB[(MongoDB Atlas<br/>Mumbai)]
-    SM[Secret Manager]
+    GEM["Gemini 3.5 Flash-Lite / 3.8 Flash<br/>+ 3.8 Flash-Lite TTS"]
+    DB[("MongoDB Atlas · Mumbai")]
+    SM["Secret Manager"]
+    SCH["Cloud Scheduler<br/>hazard escalation sweep"]
 
     UI --> PX --> SA
     SW <--> IDB
     SA --> CORE
+    CORE --> CFG
     SA --> AI --> GEM
     SA --> REPO --> DB
     SM -. secrets .-> Run
+    SCH -- "POST /api/cron/hazards" --> SA
 ```
 
-**Why this shape:** the model never produces a number. Gemini only *understands* (speech → structured report, numbers → plain words); every amount, hour and score comes from `src/core`, so it is testable and the same every time.
+### The AI phrases, the code computes
 
-## What makes FairShift different
+| AI feature | What Gemini does | If Gemini is unavailable | Guard rail |
+|---|---|---|---|
+| Voice hazard report | Speech/text → category, severity hint, location (JSON schema) | Phone speech recognition + keyword classifier in 4 scripts | Category must be in the sector's list; severity floors in `core/hazard-rules.ts` |
+| *“Explain in simple words”* | Rewords the exact payslip sentences | Template sentences (always shown first) | Rejected if a single number changes |
+| Weekly brief | 3–5 actions from **totals only** | Deterministic template | No names, comments or per-worker rows are sent |
+| “Is it one of these?” | Matches a new issue to existing ones across languages | Keyword-overlap similarity | Only already-scrubbed issue texts are sent |
+| Read aloud (Tamil/Telugu on desktop) | Gemini TTS, cached per sentence | “Audio not available on this device” | Public route speaks only language names; everything else needs a session |
 
-1. **Voice-first in four Indian languages.** Workers speak a hazard in Tamil, Hindi or Telugu; the app turns it into a structured report and reads every screen aloud.
-2. **"The AI understands, the code computes."** Payslips and risk scores never come from the model, and AI rewording is rejected if a single number changes.
-3. **Anonymity enforced by design.** Feedback is stored with no worker id (a one-way HMAC only blocks double votes), timestamps are kept to the day, names and phone numbers are redacted, and managers only see groups of 5 or more.
-4. **Works offline on a cheap phone.** Check-ins queue on the device and sync later without duplicates; the rotating QR still validates offline scans for 12 hours.
-5. **Explainable early warnings.** Every quit-risk score shows its reasons, so managers get a prompt to talk, not a black-box label.
-6. **One app, many sectors.** Construction and hospital rules (pay basis, night shifts, hazard types) are configuration, not separate products.
+Every call is logged (feature, model, latency, fallback, content-free error) **in the database**, so the admin's *AI transparency* panel survives serverless restarts. `GET /api/health` reports `ai: configured | missing_key`.
 
-## How it maps to the brief
+## Privacy and security by design
 
-| Judging criterion | What FairShift does | Evidence |
-|---|---|---|
-| **Real-world impact** | Unpaid overtime becomes visible. Hazards reach the manager in seconds, and the worker sees each status change. Fatigue and quit risk are flagged with reasons. | `/w/pay`, `/w/report` → `/a/hazards` → worker timeline (e2e-tested) |
-| **SDG 8 relevance** | **8.5** decent work and fair pay (transparent payslips, 2× overtime). **8.8** labour rights and safe working environments (hazard reporting, anonymous voice, fatigue rules). | Payslip engine, hazard + feedback flows |
-| **Inclusivity & ease of use** | 4 languages in native scripts. 🔊 read-aloud on every screen. Voice input in any language. Icon-first tiles, 48 px+ targets, menus never more than 2 levels deep. Works offline (queued check-ins). Light canvas animation that switches off for reduced-motion and Data Saver users. | axe: 0 violations on every tested page |
-| **Technical implementation** | Next.js 16 App Router, strict TypeScript, nonce CSP, signed sessions, role checks on every action, Zod everywhere, rate limits, CI | 117 unit + 21 e2e tests, core coverage 99% |
-| **Feasibility & scalability** | Sector profiles (pay basis, shift rules, hazard types, fatigue rules) and a multi-org data model. Stateless Cloud Run container. | `src/core/sectors/*`, `Dockerfile` |
+- **Groups of 5.** Feedback is shown only for cohorts of 5+ responses; co-signed issues are invisible to management until 5 workers sign — *not even a count* leaks below the threshold ([`core/anonymity.ts`](src/core/anonymity.ts), [`core/cosign.ts`](src/core/cosign.ts)).
+- **Signers are never stored.** Double-voting and double-signing are blocked with `HMAC(secret, worker + week/issue)` — a one-way key, useless without the server secret. Issue creators count as the first signer with no identity stored; timestamps are coarsened to the day.
+- **PII scrubbing** of names (every worker and admin in the org), phone numbers, emails and long ids before anything is stored ([`ai/redact.ts`](src/ai/redact.ts)).
+- **Anonymous hazard reports** get a private tracking reference (`FS-7KQ2MZ`); only its HMAC is stored, so the reporter can confirm a fix without being identifiable.
+- **AI only sees totals** for management summaries, and user text is wrapped as untrusted data in every prompt.
+- **Signed, expiring links.** Skill passports and work certificates use HMAC-SHA256 tokens with the token *kind* bound into the MAC; passports expire after 30 days; tampered links get a friendly “could not be verified” page.
+- **Every mutation** is a Server Action or API route with `requireRole` (worker vs admin, org-scoped), **Zod** validation and **rate limits** on login, hazard reports, issues, disputes, CSV imports, TTS and AI calls.
+- **Headers.** Per-request nonce CSP with `strict-dynamic`, HSTS, `nosniff`, `frame-ancestors 'self'`, no `x-powered-by`; same-origin and body-size checks on JSON routes; CSV export neutralises formula injection.
+- **Secrets** come from env / Secret Manager only; the app refuses to start in production without them. Nothing secret is committed (`.env*` ignored; [`.env.example`](.env.example) documents every variable).
 
-**Deliverables:**
-- 3+ working features ✅ (W1–W7, A1–A7)
-- 2 UIs ✅ (worker `/w`, admin `/a`)
-- 2+ industries ✅ (construction, hospital)
+## Accessibility and inclusivity
 
-## Features
+- **Four languages** (English, हिन्दी, தமிழ், తెలుగు), every string translated — enforced by a test that all locale files have the same keys and placeholders. `<html lang>` follows the language; the language menu changes it **in place without a history entry**.
+- **Anek**, one multi-script font family, so Latin, Devanagari, Tamil and Telugu look like one brand; Indic text is never split letter-by-letter in animations (that breaks conjuncts).
+- **Read-aloud on every screen** with a server TTS fallback, **voice input** for hazards, comments and issues, big targets (≥48px), haptic taps.
+- **WCAG AA light theme** with contrast verified by [`tests/unit/design/contrast.test.ts`](tests/unit/design/contrast.test.ts); visible focus rings; ARIA radiogroups for the faces, menus with full keyboard support, `aria-live` for check-in, report sent and reviews; **axe scans on every page in CI**.
+- **Motion with care:** only `transform`/`opacity` animate; `prefers-reduced-motion` turns movement into short fades; loops pause when the tab is hidden.
+- **Back that behaves like an app:** tabs, steps, sheets and form submissions never add history entries; an in-app stack (sessionStorage) makes the Back button and the browser Back agree.
 
-**Worker app (`/w`, mobile PWA)**
+## Performance on a ₹7,000 phone
 
-- **QR check-in/out.** A rotating site QR (HMAC, 30 s window) is shown on a kiosk. Works offline: scans queue in IndexedDB, sync idempotently, and keep the scan time. Demo: "scan site QR".
-- **Clear payslip.** Regular, overtime and PF in ₹ (Indian digit grouping), per IST month. Overtime is counted daily or weekly, whichever pays the worker more.
-  - "Why this amount?" gives an always-correct template explanation in the worker's language, read aloud.
-  - "Explain in simple words" asks Gemini to reword it. The rewording is accepted only if every number survives unchanged.
-- **Report danger.** Tap the mic and speak in any language, or tap an icon.
-  - Gemini 3.5 Flash-Lite turns the audio into category, severity and location as schema-checked JSON.
-  - The worker confirms before anything is saved. Severity floors are applied in code (falls, electrical and needle-stick are never below *high*).
-  - Optional photo, compressed on the phone. Anonymous by default; the device keeps a private tracking cookie.
-- **Speak up.** 3 emoji questions plus a comment, once per week.
-  - Stored with **no worker id**: a one-way HMAC guard prevents double votes, and timestamps are kept to the day only.
-  - Names and phone numbers are redacted. Employers see groups of 5 or more only.
-- **Rest nudges.** Sector fatigue rules (more than 10 h a day, less than 11 h rest, 7 days without a day off, 3+ nights in a row, more than 48 h a week).
-- **Skill passport.** Verified skills, plus a QR code with a signed public link for the next employer.
+Server Components by default; client JS only for interactive islands. The animated scene is **inline SVG + CSS keyframes** (a few KB, no Lottie, no video, no animation library — page transitions use React 19's native `<ViewTransition>`). Recharts loads lazily on admin pages only. Fonts are self-hosted with only Latin preloaded. Icons are tree-shaken. The service worker precaches the shell; check-ins work offline.
 
-**Admin dashboard (`/a`)**
-
-- **Overview.** On site now, overtime this week, open hazards, mood, workers at risk.
-  - "Needs attention" list.
-  - Attendance and overtime charts, with a table fallback for screen readers.
-  - AI transparency log: model, latency and fallback used (never content).
-- **Hazards.** Board grouped by status, highest severity first. Guarded transitions; every change is pushed to the worker's timeline.
-- **People.** Hours, overtime, broken fatigue rules, and an **explainable quit-risk score**: each factor shows its points.
-- **Feedback.** Per site and week, k-anonymity gate, multilingual themes, and a **Gemini weekly brief built from totals only**.
-- **Payroll.** Monthly table and CSV export, with spreadsheet formula-injection escaping.
-- **Sites & QR kiosk.** Sector rules per site and a full-screen rotating QR.
-
-## Architecture
-
-```
-Worker phone (PWA)            Admin browser
- RSC pages + small islands      RSC pages + Recharts
- offline queue (IndexedDB)
- service worker (Serwist)
-        │  same-origin HTTPS only
-        ▼
- Cloud Run · Next.js 16 standalone (Node 24)
-  src/proxy.ts      nonce CSP, security headers, optimistic auth redirect
-  src/server/       sessions, requireRole(), rate limits, services, repos
-  src/core/         PURE: time (IST), overtime, pay, fatigue, risk, QR, anonymity, sectors
-  src/ai/           Gemini client, schemas, prompts, fallbacks, redaction, log
-        │
-        ▼
- Gemini API: 3.5 Flash-Lite (audio → JSON), 3.8 Flash (fallback, weekly brief)
-```
-
-- **Data** sits behind a `Repos` interface: **MongoDB** in production (`MONGODB_URI`; an empty database is auto-seeded and indexed on first connect), deterministic in-memory seed for local dev and tests (2 orgs, 3 sites, 12 workers, 3 weeks of shifts).
-- **AI fallback chain:** fast model → fallback model → keyword classifier (en/hi/ta/te) → keyless demo fixtures → *"not understood, tap an icon"*. The app never invents what a worker said.
-- **Prompt-injection boundary:**
-  - User text is fenced as `<untrusted>`.
-  - Output is Zod-validated against enums, and categories are limited to the worker's sector.
-  - Code decides the final severity.
-
-## Security
-
-- Nonce-based CSP with no `unsafe-inline` for scripts, plus `frame-ancestors 'none'`, HSTS, `nosniff`, Referrer-Policy, Permissions-Policy (camera, mic, location limited to this site), and COOP.
-- HMAC-signed httpOnly session cookie. `requireRole()` runs in every page, Server Action and Route Handler; the proxy redirect is only an optimistic first check.
-- PINs and passwords use scrypt with constant-time compares. Login is rate-limited per account and per IP.
-- Zod validates every input. Body caps: audio 1 MB, sync batch 16 KB. Same-origin checks on POST routes. Secrets live only on the server; nothing is exposed through `NEXT_PUBLIC_*`.
-- Personal pages and APIs are never cached by the service worker.
-- `npm audit`: 0 vulnerabilities.
-
-## Quality
-
-| Check | Result |
-|---|---|
-| `npm run lint` (`--max-warnings=0`) | clean |
-| `npm run typecheck` (strict) | clean |
-| `npm run coverage` | **117 tests**, `src/core` **99% lines / 96% branches** |
-| `npm run e2e` (Playwright, Pixel 7 + desktop) | **24 tests**, axe **0 WCAG 2.1 AA violations** on every tested page |
-
-## Deploy to Cloud Run
+## Testing
 
 ```bash
-gcloud run deploy fairshift --source . --region asia-south1 --allow-unauthenticated \
-  --set-env-vars DEMO_MODE=true \
-  --set-secrets SESSION_SECRET=fairshift-session:latest,FEEDBACK_HMAC_SECRET=fairshift-feedback:latest,GEMINI_API_KEY=gemini-key:latest,MONGODB_URI=mongodb-uri:latest
+npm test             # 250 unit tests (Vitest): core engine, services, AI fallbacks, i18n parity, contrast
+npm run coverage     # with the ≥95% coverage gate on src/core
+npm run e2e          # 31 Playwright tests on a production build, with axe on every screen
+npm run lint && npm run typecheck
 ```
 
-The multi-stage `Dockerfile` runs as a non-root user on port 8080 with a health check. CI (`.github/workflows/ci.yml`) runs lint, typecheck, coverage, audit and e2e, then builds the image and smoke-tests it.
+Highlights: overtime underpaid / regular underpaid / below minimum wage / exact match / ₹1 rounding tolerance / missing record · eligibility at 89, 90, 91 days and the 12-month window boundary · double-sign blocked, the 4→5 threshold, admin sees nothing below it, PII removed · hazard deadline boundaries, reopen restarts the timer, dismiss without a reason rejected, 48-hour duplicate boundary, severity bump at 3 reports · expired and tampered tokens rejected, share toggles hide the right sections, work-history totals equal attendance · *earned so far* equals the payslip · the Back-button acceptance path (Home → Pay ×2 months → Report → Me and back).
 
-## Google services
+## Evaluation criteria → evidence
 
-| Service | Job |
+| Criterion | What we did | Where to look |
+|---|---|---|
+| **Code quality** | Pure `core/` with no I/O; one repository interface; config over code; typed end to end; ESLint (React Compiler rules) with zero warnings | [`src/core`](src/core), [`src/config`](src/config), [`src/server/repos/types.ts`](src/server/repos/types.ts) |
+| **Security** | Nonce CSP, role + org checks on every mutation, Zod everywhere, rate limits, HMAC guards and signed tokens, Secret Manager | [`proxy.ts`](src/proxy.ts), [`server/actions`](src/server/actions), [`core/signed-token.ts`](src/core/signed-token.ts) |
+| **Efficiency** | Batched queries, concurrent payslips, idempotent hazard sweep, cached TTS, lazy charts, SVG-only visuals | [`services/workforce.ts`](src/server/services/workforce.ts), [`ai/tts.ts`](src/ai/tts.ts) |
+| **Testing** | 250 unit + 31 e2e, coverage gate, CI on every push | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| **Accessibility** | AA contrast test, axe in CI, keyboard menus/radiogroups, live regions, reduced motion, 4 languages + voice | [`tests/e2e`](tests/e2e), [`globals.css`](src/app/globals.css) |
+| **Problem alignment** | Worker + employer interfaces, construction + hospital, every brief pain point mapped above | [Pain point table](#pain-point--feature--code) |
+
+## Getting started
+
+```bash
+npm install
+cp .env.example .env.local     # optional: add GEMINI_API_KEY for live AI
+npm run dev                    # http://localhost:3000
+```
+
+| Script | Does |
 |---|---|
-| **Gemini 3.5 Flash-Lite** | Multilingual speech → structured hazard (audio input + JSON schema); plain-language payslip rewording |
-| **Gemini 3.8 Flash** | Fallback model; weekly workforce brief from aggregates |
-| **Cloud Run** | Stateless container hosting (asia-south1), autoscaling |
-| **Secret Manager** | Session, feedback and Gemini secrets |
-| **Google Fonts (Noto)** | Devanagari, Tamil and Telugu scripts, self-hosted at build via `next/font` |
+| `npm run dev` / `build` / `start` | Next.js development / production build / server |
+| `npm test` / `coverage` / `e2e` | Unit tests / with coverage gate / Playwright + axe |
+| `npm run lint` / `typecheck` | ESLint (zero warnings) / TypeScript |
+| `npm run icons` | Regenerates favicon and PWA icons from the logo geometry |
+
+Without `MONGODB_URI` the app uses an in-memory store seeded relative to today. With it, MongoDB is seeded on first connection and — in demo mode — re-seeded once per IST day, so the demo never shows a stale week.
+
+## Deploy to Google Cloud Run
+
+The image is a multi-stage, non-root [`Dockerfile`](Dockerfile) using Next.js `output: "standalone"`; [`.dockerignore`](.dockerignore) and [`.gcloudignore`](.gcloudignore) keep secrets and build output out.
+
+**One command** (creates secrets in Secret Manager, grants access, builds with Cloud Build, deploys to `asia-south1`, and schedules the hazard escalation sweep every 15 minutes):
+
+```bash
+MONGODB_URI='mongodb+srv://…' bash scripts/deploy-cloudrun.sh <gcp-project-id> <gemini-api-key>
+```
+
+Or by hand:
+
+```bash
+gcloud services enable run.googleapis.com cloudbuild.googleapis.com secretmanager.googleapis.com cloudscheduler.googleapis.com
+printf '%s' "$GEMINI_API_KEY" | gcloud secrets create fairshift-gemini-key --data-file=-
+# …likewise fairshift-mongodb-uri, -session-secret, -feedback-secret, -passport-secret, -cron-secret
+gcloud run deploy fairshift --source . --region asia-south1 --allow-unauthenticated \
+  --min-instances 1 --memory 1Gi --set-env-vars DEMO_MODE=true \
+  --set-secrets GEMINI_API_KEY=fairshift-gemini-key:latest,MONGODB_URI=fairshift-mongodb-uri:latest,SESSION_SECRET=fairshift-session-secret:latest,FEEDBACK_HMAC_SECRET=fairshift-feedback-secret:latest,PASSPORT_SECRET=fairshift-passport-secret:latest,CRON_SECRET=fairshift-cron-secret:latest
+curl https://<service-url>/api/health   # {"status":"ok","db":"mongodb","ai":"configured",…}
+```
+
+## Project structure
+
+```
+src/
+  core/        Pure, deterministic rules: time, overtime, pay, pay-check, eligibility, co-sign,
+               hazard lifecycle & duplicates, risk, fatigue, signed tokens, work history, nav stack
+  config/      Data, not code: welfare schemes, minimum wages, hazard deadlines & escalation chains
+  ai/          Gemini client, prompts, JSON schemas, fallbacks, PII redaction, TTS, AI log
+  server/      Server Actions (Zod + requireRole + rate limits), services, repositories, seed
+  app/         Routes: (entry) landing·language·login · w/ worker · a/ admin · passport · certificate · api
+  components/  UI: design-system primitives, worker & admin pieces, welcome, entry scene, logo
+  messages/    en · hi · ta · te
+tests/         unit (Vitest) · e2e (Playwright + axe) · shots.mjs (visual QA)
+```
 
 ## Roadmap
 
-- IVR / missed-call reporting for feature phones.
-- Payslip links over WhatsApp/SMS.
-- State-specific labour rules (the defaults are 8 h/day, 48 h/week and 2× overtime; notification dates vary by state).
-- Server-side text-to-speech for devices without Indic voices.
+- **IVR / missed-call reporting** for feature phones: a missed call to a site number logs a hazard callback in the worker's language.
+- **WhatsApp bot** for payslips, shortfall alerts and issue signing.
+- **More languages** (Kannada, Bengali, Marathi, Odia — Anek already covers their scripts).
+- Live minimum-wage and scheme rules per state from official notifications; direct e-Shram/BOCW application hand-off.
+- Union and NGO view: aggregate, k-anonymous trends across employers.
 
-## Credits
+## Limitations and disclosure
 
-- The landing background is adapted from the "Waves" canvas demo in the team's animation library (`D:/Animations`), optimised for low-end phones.
-- Built with AI coding assistants (including Google Antigravity agent runs) and Gemini, as the rules allow.
+- Minimum-wage figures and scheme rules are **demo values**, labelled as such in the UI and in [`config/`](src/config); verify per state before real use.
+- Demo mode exposes one-tap logins and re-seeds data daily; turn it off for a real deployment.
+- Built with AI-assisted development (Claude Code); every rule is covered by tests and reviewed against the brief.
