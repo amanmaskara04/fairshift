@@ -1,26 +1,28 @@
 "use server";
 
 import { cookies, headers } from "next/headers";
-import { redirect } from "next/navigation";
+import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
-import { locales, type Locale } from "@/i18n/request";
+import { locales } from "@/i18n/locales";
 import { getRepos } from "@/server/repos";
-import { createSession, deleteSession } from "@/server/session";
+import { createSession, deleteSession, type SessionPayload } from "@/server/session";
 import { verifySecret } from "@/server/password";
 import { loginRateLimiter } from "@/server/rate-limit";
 import { isDemoMode } from "@/server/config";
+import { HOME_FOR_ROLE } from "@/server/dal";
 
 export type LoginState = { error?: "invalid" | "locked" | "general" };
 
 const ONE_YEAR_S = 60 * 60 * 24 * 365;
 
-export async function setLocale(formData: FormData): Promise<void> {
-  const parsed = z.enum(locales).safeParse(formData.get("locale"));
-  const locale: Locale = parsed.success ? parsed.data : "en";
-  const store = await cookies();
-  store.set("locale", locale, { path: "/", maxAge: ONE_YEAR_S, sameSite: "lax" });
-  const next = formData.get("next");
-  if (next === "/login") redirect("/login");
+/**
+ * Change language in place: sets the cookie and returns. The caller refreshes the page, so
+ * switching language never adds a browser history entry.
+ */
+export async function setLocaleAction(locale: unknown): Promise<void> {
+  const parsed = z.enum(locales).safeParse(locale);
+  if (!parsed.success) return;
+  (await cookies()).set("locale", parsed.data, { path: "/", maxAge: ONE_YEAR_S, sameSite: "lax" });
 }
 
 async function clientIp(): Promise<string> {
@@ -36,6 +38,15 @@ async function allowAttempt(accountKey: string): Promise<boolean> {
   return byAccount && byIp;
 }
 
+/**
+ * Start the session and go home with `replace`, so Back never returns to the PIN screen.
+ * `?welcome=1` plays the one-time welcome moment; the page removes it from the URL.
+ */
+async function enter(session: Omit<SessionPayload, "exp">): Promise<never> {
+  await createSession(session);
+  redirect(`${HOME_FOR_ROLE[session.role]}?welcome=1`, RedirectType.replace);
+}
+
 const WorkerLogin = z.object({
   code: z.string().regex(/^\d{4,6}$/),
   pin: z.string().regex(/^\d{4}$/),
@@ -49,9 +60,7 @@ export async function loginWorker(_prev: LoginState, formData: FormData): Promis
   const worker = await getRepos().workers.getByCode(parsed.data.code);
   const ok = worker ? await verifySecret(parsed.data.pin, worker.pinHash, worker.pinSalt) : false;
   if (!worker || !ok) return { error: "invalid" };
-
-  await createSession({ uid: worker.id, role: "worker", orgId: worker.orgId, siteId: worker.siteId });
-  redirect("/w");
+  return enter({ uid: worker.id, role: "worker", orgId: worker.orgId, siteId: worker.siteId });
 }
 
 const AdminLogin = z.object({
@@ -68,9 +77,7 @@ export async function loginAdmin(_prev: LoginState, formData: FormData): Promise
   const admin = await getRepos().admins.getByEmail(email);
   const ok = admin ? await verifySecret(parsed.data.password, admin.passwordHash, admin.passwordSalt) : false;
   if (!admin || !ok) return { error: "invalid" };
-
-  await createSession({ uid: admin.id, role: "admin", orgId: admin.orgId });
-  redirect("/a");
+  return enter({ uid: admin.id, role: "admin", orgId: admin.orgId });
 }
 
 const DEMO_PERSONAS = {
@@ -80,26 +87,25 @@ const DEMO_PERSONAS = {
   arjun: { kind: "admin", email: "arjun@citycare.demo" },
 } as const;
 
+/** One-tap demo logins (demo mode only), so judges reach each role instantly. */
 export async function demoLogin(formData: FormData): Promise<void> {
-  if (!isDemoMode()) redirect("/login");
+  if (!isDemoMode()) redirect("/login", RedirectType.replace);
   const parsed = z.enum(["ramesh", "sunita", "priya", "arjun"]).safeParse(formData.get("persona"));
-  if (!parsed.success) redirect("/login");
+  if (!parsed.success) redirect("/login", RedirectType.replace);
 
   const persona = DEMO_PERSONAS[parsed.data];
   const repos = getRepos();
   if (persona.kind === "worker") {
     const worker = await repos.workers.getByCode(persona.code);
-    if (!worker) redirect("/login");
-    await createSession({ uid: worker.id, role: "worker", orgId: worker.orgId, siteId: worker.siteId });
-    redirect("/w");
+    if (!worker) redirect("/login", RedirectType.replace);
+    return enter({ uid: worker.id, role: "worker", orgId: worker.orgId, siteId: worker.siteId });
   }
   const admin = await repos.admins.getByEmail(persona.email);
-  if (!admin) redirect("/login");
-  await createSession({ uid: admin.id, role: "admin", orgId: admin.orgId });
-  redirect("/a");
+  if (!admin) redirect("/login", RedirectType.replace);
+  return enter({ uid: admin.id, role: "admin", orgId: admin.orgId });
 }
 
 export async function logout(): Promise<void> {
   await deleteSession();
-  redirect("/login");
+  redirect("/login", RedirectType.replace);
 }

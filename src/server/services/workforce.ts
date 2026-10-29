@@ -1,11 +1,14 @@
 import { computeOvertime, minutesByDay } from "@/core/overtime";
 import { checkFatigue } from "@/core/fatigue";
-import { computeQuitRisk } from "@/core/risk";
+import { computeQuitRisk, computeSiteRisk } from "@/core/risk";
 import { getISTDay, getISTWeekBucket } from "@/core/time";
 import { getSectorProfile } from "@/core/sectors";
 import { gateByCohort } from "@/core/anonymity";
 import type { ClosedShift, FatigueAlert, QuitRiskResult } from "@/core/types";
 import type { FeedbackEntry, Hazard, Org, Repos, Worker } from "@/server/repos/types";
+import { isActiveDispute } from "@/server/services/disputes";
+import { sweepHazards } from "@/server/services/hazards";
+import { isOpen } from "@/core/hazard-lifecycle";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const LOOKBACK_DAYS = 14;
@@ -20,9 +23,16 @@ export interface WorkerHealth {
   missedDays: number;
 }
 
+export interface SiteContext {
+  siteId: string;
+  risk: QuitRiskResult;
+}
+
 export interface OrgSnapshot {
   org: Org;
   workers: WorkerHealth[];
+  /** Shared site conditions, shown next to (never added to) individual quit-risk */
+  sites: SiteContext[];
   hazards: Hazard[];
   feedback: FeedbackEntry[];
   attendanceByDay: { day: string; present: number }[];
@@ -35,13 +45,21 @@ export function recentDays(now: Date, count: number): string[] {
   return Array.from({ length: count }, (_, i) => getISTDay(new Date(now.getTime() - (count - 1 - i) * DAY_MS)));
 }
 
-/** Working days (Mon–Sat, IST) in the window with no shift at all. Today is excluded. */
+/**
+ * Missed working days in the window (today excluded). Rosters differ by sector (construction
+ * rests on Sunday, hospitals rotate), so each 7-day block allows one rest day on any day.
+ */
 export function countMissedDays(shifts: ClosedShift[], now: Date, joinedAt: Date, days = LOOKBACK_DAYS): number {
   const worked = new Set(shifts.flatMap((s) => [getISTDay(s.inAt), getISTDay(s.outAt)]));
   const joined = getISTDay(joinedAt);
-  return recentDays(now, days + 1)
-    .slice(0, -1)
-    .filter((day) => day >= joined && new Date(`${day}T12:00:00+05:30`).getUTCDay() !== 0 && !worked.has(day)).length;
+  const window = recentDays(now, days + 1).slice(0, -1);
+  let missed = 0;
+  for (let end = window.length; end > 0; end -= 7) {
+    const block = window.slice(Math.max(0, end - 7), end).filter((day) => day >= joined);
+    const expected = block.length - Math.ceil(block.length / 7);
+    missed += Math.max(0, expected - block.filter((day) => worked.has(day)).length);
+  }
+  return missed;
 }
 
 function average(values: number[]): number | null {
@@ -53,17 +71,21 @@ export async function buildOrgSnapshot(repos: Repos, orgId: string, now: Date): 
   const org = await repos.orgs.getById(orgId);
   if (!org) return null;
   const profile = getSectorProfile(org.sector);
-  const [workers, hazards, feedback] = await Promise.all([
+  const [workers, hazards, feedback, disputes, sites] = await Promise.all([
     repos.workers.getByOrg(orgId),
-    repos.hazards.getByOrg(orgId),
+    sweepHazards(repos, orgId, now),
     repos.feedback.getByOrg(orgId),
+    repos.payDisputes.getByOrg(orgId),
+    repos.sites.getByOrg(orgId),
   ]);
+  const activeDisputes = new Map<string, number>();
+  for (const d of disputes.filter(isActiveDispute)) activeDisputes.set(d.workerId, (activeDisputes.get(d.workerId) ?? 0) + 1);
 
   const thisWeek = getISTWeekBucket(now);
   const lastWeek = getISTWeekBucket(new Date(now.getTime() - 7 * DAY_MS));
   const openHazardsBySite = new Map<string, number>();
   for (const h of hazards) {
-    if (h.status === "received" || h.status === "in_progress") {
+    if (isOpen(h)) {
       openHazardsBySite.set(h.siteId, (openHazardsBySite.get(h.siteId) ?? 0) + 1);
     }
   }
@@ -103,9 +125,7 @@ export async function buildOrgSnapshot(repos: Repos, orgId: string, now: Date): 
         overtimeMinThisWeek: overtimeThisWeek,
         overtimeMinLastWeek: computeOvertime(inWeek(lastWeek), org.labourRules).overtimeMin,
         missedCheckIns: missedDays,
-        teamMoodAvg: moodBySite.get(worker.siteId) ?? 2,
-        unresolvedHazards: openHazardsBySite.get(worker.siteId) ?? 0,
-        payDisputes: 0,
+        payDisputes: activeDisputes.get(worker.id) ?? 0,
       }),
     });
   }
@@ -134,7 +154,11 @@ export async function buildOrgSnapshot(repos: Repos, orgId: string, now: Date): 
   return {
     org,
     workers: health.sort((a, b) => b.risk.score - a.risk.score),
-    hazards,
+    sites: sites.map((site) => ({
+      siteId: site.id,
+      risk: computeSiteRisk({ teamMoodAvg: moodBySite.get(site.id) ?? 2, unresolvedHazards: openHazardsBySite.get(site.id) ?? 0 }),
+    })),
+    hazards: hazards.filter((h) => !h.mergedInto),
     feedback,
     attendanceByDay: days.map((day) => ({ day, present: presentByDay.get(day)?.size ?? 0 })),
     overtimeByWeek,

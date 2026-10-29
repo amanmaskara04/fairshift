@@ -1,31 +1,31 @@
 /**
- * In-memory repository implementation.
- * Seeded on first use from seed data.
+ * In-memory repository implementation, seeded on first use.
+ * Used in development and tests; production uses MongoDB (see mongo.ts).
  */
-import {
-  Repos,
-  Org, Site, Worker, Admin, Shift, Hazard, FeedbackEntry, Skill,
-  OrgRepo, SiteRepo, WorkerRepo, AdminRepo, ShiftRepo, HazardRepo, FeedbackRepo, SkillRepo, FeedbackGuardRepo,
-} from "./types";
-import { getSeedData } from "../seed/data";
+import type { AiLogEntry, Repos } from "./types";
+import { getSeedData, type SeedData } from "../seed/data";
 
-interface MemoryStore {
-  orgs: Org[];
-  sites: Site[];
-  workers: Worker[];
-  admins: Admin[];
-  shifts: Shift[];
-  hazards: Hazard[];
-  feedback: FeedbackEntry[];
-  skills: Skill[];
+interface MemoryStore extends SeedData {
   feedbackGuards: Set<string>;
+  issueSigners: Set<string>;
+  aiLog: AiLogEntry[];
+  ttsCache: Map<string, string>;
 }
+
+const AI_LOG_LIMIT = 200;
+const TTS_CACHE_LIMIT = 200;
 
 // Kept on globalThis so every route bundle in the Node process shares one store.
 const globalStore = globalThis as typeof globalThis & { __fairshiftStore?: MemoryStore };
 
 function getStore(): MemoryStore {
-  globalStore.__fairshiftStore ??= getSeedData();
+  globalStore.__fairshiftStore ??= {
+    ...getSeedData(new Date()),
+    feedbackGuards: new Set(),
+    issueSigners: new Set(),
+    aiLog: [],
+    ttsCache: new Map(),
+  };
   return globalStore.__fairshiftStore;
 }
 
@@ -34,106 +34,136 @@ export function resetMemoryStore(): void {
   globalStore.__fairshiftStore = undefined;
 }
 
-class MemoryOrgRepo implements OrgRepo {
-  async getAll() { return getStore().orgs; }
-  async getById(id: string) { return getStore().orgs.find((o) => o.id === id); }
+type Collection = { [K in keyof SeedData]: SeedData[K] extends (infer T)[] ? (T extends { id: string } ? K : never) : never }[keyof SeedData];
+type Item<K extends Collection> = SeedData[K][number];
+
+/** CRUD over one array in the store. Records are replaced, never mutated in place. */
+function table<K extends Collection>(name: K) {
+  const items = () => getStore()[name] as Item<K>[];
+  return {
+    all: async () => [...items()],
+    where: async (match: (item: Item<K>) => boolean) => items().filter(match),
+    byId: async (id: string) => items().find((item) => item.id === id),
+    create: async (item: Item<K>) => {
+      items().push(item);
+    },
+    update: async (id: string, data: Partial<Item<K>>) => {
+      const list = items();
+      const index = list.findIndex((item) => item.id === id);
+      if (index !== -1) list[index] = { ...list[index], ...data };
+    },
+  };
 }
 
-class MemorySiteRepo implements SiteRepo {
-  async getAll() { return getStore().sites; }
-  async getByOrg(orgId: string) { return getStore().sites.filter((s) => s.orgId === orgId); }
-  async getById(id: string) { return getStore().sites.find((s) => s.id === id); }
-}
-
-class MemoryWorkerRepo implements WorkerRepo {
-  async getAll() { return getStore().workers; }
-  async getByOrg(orgId: string) { return getStore().workers.filter((w) => w.orgId === orgId); }
-  async getByCode(code: string) { return getStore().workers.find((w) => w.code === code); }
-  async getById(id: string) { return getStore().workers.find((w) => w.id === id); }
-}
-
-class MemoryAdminRepo implements AdminRepo {
-  async getAll() { return getStore().admins; }
-  async getByEmail(email: string) { return getStore().admins.find((a) => a.email === email); }
-  async getById(id: string) { return getStore().admins.find((a) => a.id === id); }
-}
-
-class MemoryShiftRepo implements ShiftRepo {
-  async getAll() { return getStore().shifts; }
-  async getByWorker(workerId: string) {
-    return getStore().shifts.filter((s) => s.workerId === workerId);
-  }
-  async getByWorkers(workerIds: string[]) {
-    const ids = new Set(workerIds);
-    return getStore().shifts.filter((s) => ids.has(s.workerId));
-  }
-  async getByWorkerInRange(workerId: string, from: Date, to: Date) {
-    return getStore().shifts.filter(
-      (s) => s.workerId === workerId && s.inAt >= from && s.inAt <= to
-    );
-  }
-  async getBySite(siteId: string) {
-    return getStore().shifts.filter((s) => s.siteId === siteId);
-  }
-  async create(shift: Shift) { getStore().shifts.push(shift); }
-  async update(id: string, data: Partial<Shift>) {
-    const idx = getStore().shifts.findIndex((s) => s.id === id);
-    if (idx !== -1) {
-      getStore().shifts[idx] = { ...getStore().shifts[idx], ...data };
-    }
-  }
-}
-
-class MemoryHazardRepo implements HazardRepo {
-  async getAll() { return getStore().hazards; }
-  async getByOrg(orgId: string) {
-    return getStore().hazards.filter((h) => h.orgId === orgId);
-  }
-  async getById(id: string) { return getStore().hazards.find((h) => h.id === id); }
-  async create(hazard: Hazard) { getStore().hazards.push(hazard); }
-  async update(id: string, data: Partial<Hazard>) {
-    const idx = getStore().hazards.findIndex((h) => h.id === id);
-    if (idx !== -1) {
-      getStore().hazards[idx] = { ...getStore().hazards[idx], ...data };
-    }
-  }
-}
-
-class MemoryFeedbackRepo implements FeedbackRepo {
-  async getAll() { return getStore().feedback; }
-  async getByOrg(orgId: string) {
-    return getStore().feedback.filter((f) => f.orgId === orgId);
-  }
-  async getByCohortAndWeek(cohort: string, weekBucket: string) {
-    return getStore().feedback.filter(
-      (f) => f.cohort === cohort && f.weekBucket === weekBucket
-    );
-  }
-  async create(entry: FeedbackEntry) { getStore().feedback.push(entry); }
-}
-
-class MemorySkillRepo implements SkillRepo {
-  async getByWorker(workerId: string) {
-    return getStore().skills.filter((s) => s.workerId === workerId);
-  }
-  async create(skill: Skill) { getStore().skills.push(skill); }
-}
-
-class MemoryFeedbackGuardRepo implements FeedbackGuardRepo {
-  async has(key: string) { return getStore().feedbackGuards.has(key); }
-  async add(key: string) { getStore().feedbackGuards.add(key); }
+function guards(name: "feedbackGuards" | "issueSigners") {
+  return {
+    has: async (key: string) => getStore()[name].has(key),
+    add: async (key: string) => {
+      getStore()[name].add(key);
+    },
+  };
 }
 
 export function createMemoryRepos(): Repos {
+  const orgs = table("orgs");
+  const sites = table("sites");
+  const workers = table("workers");
+  const admins = table("admins");
+  const shifts = table("shifts");
+  const hazards = table("hazards");
+  const feedback = table("feedback");
+  const skills = table("skills");
+  const paidRecords = table("paidRecords");
+  const payDisputes = table("payDisputes");
+  const issues = table("issues");
+  const certificates = table("certificates");
+
   return {
-    orgs: new MemoryOrgRepo(),
-    sites: new MemorySiteRepo(),
-    workers: new MemoryWorkerRepo(),
-    admins: new MemoryAdminRepo(),
-    shifts: new MemoryShiftRepo(),
-    hazards: new MemoryHazardRepo(),
-    feedback: new MemoryFeedbackRepo(),
-    skills: new MemorySkillRepo(),
-    feedbackGuards: new MemoryFeedbackGuardRepo(),
+    orgs: { getAll: orgs.all, getById: orgs.byId },
+    sites: { getAll: sites.all, getByOrg: (orgId) => sites.where((s) => s.orgId === orgId), getById: sites.byId },
+    workers: {
+      getAll: workers.all,
+      getByOrg: (orgId) => workers.where((w) => w.orgId === orgId),
+      getByCode: async (code) => (await workers.where((w) => w.code === code))[0],
+      getById: workers.byId,
+    },
+    admins: {
+      getAll: admins.all,
+      getByEmail: async (email) => (await admins.where((a) => a.email === email))[0],
+      getById: admins.byId,
+    },
+    shifts: {
+      getAll: shifts.all,
+      getByWorker: (workerId) => shifts.where((s) => s.workerId === workerId),
+      getByWorkers: (workerIds) => {
+        const ids = new Set(workerIds);
+        return shifts.where((s) => ids.has(s.workerId));
+      },
+      getByWorkerInRange: (workerId, from, to) => shifts.where((s) => s.workerId === workerId && s.inAt >= from && s.inAt <= to),
+      getBySite: (siteId) => shifts.where((s) => s.siteId === siteId),
+      create: shifts.create,
+      update: shifts.update,
+    },
+    hazards: {
+      getAll: hazards.all,
+      getByOrg: (orgId) => hazards.where((h) => h.orgId === orgId),
+      getById: hazards.byId,
+      create: hazards.create,
+      update: hazards.update,
+    },
+    feedback: {
+      getAll: feedback.all,
+      getByOrg: (orgId) => feedback.where((f) => f.orgId === orgId),
+      getByCohortAndWeek: (cohort, weekBucket) => feedback.where((f) => f.cohort === cohort && f.weekBucket === weekBucket),
+      create: feedback.create,
+    },
+    skills: { getByWorker: (workerId) => skills.where((s) => s.workerId === workerId), create: skills.create },
+    feedbackGuards: guards("feedbackGuards"),
+    paidRecords: {
+      getByOrgMonth: (orgId, month) => paidRecords.where((r) => r.orgId === orgId && r.month === month),
+      get: (workerId, month) => paidRecords.byId(`${workerId}:${month}`),
+      upsert: async (record) => {
+        if (await paidRecords.byId(record.id)) await paidRecords.update(record.id, record);
+        else await paidRecords.create(record);
+      },
+    },
+    payDisputes: {
+      getByOrg: (orgId) => payDisputes.where((d) => d.orgId === orgId),
+      getByWorker: (workerId) => payDisputes.where((d) => d.workerId === workerId),
+      getById: payDisputes.byId,
+      create: payDisputes.create,
+      update: payDisputes.update,
+    },
+    issues: {
+      getBySite: (siteId) => issues.where((i) => i.siteId === siteId),
+      getByOrg: (orgId) => issues.where((i) => i.orgId === orgId),
+      getById: issues.byId,
+      create: issues.create,
+      update: issues.update,
+    },
+    issueSigners: guards("issueSigners"),
+    certificates: {
+      getByOrg: (orgId) => certificates.where((c) => c.orgId === orgId),
+      getByWorker: (workerId) => certificates.where((c) => c.workerId === workerId),
+      getById: certificates.byId,
+      create: certificates.create,
+      update: certificates.update,
+    },
+    aiLog: {
+      add: async (entry) => {
+        const log = getStore().aiLog;
+        log.unshift(entry);
+        log.length = Math.min(log.length, AI_LOG_LIMIT);
+      },
+      recent: async (limit) => getStore().aiLog.slice(0, limit),
+    },
+    ttsCache: {
+      get: async (key) => getStore().ttsCache.get(key),
+      set: async (key, wav) => {
+        const cache = getStore().ttsCache;
+        if (cache.size >= TTS_CACHE_LIMIT) cache.delete(cache.keys().next().value!);
+        cache.set(key, wav);
+      },
+    },
   };
 }

@@ -11,10 +11,11 @@ import { templateBrief, weeklyBrief } from "@/ai/brief";
 import { dayShifts } from "./helpers";
 
 describe("hazard status transitions", () => {
-  it("allows the normal flow and blocks reopening fixed hazards", () => {
+  it("allows the normal flow; only a reporter's 'not fixed' reopens a fixed hazard", () => {
     expect(nextStatuses("received")).toEqual(["in_progress", "fixed", "dismissed"]);
     expect(canTransition("in_progress", "fixed")).toBe(true);
-    expect(canTransition("fixed", "received")).toBe(false);
+    expect(canTransition("fixed", "received")).toBe(true);
+    expect(canTransition("fixed", "dismissed")).toBe(false);
     expect(canTransition("dismissed", "received")).toBe(true);
     expect(canTransition("in_progress", "received")).toBe(false);
   });
@@ -55,18 +56,21 @@ describe("workforce snapshot", () => {
     expect(days[0]).toBe("2026-10-14");
   });
 
-  it("counts missed working days but not Sundays, today or days before joining", () => {
+  it("counts missed working days, allowing one rest day a week, never today or days before joining", () => {
     const now = new Date("2026-10-17T10:00:00+05:30"); // Saturday
-    // Worked Mon–Wed of that week only → Thu, Fri missed (window: previous 14 days)
-    const shifts = dayShifts("2026-10-12", 3, 8);
+    // Joined Mon 12th, worked Mon–Wed: of the 5 days to Friday, 4 were due (one rest day) → 1 missed.
     const joined = new Date("2026-10-12T00:00:00+05:30");
-    expect(countMissedDays(shifts, now, joined)).toBe(2);
+    expect(countMissedDays(dayShifts("2026-10-12", 3, 8), now, joined)).toBe(1);
+    // A full fortnight of 6-day weeks is never "missed", whichever day the rest falls on.
+    const longAgo = new Date("2026-09-01T00:00:00+05:30");
+    const rotating = [...dayShifts("2026-10-03", 6, 8), ...dayShifts("2026-10-10", 6, 8)];
+    expect(countMissedDays(rotating, now, longAgo)).toBe(0);
   });
 
   it("computes the dashboard for the construction org from seed data", async () => {
     const snapshot = await buildOrgSnapshot(getRepos(), "org1", new Date());
-    expect(snapshot?.workers).toHaveLength(6);
-    expect(snapshot?.workers.filter((w) => w.onSite).length).toBe(3);
+    expect(snapshot?.workers).toHaveLength(18);
+    expect(snapshot?.sites).toHaveLength(1);
     expect(snapshot?.attendanceByDay).toHaveLength(14);
     expect(snapshot?.overtimeByWeek).toHaveLength(4);
     // sorted by risk, highest first
@@ -85,7 +89,7 @@ describe("workforce snapshot", () => {
   it("returns null for an unknown org and builds payroll rows", async () => {
     expect(await buildOrgSnapshot(getRepos(), "nope", new Date())).toBeNull();
     const rows = await buildPayroll(getRepos(), "org1", monthKey(new Date()));
-    expect(rows).toHaveLength(6);
+    expect(rows).toHaveLength(18);
     for (const r of rows) expect(r.net).toBe(r.gross - r.deductions);
   });
 });
@@ -113,9 +117,10 @@ describe("weekly brief", () => {
   });
 
   it("uses Gemini output when valid, template when not", async () => {
-    const good = { generateText: async () => JSON.stringify({ points: ["One.", "Two."] }) };
+    const synthesizeSpeech = async () => null;
+    const good = { generateText: async () => JSON.stringify({ points: ["One.", "Two."] }), synthesizeSpeech };
     expect((await weeklyBrief(input, good)).source).toBe("gemini");
-    const bad = { generateText: async () => "nope" };
+    const bad = { generateText: async () => "nope", synthesizeSpeech };
     expect((await weeklyBrief(input, bad)).source).toBe("template");
   });
 });

@@ -36,6 +36,72 @@ export type HazardCategory =
 
 export type FeedbackScore = 1 | 2 | 3; // 1 = 😟, 2 = 😐, 3 = 😀
 
+// ─── Hazard ─────────────────────────────────────────────────────────
+
+/** Everything that can appear in a hazard's history. */
+export type HazardEvent =
+  | HazardStatus
+  | 'reopened'
+  | 'escalated'
+  | 'confirmed'
+  | 'auto_closed'
+  | 'report_added'
+  | 'merged'
+  | 'unmerged';
+
+export interface HazardTimelineEntry {
+  status: HazardEvent;
+  at: Date;
+  /** Admin uid for management actions; never a worker id */
+  by?: string;
+  note?: string;
+  /** Escalation level reached (for 'escalated') */
+  level?: number;
+}
+
+/** One worker's report. Several reports of the same danger are merged into one hazard. */
+export interface HazardReport {
+  /** null when the worker hid their name */
+  reporterId: string | null;
+  transcript?: string;
+  transcriptEn?: string;
+  photoDataUrl?: string;
+  at: Date;
+  /** Set when this report came from a hazard an admin merged in by hand */
+  fromHazardId?: string;
+}
+
+/** After "fixed", the reporter is asked whether it really is. */
+export type FixConfirmation = 'pending' | 'confirmed' | 'auto_closed';
+
+export interface Hazard {
+  id: string;
+  siteId: string;
+  orgId: string;
+  category: HazardCategory;
+  /** Severity before any bump for repeated reports */
+  baseSeverity: HazardSeverity;
+  severity: HazardSeverity;
+  status: HazardStatus;
+  /** Zone / floor / ward, free text */
+  location?: string;
+  reports: HazardReport[];
+  timeline: HazardTimelineEntry[];
+  createdAt: Date;
+  /** 0 = not escalated; n = escalated to the n-th role in the sector's chain */
+  escalationLevel: number;
+  assigneeUid?: string;
+  fixNote?: string;
+  fixPhotoDataUrl?: string;
+  confirmation?: FixConfirmation;
+  dismissReason?: string;
+  dismissNote?: string;
+  /** Set when an admin merged this hazard into another one */
+  mergedInto?: string;
+  /** HMAC of anonymous reporters' private tracking references */
+  trackingRefs: string[];
+}
+
 // ─── Shift ──────────────────────────────────────────────────────────
 
 export interface Shift {
