@@ -34,7 +34,7 @@ export default async function SitesPage() {
               <Card className="flex h-full flex-col gap-4 p-5">
                 <div className="flex items-center justify-between gap-2">
                   <h2 className="font-display flex items-center gap-3 text-xl font-extrabold">
-                    <span className="flex size-10 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+                    <span className="flex size-10 items-center justify-center rounded-xl bg-primary-soft text-primary-strong">
                       <MapPin aria-hidden="true" className="size-5" />
                     </span>
                     {site.name}
@@ -45,18 +45,18 @@ export default async function SitesPage() {
                   <Users aria-hidden="true" className="size-4" />
                   {t("people", { onSite, assigned })}
                 </p>
-                <dl className="grid grid-cols-2 gap-2 text-sm [&>div]:rounded-2xl [&>div]:bg-muted [&>div]:p-3">
+                <dl className="grid grid-cols-2 gap-2 text-sm [&>div]:rounded-2xl [&>div]:bg-surface-2 [&>div]:p-3">
                   <div>
-                    <dt className="text-muted-foreground">{t("rules")}</dt>
+                    <dt className="text-ink-2">{t("rules")}</dt>
                     <dd>{t("rulesValue", { daily: profile.labourRules.dailyHrs, weekly: profile.labourRules.weeklyHrs, ot: profile.labourRules.otMultiplier })}</dd>
                   </div>
                   <div>
-                    <dt className="text-muted-foreground">{t("geofence")}</dt>
+                    <dt className="text-ink-2">{t("geofence")}</dt>
                     <dd>{site.geofence ? t("geofenceValue", { radius: site.geofence.radiusM }) : t("noGeofence")}</dd>
                   </div>
                 </dl>
                 <div>
-                  <p className="mb-1 text-sm text-muted-foreground">{t("hazardTypes")}</p>
+                  <p className="mb-1 text-sm text-ink-2">{t("hazardTypes")}</p>
                   <ul className="flex flex-wrap gap-1">
                     {profile.hazardCategories.map((c) => (
                       <li key={c}>

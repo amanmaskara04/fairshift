@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 export function RiskReasons({ risk }: { risk: QuitRiskResult }) {
   const t = useTranslations("admin.risk");
   const reasons = risk.reasons.filter((r) => r.value > 0).sort((a, b) => b.value * b.weight - a.value * a.weight);
-  if (reasons.length === 0) return <span className="text-muted-foreground">{t("none")}</span>;
+  if (reasons.length === 0) return <span className="text-ink-2">{t("none")}</span>;
   return (
     <ul className="flex flex-wrap gap-1">
       {reasons.map((r) => (
@@ -24,7 +24,7 @@ export function RiskReasons({ risk }: { risk: QuitRiskResult }) {
 export function FatigueReasons({ alerts }: { alerts: FatigueAlert[] }) {
   const t = useTranslations("admin.fatigue");
   const keys = [...new Set(alerts.map((a) => a.messageKey.replace("fatigue.", "")))];
-  if (keys.length === 0) return <span className="text-muted-foreground">{t("none")}</span>;
+  if (keys.length === 0) return <span className="text-ink-2">{t("none")}</span>;
   return (
     <ul className="flex flex-wrap gap-1">
       {keys.map((key) => (

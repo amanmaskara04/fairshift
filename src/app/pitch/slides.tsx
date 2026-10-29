@@ -38,12 +38,12 @@ const REPO = "https://github.com/amanmaskara04/fairshift";
 
 function Card({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-2 rounded-worker border border-border bg-card p-4">
+    <div className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
       <div className="flex items-center gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-admin bg-accent text-accent-foreground">{icon}</span>
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-accent text-ink">{icon}</span>
         <h3 className="font-display text-lg leading-tight font-extrabold">{title}</h3>
       </div>
-      <div className="text-muted-foreground">{children}</div>
+      <div className="text-ink-2">{children}</div>
     </div>
   );
 }
@@ -52,13 +52,13 @@ function Stat({ value, label }: { value: string; label: string }) {
   return (
     <div className="flex flex-col border-l-4 border-accent pl-3">
       <span className="figure text-4xl font-semibold md:text-5xl">{value}</span>
-      <span className="text-sm text-muted-foreground">{label}</span>
+      <span className="text-sm text-ink-2">{label}</span>
     </div>
   );
 }
 
 function Prompt({ children }: { children: ReactNode }) {
-  return <li className="rounded-admin border border-border bg-card px-3 py-2 text-sm leading-snug italic">“{children}”</li>;
+  return <li className="rounded-tile border border-line bg-surface px-3 py-2 text-sm leading-snug italic">“{children}”</li>;
 }
 
 export const SLIDES: Slide[] = [
@@ -239,7 +239,7 @@ export const SLIDES: Slide[] = [
             <span className="block text-xs font-normal">MongoDB Atlas (Mumbai) · in-memory seed for tests</span>
           </Node>
         </div>
-        <p className="text-muted-foreground">
+        <p className="text-ink-2">
           Gemini never produces a number. If it is down, a keyword classifier and template text take over — the demo cannot break.
         </p>
       </div>
@@ -279,7 +279,7 @@ export const SLIDES: Slide[] = [
     body: (
       <div className="grid items-start gap-6 md:grid-cols-[320px_1fr]">
         <div className="mx-auto w-[300px] rounded-[2.2rem] border-[10px] border-foreground bg-foreground shadow-xl">
-          <iframe src="/login" title="Worker app demo" className="h-[560px] w-full rounded-[1.5rem] bg-background" loading="lazy" />
+          <iframe src="/login" title="Worker app demo" className="h-[560px] w-full rounded-[1.5rem] bg-paper" loading="lazy" />
         </div>
         <div className="flex flex-col gap-4">
           <ol className="flex flex-col gap-3">
@@ -291,16 +291,16 @@ export const SLIDES: Slide[] = [
               "Log in as Priya in another tab → Hazards → Start work → Ramesh sees “In progress”.",
             ].map((step, i) => (
               <li key={step} className="flex gap-3">
-                <span className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-accent-foreground">{i + 1}</span>
+                <span className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-ink">{i + 1}</span>
                 <span className="pt-1">{step}</span>
               </li>
             ))}
           </ol>
           <div className="flex flex-wrap gap-3">
-            <a href="/login" target="_blank" rel="noreferrer" className="rounded-admin border-2 border-ink bg-accent px-4 py-2 font-bold text-accent-foreground">
+            <a href="/login" target="_blank" rel="noreferrer" className="rounded-tile border-2 border-ink bg-accent px-4 py-2 font-bold text-ink">
               Open worker app ↗
             </a>
-            <a href="/login" target="_blank" rel="noreferrer" className="rounded-admin border-2 border-ink bg-card px-4 py-2 font-bold">
+            <a href="/login" target="_blank" rel="noreferrer" className="rounded-tile border-2 border-ink bg-surface px-4 py-2 font-bold">
               Open manager dashboard ↗
             </a>
           </div>
@@ -374,7 +374,7 @@ export const SLIDES: Slide[] = [
           ]}
         />
         <div className="grid gap-4 md:grid-cols-2">
-          <pre className="figure overflow-x-auto rounded-admin border border-ink bg-foreground p-4 text-xs leading-relaxed text-background md:text-sm">
+          <pre className="figure overflow-x-auto rounded-tile border border-ink bg-foreground p-4 text-xs leading-relaxed text-background md:text-sm">
             {`# Task A — FairShift: foundations + core engine
 You are working in D:/promptwars/fairshift …
 
@@ -409,7 +409,7 @@ You are working in D:/promptwars/fairshift …
     title: "How my prompts changed the build",
     body: (
       <table className="w-full text-left text-sm md:text-base">
-        <thead className="text-muted-foreground">
+        <thead className="text-ink-2">
           <tr>
             <th className="border-b border-ink py-2 pr-4 font-semibold">Prompt</th>
             <th className="border-b border-ink py-2 font-semibold">Building decision it caused</th>
@@ -425,8 +425,8 @@ You are working in D:/promptwars/fairshift …
             ["Switch to MongoDB", "One data interface, so storage changed without touching a single page."],
           ].map(([prompt, decision]) => (
             <tr key={prompt}>
-              <td className="border-b border-border py-2 pr-4 font-semibold">{prompt}</td>
-              <td className="border-b border-border py-2">{decision}</td>
+              <td className="border-b border-line py-2 pr-4 font-semibold">{prompt}</td>
+              <td className="border-b border-line py-2">{decision}</td>
             </tr>
           ))}
         </tbody>
@@ -446,9 +446,9 @@ You are working in D:/promptwars/fairshift …
             ["End-to-end · 21", "Real browser (phone + desktop) through every flow, with axe accessibility checks."],
             ["CI on every push", "Lint, types, tests, security audit, Docker build and smoke test."],
           ].map(([name, text]) => (
-            <div key={name} className="rounded-admin border border-border bg-card p-3">
+            <div key={name} className="rounded-tile border border-line bg-surface p-3">
               <p className="font-display font-extrabold">{name}</p>
-              <p className="text-sm text-muted-foreground">{text}</p>
+              <p className="text-sm text-ink-2">{text}</p>
             </div>
           ))}
         </div>
@@ -504,9 +504,9 @@ You are working in D:/promptwars/fairshift …
           ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 141 tests, green CI."],
           ["Feasibility", "Construction and hospital from one codebase; Cloud Run autoscaling; MongoDB."],
         ].map(([k, v]) => (
-          <div key={k} className="grid gap-1 border-b border-border pb-3 md:grid-cols-[220px_1fr]">
+          <div key={k} className="grid gap-1 border-b border-line pb-3 md:grid-cols-[220px_1fr]">
             <span className="font-display font-extrabold">{k}</span>
-            <span className="text-muted-foreground">{v}</span>
+            <span className="text-ink-2">{v}</span>
           </div>
         ))}
       </div>
@@ -518,14 +518,14 @@ You are working in D:/promptwars/fairshift …
     title: "Fairer, safer work — for the people who build and care for our cities.",
     body: (
       <div className="flex flex-col items-start gap-6 md:flex-row md:items-center">
-        <div className="rounded-admin border-2 border-ink bg-white p-3">
+        <div className="rounded-tile border-2 border-ink bg-white p-3">
           <QRCodeSVG value={REPO} size={160} title="FairShift GitHub repository" />
         </div>
         <div className="flex flex-col gap-2">
-          <a href={REPO} className="font-bold text-brand underline underline-offset-4">
+          <a href={REPO} className="font-bold text-primary underline underline-offset-4">
             github.com/amanmaskara04/fairshift
           </a>
-          <p className="text-muted-foreground">Built with Google Antigravity · Gemini · Google Cloud Run · Next.js · MongoDB</p>
+          <p className="text-ink-2">Built with Google Antigravity · Gemini · Google Cloud Run · Next.js · MongoDB</p>
         </div>
       </div>
     ),

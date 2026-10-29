@@ -152,14 +152,14 @@ describe("hazard reports", () => {
 
   it("lets only the reporter (or the private reference) confirm a fix", async () => {
     const repos = getRepos();
-    const input = { orgId: "org1", hazardId: "haz-c3", fixed: false, now, secret: SECRET };
+    const input = { orgId: "org1", hazardId: "haz-c3", fixed: false, now, secret: SECRET, trackingRefs: [] as string[] };
     expect(await confirmFix(repos, { ...input, workerId: "w1009" })).toEqual({ ok: false, error: "forbidden" });
     expect(await confirmFix(repos, { ...input, workerId: "w1001" })).toEqual({ ok: true });
     expect((await repos.hazards.getById("haz-c3"))?.status).toBe("received");
 
     const anonymous = await reportHazard(repos, { ...report, category: "heat_stress", location: "roof", attach: "new" });
     await repos.hazards.update(anonymous.hazardId, { status: "fixed", confirmation: "pending" });
-    const viaRef = await confirmFix(repos, { ...input, hazardId: anonymous.hazardId, workerId: "w1009", trackingRef: anonymous.trackingRef, fixed: true });
+    const viaRef = await confirmFix(repos, { ...input, hazardId: anonymous.hazardId, workerId: "w1009", trackingRefs: ["FS-WRONG1", anonymous.trackingRef!], fixed: true });
     expect(viaRef).toEqual({ ok: true });
   });
 

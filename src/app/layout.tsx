@@ -1,41 +1,40 @@
 import type { Metadata, Viewport } from "next";
-import { Bricolage_Grotesque, JetBrains_Mono, Manrope, Noto_Sans_Devanagari, Noto_Sans_Tamil, Noto_Sans_Telugu } from "next/font/google";
+import { Anek_Devanagari, Anek_Latin, Anek_Tamil, Anek_Telugu, Bricolage_Grotesque } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getTranslations } from "next-intl/server";
 import { SerwistProvider } from "@serwist/turbopack/react";
 import { Toaster } from "sonner";
+import { NavigationProvider } from "@/components/providers/navigation-provider";
+import { MotionPolicy } from "@/components/providers/motion-policy";
 import "./globals.css";
 
-// Self-hosted at build time (no runtime call to Google), so CSP keeps font-src 'self'.
-const latin = Manrope({ subsets: ["latin"], weight: ["400", "600", "700", "800"], display: "swap", variable: "--font-latin" });
-// Characterful display face for headings, and a mono for money and hours (Latin glyphs only;
-// Indic text falls through to the Noto face for that script).
-const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["600", "800"], display: "swap", variable: "--font-bricolage" });
-const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["500", "700"], display: "swap", variable: "--font-jb-mono" });
-const devanagari = Noto_Sans_Devanagari({
-  subsets: ["devanagari"],
-  weight: ["400", "700"],
-  display: "swap",
-  preload: false,
-  variable: "--font-devanagari",
-});
-const tamil = Noto_Sans_Tamil({ subsets: ["tamil"], weight: ["400", "700"], display: "swap", preload: false, variable: "--font-tamil" });
-const telugu = Noto_Sans_Telugu({ subsets: ["telugu"], weight: ["400", "700"], display: "swap", preload: false, variable: "--font-telugu" });
+/*
+ * Anek is one multi-script family, so English, Hindi, Tamil and Telugu look like one brand.
+ * Self-hosted at build time (no runtime call to Google), so CSP keeps font-src 'self'.
+ * Only Latin is preloaded; an Indic face downloads only when that script is on screen.
+ */
+const anekLatin = Anek_Latin({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-anek-latin" });
+const anekDevanagari = Anek_Devanagari({ subsets: ["devanagari"], display: "swap", preload: false, variable: "--font-anek-devanagari" });
+const anekTamil = Anek_Tamil({ subsets: ["tamil"], display: "swap", preload: false, variable: "--font-anek-tamil" });
+const anekTelugu = Anek_Telugu({ subsets: ["telugu"], display: "swap", preload: false, variable: "--font-anek-telugu" });
+// Display face for headings and the wordmark (latin-ext carries the dotless ı of "Faır").
+const bricolage = Bricolage_Grotesque({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-bricolage" });
 
-const FONT_FOR_LOCALE: Record<string, { variable: string; cssVar: string }> = {
-  en: { variable: latin.variable, cssVar: "--font-latin" },
-  hi: { variable: devanagari.variable, cssVar: "--font-devanagari" },
-  ta: { variable: tamil.variable, cssVar: "--font-tamil" },
-  te: { variable: telugu.variable, cssVar: "--font-telugu" },
+const SCRIPT_FONT: Record<string, { className: string; cssVar: string }> = {
+  en: { className: "", cssVar: "--font-anek-latin" },
+  hi: { className: anekDevanagari.variable, cssVar: "--font-anek-devanagari" },
+  ta: { className: anekTamil.variable, cssVar: "--font-anek-tamil" },
+  te: { className: anekTelugu.variable, cssVar: "--font-anek-telugu" },
 };
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("landing");
-  return { title: "FairShift", description: t("subtitle"), applicationName: "FairShift" };
+  return { title: { default: "FairShift", template: "%s · FairShift" }, description: t("subtitle"), applicationName: "FairShift" };
 }
 
 export const viewport: Viewport = {
-  themeColor: "#0e3b2f",
+  themeColor: "#fbf8f3",
+  colorScheme: "light",
   width: "device-width",
   initialScale: 1,
   // Lets env(safe-area-inset-*) keep the tab bar clear of Android gesture bars and notches.
@@ -45,19 +44,20 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const locale = await getLocale();
   const t = await getTranslations("common");
-  const font = FONT_FOR_LOCALE[locale] ?? FONT_FOR_LOCALE.en;
+  const font = SCRIPT_FONT[locale] ?? SCRIPT_FONT.en;
 
   return (
-    <html lang={locale} className={`${latin.variable} ${font.variable} ${bricolage.variable} ${jbMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col font-sans" style={{ ["--font-active" as string]: `var(${font.cssVar}), var(--font-latin)` }}>
+    <html lang={locale} className={`${anekLatin.variable} ${font.className} ${bricolage.variable} h-full`}>
+      <body className="flex min-h-full flex-col font-sans" style={{ ["--font-active" as string]: `var(${font.cssVar}), var(--font-anek-latin)` }}>
         <a href="#main" className="skip-link">
           {t("skipToContent")}
         </a>
         <NextIntlClientProvider>
           <SerwistProvider swUrl="/serwist/sw.js" disable={process.env.NODE_ENV === "development"}>
-            {children}
+            <NavigationProvider>{children}</NavigationProvider>
           </SerwistProvider>
         </NextIntlClientProvider>
+        <MotionPolicy />
         <Toaster position="top-center" richColors />
       </body>
     </html>

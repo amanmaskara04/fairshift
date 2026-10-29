@@ -31,7 +31,7 @@ export function OfflineSync() {
 
   if (pending === 0) return null;
   return (
-    <p role="status" className="flex items-center justify-center gap-2 bg-accent px-4 py-2 text-sm font-bold text-accent-foreground">
+    <p role="status" className="flex items-center justify-center gap-2 bg-accent px-4 py-2 text-sm font-bold text-ink">
       <CloudUpload aria-hidden="true" className="size-5" />
       {t("pending", { count: pending })}
     </p>

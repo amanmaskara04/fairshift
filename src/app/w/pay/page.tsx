@@ -1,86 +1,100 @@
 import Link from "next/link";
-import { getTranslations } from "next-intl/server";
-import { CalendarDays } from "lucide-react";
+import { getLocale, getTranslations } from "next-intl/server";
+import { CalendarDays, CircleCheck, FileClock } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
-import { buildPayslip } from "@/server/services/payslip";
-import { payTemplate } from "@/server/pay-explain";
+import { payCheckFor } from "@/server/services/pay-check";
+import { findingSentences, payTemplate } from "@/server/pay-explain";
+import { isActiveDispute } from "@/server/services/disputes";
 import { isMonthKey, monthKey } from "@/core/period";
-import { formatDuration, formatINR } from "@/lib/format";
+import { formatDuration, formatINR, formatMonth, formatRupees } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { SpeakButton } from "@/components/speak-button";
 import { PageHeader } from "@/components/page-header";
 import { ExplainPay } from "@/components/worker/explain-pay";
-
-function monthLabel(key: string): string {
-  const [y, m] = key.split("-").map(Number);
-  return new Intl.DateTimeFormat("en-IN", { month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(y, m - 1, 1)));
-}
+import { ShortfallCard } from "@/components/worker/shortfall-card";
 
 export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
   const session = await requireRole("worker");
-  const t = await getTranslations("pay");
+  const [t, locale] = await Promise.all([getTranslations("pay"), getLocale()]);
   const now = new Date();
   const months = [0, -1, -2].map((offset) => monthKey(now, offset));
   const requested = (await searchParams).m;
   const month = typeof requested === "string" && isMonthKey(requested) && months.includes(requested) ? requested : months[0];
 
-  const view = await buildPayslip(getRepos(), session.uid, month);
-  if (!view) return null;
-  const { payslip, daysWorked } = view;
-  const { sentences } = await payTemplate(view);
+  const repos = getRepos();
+  const [check, disputes] = await Promise.all([payCheckFor(repos, session.uid, month), repos.payDisputes.getByWorker(session.uid)]);
+  if (!check) return null;
+  const { payslip, daysWorked } = check.view;
+  const { sentences } = await payTemplate(check.view);
+  const findings = check.result.findings;
+  const dispute = disputes.filter((d) => d.month === month).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
   const regular = payslip.lines.find((l) => l.kind === "regular");
   const overtime = payslip.lines.find((l) => l.kind === "overtime");
   const deducted = payslip.deductions.reduce((sum, d) => sum + d.amount, 0);
-
-  // Where the gross goes: take-home vs deductions, and how much of it came from overtime.
   const gross = Math.max(payslip.gross, 1);
-  const split = [
-    { key: "regular", share: (regular?.amount ?? 0) / gross, className: "bg-slab-foreground" },
-    { key: "overtime", share: (overtime?.amount ?? 0) / gross, className: "bg-accent" },
-  ];
 
   return (
     <div className="flex flex-col gap-5 md:mx-auto md:w-full md:max-w-3xl">
       <PageHeader title={t("title")} action={<SpeakButton text={sentences.join(" ")} />} />
 
-      <nav aria-label={t("period")} className="grid grid-cols-3 gap-1 rounded-full bg-muted p-1">
+      {/* Month tabs replace the URL: switching months never adds Back-button steps. */}
+      <nav aria-label={t("period")} className="grid grid-cols-3 gap-1 rounded-full border border-line bg-surface p-1">
         {months.map((m) => (
           <Link
             key={m}
             href={`/w/pay?m=${m}`}
+            replace
+            scroll={false}
             aria-current={m === month ? "page" : undefined}
             className={cn(
-              "flex min-h-11 items-center justify-center gap-1.5 rounded-full text-sm font-bold transition-colors",
-              m === month ? "bg-brand text-brand-foreground" : "text-muted-foreground hover:bg-card hover:text-foreground",
+              "flex min-h-12 items-center justify-center gap-1.5 rounded-full text-sm font-bold transition-colors",
+              m === month ? "bg-primary text-on-primary" : "text-ink-2 hover:bg-surface-2 hover:text-ink",
             )}
           >
             <CalendarDays aria-hidden="true" className="size-4" />
-            {monthLabel(m)}
+            {formatMonth(m, locale)}
           </Link>
         ))}
       </nav>
 
-      <section aria-labelledby="net-label" className="slab rise-in flex flex-col gap-5 rounded-[28px] p-5 md:p-7">
+      {findings.length > 0 ? (
+        <ShortfallCard
+          month={month}
+          total={formatRupees(check.result.totalShortfall)}
+          lines={await findingSentences(findings)}
+          dispute={dispute ? { status: dispute.status, note: dispute.resolutionNote } : undefined}
+          minimumWageNote={findings.some((f) => f.code === "BELOW_MINIMUM_WAGE") ? t("sentinel.minimumWageNote", { source: check.minimumWage.source }) : undefined}
+        />
+      ) : (
+        <p className={cn("flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold", check.record ? "bg-success-soft text-success" : "bg-surface-2 text-ink-2")}>
+          {check.record ? <CircleCheck aria-hidden="true" className="size-5" /> : <FileClock aria-hidden="true" className="size-5" />}
+          {check.record ? t("sentinel.matches") : t("sentinel.noRecord")}
+        </p>
+      )}
+      {dispute && findings.length === 0 && !isActiveDispute(dispute) && dispute.resolutionNote && (
+        <p className="card p-4 text-sm">{t("sentinel.employerReply", { note: dispute.resolutionNote })}</p>
+      )}
+
+      <section aria-labelledby="net-label" className="hero-card flex flex-col gap-5 p-5 md:p-7">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p id="net-label" className="eyebrow">
+          <h2 id="net-label" className="eyebrow text-primary-strong">
             {t("net")}
-          </p>
-          <span className="rounded-full bg-accent px-3 py-1 text-sm font-bold text-accent-foreground">{t("daysWorked", { days: daysWorked })}</span>
+          </h2>
+          <span className="rounded-full bg-accent px-3 py-1 text-sm font-bold text-on-accent">{t("daysWorked", { days: daysWorked })}</span>
         </div>
-        <p className="figure text-[2.9rem] leading-none font-bold md:text-7xl" data-testid="net-pay">
+        <p className="figure font-display text-[2.9rem] leading-none font-extrabold text-primary-strong md:text-7xl" data-testid="net-pay">
           {formatINR(payslip.net)}
         </p>
         <div className="flex flex-col gap-2">
-          <div className="flex h-3 gap-0.5 overflow-hidden rounded-full bg-[rgb(243_242_236/0.14)]" aria-hidden="true">
-            {split.map((part) =>
-              part.share > 0 ? <div key={part.key} className={cn("meter-fill h-full", part.className)} style={{ width: `${part.share * 100}%` }} /> : null,
-            )}
+          <div className="flex h-3 gap-0.5 overflow-hidden rounded-full bg-white/80" aria-hidden="true">
+            <div className="meter-fill h-full bg-primary" style={{ width: `${((regular?.amount ?? 0) / gross) * 100}%` }} />
+            {overtime && <div className="meter-fill h-full bg-accent" style={{ width: `${(overtime.amount / gross) * 100}%` }} />}
           </div>
-          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-slab-muted">
+          <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-ink-2">
             <li className="flex items-center gap-1.5">
-              <span className="size-2.5 rounded-full bg-slab-foreground" aria-hidden="true" />
+              <span className="size-2.5 rounded-full bg-primary" aria-hidden="true" />
               {t("regular")}
             </li>
             {overtime && (
@@ -89,22 +103,17 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
                 {t("overtime")}
               </li>
             )}
-            {deducted > 0 && (
-              <li className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[rgb(243_242_236/0.3)]" aria-hidden="true" />
-                {payslip.deductions.map((d) => t(`deduction.${d.label}`)).join(", ")}
-              </li>
-            )}
+            {deducted > 0 && <li>{payslip.deductions.map((d) => t(`deduction.${d.label}`)).join(", ")}</li>}
           </ul>
         </div>
       </section>
 
-      <section className="receipt sheet rounded-t-worker px-5 pt-3 pb-5">
-        <dl className="divide-y divide-border">
+      <section className="receipt card rounded-b-none px-5 pt-3 pb-5">
+        <dl className="divide-y divide-line">
           <div className="flex items-center justify-between gap-2 py-3.5">
             <dt>
               <span className="font-bold">{t("regular")}</span>
-              <span className="figure block text-sm text-muted-foreground">{formatDuration(regular?.minutes ?? 0)}</span>
+              <span className="figure block text-sm text-ink-2">{formatDuration(regular?.minutes ?? 0)}</span>
             </dt>
             <dd className="figure font-bold whitespace-nowrap">{formatINR(regular?.amount ?? 0)}</dd>
           </div>
@@ -114,7 +123,7 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
                 <span className="flex flex-wrap items-center gap-2 font-bold">
                   {t("overtime")} <Badge tone="signal">{t("doubleRate")}</Badge>
                 </span>
-                <span className="block text-sm text-muted-foreground">
+                <span className="block text-sm text-ink-2">
                   <span className="figure">{formatDuration(overtime.minutes ?? 0)}</span> · {t(`basis.${payslip.overtimeBasis}`)}
                 </span>
               </dt>

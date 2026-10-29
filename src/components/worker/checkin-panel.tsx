@@ -6,17 +6,26 @@ import { useTranslations } from "next-intl";
 import { Camera, CloudUpload, LogOut, QrCode, ScanLine } from "lucide-react";
 import { checkInAction, checkOutAction, demoSiteTokenAction, type ActionResult } from "@/server/actions/attendance";
 import { enqueue, isNetworkError } from "@/lib/offline-queue";
+import { useNavigation } from "@/components/providers/navigation-provider";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { SpeakButton } from "@/components/speak-button";
 import { SuccessCheck } from "@/components/success-check";
+import { PageHeader } from "@/components/page-header";
 import { QrScanner } from "./qr-scanner";
 
+/** Every step is local state: none of them adds a browser history entry. */
 type Phase = "idle" | "explain" | "scanning" | "done" | "queued";
 
+/**
+ * Check-in / check-out flow. It owns its heading: the mode is fixed when the screen opens, so
+ * the refresh after a successful check-in can never flip the title to "Check out" while the
+ * body still says "Checked in!".
+ */
 export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: boolean }) {
   const t = useTranslations("checkin");
   const router = useRouter();
+  const { goBack } = useNavigation();
+  const [mode] = useState<"checkin" | "checkout">(checkedIn ? "checkout" : "checkin");
   const [phase, setPhase] = useState<Phase>("idle");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -28,7 +37,7 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
         navigator.vibrate?.(200);
         setMessage(t(successKey));
         setPhase("done");
-        router.refresh();
+        router.refresh(); // home counters update in the background
       } else {
         setError(t(`errors.${result.error}`));
         setPhase("idle");
@@ -82,30 +91,33 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
     setPhase("idle");
   }, [t]);
 
-  if (phase === "done" || phase === "queued") {
-    return (
-      <Card className="rise-in flex flex-col items-center gap-4 rounded-[28px] py-10 text-center" aria-live="polite">
-        {phase === "done" ? <SuccessCheck /> : <CloudUpload aria-hidden="true" className="size-20 text-brand" />}
-        <p className="font-display text-3xl font-extrabold">{message}</p>
-        <SpeakButton text={message} />
-        <Button size="lg" variant="outline" onClick={() => router.push("/w")}>
-          {t("backHome")}
-        </Button>
-      </Card>
-    );
-  }
+  const finished = phase === "done" || phase === "queued";
+  const title = finished ? message : mode === "checkout" ? t("checkoutTitle") : t("title");
+  const hint = finished ? t(mode === "checkout" ? "checkoutDoneHint" : "checkinDoneHint") : mode === "checkout" ? t("checkoutHint") : t("hint");
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-6">
+      <PageHeader title={title} action={<SpeakButton text={`${title}. ${hint}`} />}>
+        {hint}
+      </PageHeader>
+
       {error && (
-        <p role="alert" className="rounded-2xl bg-danger p-4 font-semibold text-status-foreground">
+        <p role="alert" className="rounded-2xl bg-danger-soft p-4 font-semibold text-danger">
           {error}
         </p>
       )}
 
-      {checkedIn ? (
-        <div className="slab flex flex-col gap-5 rounded-[28px] p-5 md:p-7">
-          <Button variant="accent" size="lg" className="min-h-20 text-xl" onClick={submitCheckOut} disabled={pending}>
+      {finished ? (
+        <div role="status" aria-live="polite" className="card rise-in flex flex-col items-center gap-4 px-5 py-10 text-center">
+          {phase === "done" ? <SuccessCheck /> : <CloudUpload aria-hidden="true" className="size-20 text-primary" />}
+          <p className="font-display text-3xl font-extrabold">{message}</p>
+          <Button size="lg" variant="outline" onClick={goBack}>
+            {t("backHome")}
+          </Button>
+        </div>
+      ) : mode === "checkout" ? (
+        <div className="hero-card flex flex-col gap-4 p-5 md:p-7">
+          <Button size="lg" className="min-h-20 text-xl" onClick={submitCheckOut} disabled={pending} aria-busy={pending || undefined}>
             <LogOut aria-hidden="true" className="size-8" />
             {t("checkoutButton")}
           </Button>
@@ -118,8 +130,8 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
           </Button>
         </>
       ) : phase === "explain" ? (
-        <Card className="rise-in flex flex-col items-center gap-4 rounded-[28px] text-center">
-          <span className="flex size-20 items-center justify-center rounded-3xl bg-brand-soft text-brand-soft-foreground">
+        <div className="card rise-in flex flex-col items-center gap-4 p-6 text-center">
+          <span className="flex size-20 items-center justify-center rounded-3xl bg-primary-soft text-primary-strong">
             <Camera aria-hidden="true" className="size-10" />
           </span>
           <p className="text-lg">{t("cameraWhy")}</p>
@@ -127,21 +139,21 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
           <Button size="lg" className="w-full" onClick={() => setPhase("scanning")}>
             {t("allowCamera")}
           </Button>
-        </Card>
+        </div>
       ) : (
-        <div className="slab flex flex-col items-center gap-6 rounded-[28px] p-6 md:p-8">
+        <div className="hero-card flex flex-col items-center gap-6 p-6 md:p-8">
           <div className="viewfinder flex size-44 items-center justify-center" aria-hidden="true">
-            <QrCode className="size-24 text-slab-foreground/80" strokeWidth={1.4} />
+            <QrCode className="size-24 text-primary/70" strokeWidth={1.4} />
           </div>
-          <Button variant="accent" size="lg" className="min-h-20 w-full text-xl" onClick={() => setPhase("explain")} disabled={pending}>
+          <Button size="lg" className="min-h-20 w-full text-xl" onClick={() => setPhase("explain")} disabled={pending}>
             <ScanLine aria-hidden="true" className="size-8" />
             {t("scanQR")}
           </Button>
         </div>
       )}
 
-      {demo && !checkedIn && phase !== "scanning" && (
-        <Button variant="secondary" onClick={simulateScan} disabled={pending}>
+      {demo && mode === "checkin" && !finished && phase !== "scanning" && (
+        <Button variant="secondary" onClick={simulateScan} disabled={pending} aria-busy={pending || undefined}>
           {t("simulateScan")}
         </Button>
       )}

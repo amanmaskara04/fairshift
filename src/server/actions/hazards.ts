@@ -122,12 +122,12 @@ export async function confirmFixAction(input: unknown): Promise<{ ok: boolean }>
   const session = await requireRole("worker");
   const parsed = ConfirmFix.safeParse(input);
   if (!parsed.success || !confirmLimiter.check(session.uid)) return { ok: false };
-  const tracked = (await trackedReports()).find((t) => t.hazardId === parsed.data.hazardId);
   const result = await confirmFix(getRepos(), {
     orgId: session.orgId,
     hazardId: parsed.data.hazardId,
     workerId: session.uid,
-    trackingRef: tracked?.ref,
+    // Every reference on this phone: a merged report keeps its reporters' references.
+    trackingRefs: (await trackedReports()).map((t) => t.ref),
     fixed: parsed.data.fixed,
     now: new Date(),
     secret: feedbackHmacSecret(),

@@ -1,6 +1,7 @@
 import "server-only";
 import { getTranslations } from "next-intl/server";
-import { formatDuration, formatINR } from "@/lib/format";
+import { formatDuration, formatINR, formatRupees } from "@/lib/format";
+import type { PayFinding } from "@/core/pay-check";
 import type { PayslipView } from "@/server/services/payslip";
 import type { PayFacts } from "@/ai/explain-pay";
 
@@ -28,4 +29,29 @@ export async function payTemplate(view: PayslipView): Promise<{ sentences: strin
   }
   sentences.push(t("net", { net: values.net }));
   return { sentences, facts: { values } };
+}
+
+/**
+ * One plain-words sentence per possible shortfall, with the arithmetic, e.g.
+ * "13h 32m overtime recorded, 9h paid → 4h 32m × ₹200/h = ₹907".
+ */
+export async function findingSentences(findings: PayFinding[]): Promise<string[]> {
+  const t = await getTranslations("pay.sentinel.finding");
+  return findings.map(({ code, expected, paid, difference, explanation: e }) => {
+    switch (code) {
+      case "OVERTIME_UNDERPAID":
+      case "REGULAR_UNDERPAID":
+        return t(code === "OVERTIME_UNDERPAID" ? "overtime" : "regular", {
+          recorded: formatDuration(e.recordedMinutes),
+          paid: formatDuration(e.paidMinutes),
+          missing: formatDuration(e.missingMinutes),
+          rate: formatRupees(e.rate),
+          amount: formatRupees(difference),
+        });
+      case "BELOW_MINIMUM_WAGE":
+        return t("minimum", { hours: formatDuration(e.workedMinutes), minimum: formatRupees(expected), paid: formatRupees(paid) });
+      case "DEDUCTION_MISMATCH":
+        return t("deduction", { withheld: formatRupees(e.withheld), expected: formatRupees(e.expectedDeductions), amount: formatRupees(difference) });
+    }
+  });
 }

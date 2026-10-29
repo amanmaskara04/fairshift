@@ -3,8 +3,6 @@ import { CloudUpload, QrCode, ScanLine } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { isDemoMode } from "@/server/config";
-import { SpeakButton } from "@/components/speak-button";
-import { PageHeader } from "@/components/page-header";
 import { CheckinPanel } from "@/components/worker/checkin-panel";
 
 const STEPS = [
@@ -16,16 +14,10 @@ const STEPS = [
 export default async function CheckinPage() {
   const session = await requireRole("worker");
   const t = await getTranslations("checkin");
-  const shifts = await getRepos().shifts.getByWorker(session.uid);
-  const checkedIn = shifts.some((s) => !s.outAt);
-  const title = checkedIn ? t("checkoutTitle") : t("title");
-  const hint = checkedIn ? t("checkoutHint") : t("hint");
+  const checkedIn = (await getRepos().shifts.getByWorker(session.uid)).some((s) => !s.outAt);
 
   return (
     <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-3xl">
-      <PageHeader title={title} action={<SpeakButton text={`${title}. ${hint}`} />}>
-        {hint}
-      </PageHeader>
       <CheckinPanel checkedIn={checkedIn} demo={isDemoMode()} />
 
       {!checkedIn && (
@@ -35,12 +27,10 @@ export default async function CheckinPage() {
           </h2>
           <ol className="stagger grid gap-3 md:grid-cols-3">
             {STEPS.map(({ key, Icon }, i) => (
-              <li key={key} className="sheet flex items-start gap-4 rounded-worker p-4 md:flex-col">
-                <span className="figure flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent font-bold text-accent-foreground">
-                  {i + 1}
-                </span>
+              <li key={key} className="card flex items-start gap-4 p-4 md:flex-col">
+                <span className="figure flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent font-bold text-on-accent">{i + 1}</span>
                 <span className="flex-1 leading-snug">{t(key)}</span>
-                <Icon aria-hidden="true" className="mt-1 size-6 shrink-0 text-muted-foreground md:hidden" />
+                <Icon aria-hidden="true" className="mt-1 size-6 shrink-0 text-ink-2 md:hidden" />
               </li>
             ))}
           </ol>

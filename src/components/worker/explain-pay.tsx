@@ -13,14 +13,14 @@ export function ExplainPay({ month, sentences }: { month: string; sentences: str
   const t = useTranslations("pay");
   const [open, setOpen] = useState(false);
   const [lines, setLines] = useState(sentences);
-  const [aiTried, setAiTried] = useState(false);
+  const [aiResult, setAiResult] = useState<"none" | "ok" | "unavailable">("none");
   const [pending, startTransition] = useTransition();
 
   function explainMore() {
     startTransition(async () => {
       const better = await explainPayAction(month);
       if (better) setLines(better);
-      setAiTried(true);
+      setAiResult(better ? "ok" : "unavailable");
     });
   }
 
@@ -37,7 +37,7 @@ export function ExplainPay({ month, sentences }: { month: string; sentences: str
     <Card className="rise-in flex flex-col gap-4" aria-live="polite">
       <div className="flex items-center justify-between">
         <h2 className="font-display flex items-center gap-2 text-xl font-extrabold">
-          <span className="flex size-9 items-center justify-center rounded-xl bg-accent text-accent-foreground">
+          <span className="flex size-9 items-center justify-center rounded-xl bg-accent-soft text-warning-ink">
             <HelpCircle aria-hidden="true" className="size-5" />
           </span>
           {t("whyThisAmount")}
@@ -47,14 +47,16 @@ export function ExplainPay({ month, sentences }: { month: string; sentences: str
       <ol className="flex flex-col gap-2">
         {lines.map((line, i) => (
           <li key={line} className="flex gap-3">
-            <span aria-hidden="true" className="figure mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold">
+            <span aria-hidden="true" className="figure mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-bold">
               {i + 1}
             </span>
             <span>{line}</span>
           </li>
         ))}
       </ol>
-      {!aiTried && (
+      {aiResult === "unavailable" && <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm text-ink-2">{t("aiUnavailable")}</p>}
+      {aiResult === "ok" && <p className="text-sm text-ink-2">{t("aiReworded")}</p>}
+      {aiResult === "none" && (
         <Button variant="outline" onClick={explainMore} disabled={pending}>
           <Sparkles aria-hidden="true" className="size-5" />
           {pending ? t("thinking") : t("explainMore")}

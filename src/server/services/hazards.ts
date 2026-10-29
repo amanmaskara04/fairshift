@@ -157,11 +157,11 @@ export async function adminHazardAction(
 /** "Is it really fixed?" — only the reporter, or the device holding the private reference. */
 export async function confirmFix(
   repos: Repos,
-  input: { orgId: string; hazardId: string; workerId: string; trackingRef?: string; fixed: boolean; now: Date; secret: string },
+  input: { orgId: string; hazardId: string; workerId: string; trackingRefs: string[]; fixed: boolean; now: Date; secret: string },
 ): Promise<{ ok: true } | { ok: false; error: HazardServiceError }> {
   const hazard = await repos.hazards.getById(input.hazardId);
   if (!hazard || hazard.orgId !== input.orgId) return { ok: false, error: "not_found" };
-  const viaRef = input.trackingRef ? hazard.trackingRefs.includes(trackingRefHash(input.secret, input.trackingRef)) : false;
+  const viaRef = input.trackingRefs.some((ref) => hazard.trackingRefs.includes(trackingRefHash(input.secret, ref)));
   if (!isReporter(hazard, input.workerId) && !viaRef) return { ok: false, error: "forbidden" };
   const result = applyHazardAction(hazard, { type: "confirm", fixed: input.fixed }, input.now);
   if (!result.ok) return result;

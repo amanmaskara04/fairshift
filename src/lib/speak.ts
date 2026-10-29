@@ -6,27 +6,70 @@ export const SPEECH_LANG: Record<string, string> = {
   te: "te-IN",
 };
 
-/** True when the device has a speech voice for the locale. */
-export function hasVoiceFor(locale: string): boolean {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-  const tag = SPEECH_LANG[locale] ?? locale;
-  return window.speechSynthesis.getVoices().some((v) => v.lang.replace("_", "-").startsWith(tag.slice(0, 2)));
+const VOICES_TIMEOUT_MS = 600;
+
+/** Device voices load asynchronously on Chrome/Android: wait briefly for the list. */
+function loadVoices(): Promise<SpeechSynthesisVoice[]> {
+  const synth = window.speechSynthesis;
+  const now = synth.getVoices();
+  if (now.length) return Promise.resolve(now);
+  return new Promise((resolve) => {
+    const done = () => resolve(synth.getVoices());
+    synth.addEventListener("voiceschanged", done, { once: true });
+    setTimeout(done, VOICES_TIMEOUT_MS);
+  });
+}
+
+/** A device voice for the locale's language, if the phone or browser has one. */
+export async function deviceVoiceFor(locale: string): Promise<SpeechSynthesisVoice | null> {
+  if (typeof window === "undefined" || !("speechSynthesis" in window)) return null;
+  const language = (SPEECH_LANG[locale] ?? locale).slice(0, 2);
+  return (await loadVoices()).find((v) => v.lang.replace("_", "-").toLowerCase().startsWith(language)) ?? null;
+}
+
+let currentAudio: HTMLAudioElement | null = null;
+
+export function stopSpeaking(): void {
+  if (typeof window !== "undefined" && "speechSynthesis" in window) window.speechSynthesis.cancel();
+  currentAudio?.pause();
+  currentAudio = null;
+}
+
+/** Server fallback (Gemini TTS, cached): used when the device has no voice for the language. */
+async function speakViaServer(text: string, locale: string): Promise<boolean> {
+  try {
+    const response = await fetch("/api/tts", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ text, locale }),
+    });
+    if (response.status !== 200) return false;
+    const url = URL.createObjectURL(await response.blob());
+    currentAudio = new Audio(url);
+    currentAudio.addEventListener("ended", () => URL.revokeObjectURL(url), { once: true });
+    await currentAudio.play();
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /**
- * Speak text with the device voice. Returns false when speech is unavailable
- * so callers can fall back to server TTS (added in a later task).
+ * Read text aloud in the worker's language: the device voice first (instant, offline),
+ * then server speech. Resolves false when no audio could be played, so the caller can say so
+ * instead of failing silently.
  */
-export function speak(text: string, locale: string): boolean {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) return false;
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = SPEECH_LANG[locale] ?? locale;
-  utterance.rate = 0.9;
-  const tag = utterance.lang.slice(0, 2);
-  const voice = synth.getVoices().find((v) => v.lang.startsWith(tag));
-  if (voice) utterance.voice = voice;
-  synth.speak(utterance);
-  return true;
+export async function speak(text: string, locale: string): Promise<boolean> {
+  if (typeof window === "undefined") return false;
+  stopSpeaking();
+  const voice = await deviceVoiceFor(locale);
+  if (voice) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = SPEECH_LANG[locale] ?? locale;
+    utterance.voice = voice;
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
+    return true;
+  }
+  return speakViaServer(text.slice(0, 400), locale);
 }

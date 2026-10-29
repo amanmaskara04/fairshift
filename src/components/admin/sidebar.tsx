@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { HardHat, IndianRupee, LayoutDashboard, MapPin, MessageSquare, QrCode, TriangleAlert } from "lucide-react";
+import { PILL_CLASS, useSlidingPill } from "@/components/layout/sliding-pill";
 import { cn } from "@/lib/utils";
 
 const ITEMS = [
@@ -16,34 +17,36 @@ const ITEMS = [
   { href: "/a/kiosk", key: "kiosk", Icon: QrCode },
 ] as const;
 
-/** Admin navigation: a vertical rail on the dark sidebar, or a swipeable tab strip on phones. */
+/** Admin navigation: a vertical rail on laptops, a swipeable strip on phones. The active pill slides. */
 export function Sidebar({ variant }: { variant: "rail" | "strip" }) {
   const t = useTranslations("admin");
   const pathname = usePathname();
+  const active = ITEMS.findIndex(({ href }) => (href === "/a" ? pathname === "/a" : pathname.startsWith(href)));
+  const { listRef, pillStyle } = useSlidingPill(active);
   const rail = variant === "rail";
 
   return (
     <nav aria-label={t("navLabel")}>
       <ul
+        ref={listRef}
         className={cn(
-          rail
-            ? "flex flex-col gap-1"
-            : "no-scrollbar flex snap-x gap-1.5 overflow-x-auto px-4 pb-3 [mask-image:linear-gradient(to_right,black_85%,transparent)]",
+          "relative",
+          rail ? "flex flex-col gap-1" : "no-scrollbar flex snap-x gap-1.5 overflow-x-auto px-4 pb-3 [mask-image:linear-gradient(to_right,black_85%,transparent)]",
         )}
       >
-        {ITEMS.map(({ href, key, Icon }) => {
-          const current = href === "/a" ? pathname === "/a" : pathname.startsWith(href);
+        <li aria-hidden="true" className={cn(PILL_CLASS, rail ? "rounded-xl bg-primary-soft" : "rounded-full bg-primary")} style={pillStyle} />
+        {ITEMS.map(({ href, key, Icon }, i) => {
+          const current = i === active;
           return (
-            <li key={href} className="snap-start">
+            <li key={href} className="relative snap-start">
               <Link
                 href={href}
                 aria-current={current ? "page" : undefined}
                 className={cn(
                   "flex items-center gap-3 font-bold whitespace-nowrap transition-colors duration-200",
-                  rail ? "min-h-11 rounded-xl px-3" : "min-h-10 rounded-full px-4 text-sm",
-                  rail &&
-                    (current ? "bg-accent text-accent-foreground" : "text-slab-muted hover:bg-[rgb(243_242_236/0.08)] hover:text-slab-foreground"),
-                  !rail && (current ? "bg-brand text-brand-foreground" : "bg-muted text-muted-foreground hover:text-foreground"),
+                  rail ? "min-h-12 rounded-xl px-3" : "min-h-11 rounded-full px-4 text-sm",
+                  rail && (current ? "text-primary-strong" : "text-ink-2 hover:bg-surface-2 hover:text-ink"),
+                  !rail && (current ? "text-on-primary" : "bg-surface text-ink-2 hover:text-ink"),
                 )}
               >
                 <Icon aria-hidden="true" className={rail ? "size-5" : "size-4"} />

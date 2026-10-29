@@ -38,7 +38,9 @@
     "chipOffline": "Works offline",
     "chipVoice": "Voice in 4 languages",
     "chipPrivate": "Name hidden by default",
-    "step": "Step {n}"
+    "step": "Step {n}",
+    "imWorker": "I'm a worker",
+    "imEmployer": "I'm an employer"
   },
   "login": {
     "workerTab": "Worker",
@@ -51,13 +53,14 @@
     "demoTitle": "Try the demo",
     "demoRamesh": "Ramesh (Construction worker)",
     "demoSunita": "Sunita (Hospital worker)",
-    "demoPriya": "Priya (Admin)",
+    "demoPriya": "Priya (Construction employer)",
     "errorInvalid": "Wrong code or PIN. Please try again.",
     "errorLocked": "Too many tries. Please wait 15 minutes.",
     "errorGeneral": "Something went wrong. Please try again.",
     "deleteDigit": "Delete last digit",
     "keypad": "Number keypad",
-    "title": "Sign in to your workplace"
+    "title": "Sign in to your workplace",
+    "demoArjun": "Dr. Arjun (Hospital employer)"
   },
   "worker": {
     "greeting": "Hello, {name}!",
@@ -93,12 +96,27 @@
     "tileHints": {
       "pay": "See this month's payslip",
       "report": "Tell us about something unsafe",
-      "feedback": "Share how work feels — no name"
+      "feedback": "Share how work feels — no name",
+      "skills": "Benefits, work history and skills"
     },
     "thisWeek": "This week",
     "weekOfLimit": "{used} of {limit}h allowed",
     "onShiftFor": "On shift for",
-    "openTile": "Open"
+    "openTile": "Open",
+    "welcomeGreeting": "Hello, {name}",
+    "welcomeReady": "Ready for today",
+    "earned": {
+      "title": "Earned this month so far",
+      "spoken": "You have earned {amount} this month so far, before deductions. Today: {today}.",
+      "today": "+{amount} today",
+      "beforeDeductions": "Before deductions",
+      "welcomeLine": "You've earned {amount} this month"
+    },
+    "nudge": {
+      "shortfall": "Possible pay shortfall: {amount}",
+      "shortfallHint": "See the details and ask for a review",
+      "benefitProgress": "{done} of {needed} days done"
+    }
   },
   "pay": {
     "title": "My pay",
@@ -128,6 +146,34 @@
       "overtime": "{otHours} were extra hours. They are paid double: {otPay}.",
       "pf": "{pf} goes to your Provident Fund savings.",
       "net": "You receive {net}."
+    },
+    "aiUnavailable": "The simpler wording is not available right now. The explanation above is exact.",
+    "aiReworded": "Reworded by AI. The numbers are the same as your payslip.",
+    "sentinel": {
+      "title": "Possible shortfall: {amount}",
+      "possibleHint": "Your check-ins and your employer's pay record do not match. There may be a reason — you can ask for a review.",
+      "requestReview": "Request review",
+      "requestHint": "Your employer will see your request and must reply. You will see their answer here.",
+      "reviewTitle": "Your review request",
+      "status": {
+        "open": "Sent",
+        "reviewing": "Being checked",
+        "resolved": "Answered"
+      },
+      "employerReply": "Employer's reply: {note}",
+      "errors": {
+        "rate_limited": "Too many requests. Please try again later.",
+        "general": "Could not send. Please try again."
+      },
+      "minimumWageNote": "Minimum wage figures are demo values — verify for your state. Source: {source}.",
+      "matches": "Your employer's pay record matches your hours.",
+      "noRecord": "Your employer has not entered what they paid for this month yet.",
+      "finding": {
+        "overtime": "{recorded} overtime recorded, {paid} paid → {missing} × {rate}/h = {amount}",
+        "regular": "{recorded} regular hours recorded, {paid} paid → {missing} × {rate}/h = {amount}",
+        "minimum": "For {hours} of work the minimum wage is {minimum}, but {paid} was paid",
+        "deduction": "{withheld} was held back, but deductions should be {expected} → {amount} extra"
+      }
     }
   },
   "report": {
@@ -189,7 +235,71 @@
       "pickCategory": "Please tap the icon that matches the danger.",
       "general": "Could not send. Please try again.",
       "noSpeech": "We didn't hear anything. Tap the mic and speak, or tap an icon.",
-      "pickForHeard": "We heard you. Now tap the picture that matches the danger."
+      "pickForHeard": "We heard you. Now tap the picture that matches the danger.",
+      "rateLimited": "You have sent many reports. Please wait a little and try again."
+    },
+    "whereLabel": "Where is it? (optional)",
+    "wherePlaceholder": "e.g. Floor 3, Ward B, gate",
+    "sentMerged": "Someone had already reported this. Your report was added to it, so it is now more urgent.",
+    "reportCount": "{count} workers reported this",
+    "dismissedBecause": "Closed because",
+    "whatWasDone": "What was done",
+    "afterPhotoAlt": "Photo after the fix",
+    "age": {
+      "open": "Open {age}",
+      "due_soon": "Close to its deadline",
+      "overdue": "Past its deadline"
+    },
+    "events": {
+      "received": "Report received",
+      "in_progress": "Work started",
+      "fixed": "Marked fixed",
+      "dismissed": "Closed",
+      "reopened": "Reopened",
+      "escalated": "Deadline missed — sent up to the {role}",
+      "confirmed": "Reporter confirmed it is fixed",
+      "auto_closed": "Closed automatically (no answer in 3 days)",
+      "report_added": "Another worker reported the same danger",
+      "merged": "Joined with another report",
+      "unmerged": "Separated from another report",
+      "notFixedNote": "The reporter said it is still a problem."
+    },
+    "roles": {
+      "supervisor": "supervisor",
+      "site_manager": "site manager",
+      "safety_officer": "safety officer",
+      "ward_in_charge": "ward in-charge",
+      "nursing_superintendent": "nursing superintendent",
+      "hospital_safety_hr": "safety officer / HR"
+    },
+    "dismissReasons": {
+      "duplicate": "Same as another report",
+      "not_a_hazard": "Not a danger",
+      "already_fixed": "Already fixed",
+      "other": "Other reason"
+    },
+    "confirm": {
+      "badge": "Is it fixed?",
+      "title": "Is it really fixed?",
+      "hint": "Your manager marked this fixed. Please check and tell us.",
+      "yes": "Yes, fixed",
+      "no": "No, still a problem",
+      "error": "Could not send your answer. Please try again."
+    },
+    "track": {
+      "title": "Follow a report with its private number",
+      "hint": "Type the private number you got when you reported without your name.",
+      "open": "Open",
+      "notFound": "No report found with that number.",
+      "yourRef": "Your private number:",
+      "keepIt": "Keep it to follow this report on another phone. It is not linked to your name."
+    },
+    "duplicate": {
+      "title": "Someone already reported this",
+      "body": "{count, plural, one {One worker has} other {# workers have}} reported the same danger here. Add your report to it? It makes the report more urgent.",
+      "private": "Nobody will see who reported it.",
+      "add": "Yes, add my report",
+      "different": "No, it's a different problem"
     }
   },
   "feedback": {
@@ -208,7 +318,12 @@
       "okay": "Okay",
       "good": "Good"
     },
-    "commentHint": "Do not write names. Names and phone numbers are removed."
+    "commentHint": "Do not write names. Names and phone numbers are removed.",
+    "tabs": {
+      "label": "Speak up",
+      "feel": "How is work?",
+      "issues": "Issues at your site"
+    }
   },
   "skills": {
     "title": "My skills",
@@ -219,7 +334,10 @@
     "shareTitle": "Show your skills to a new employer",
     "shareHint": "They can scan this code to see your verified skills.",
     "passportOf": "Skill passport: {name}",
-    "passportIssuer": "Skills verified by {org}"
+    "passportIssuer": "Skills verified by {org}",
+    "eyebrow": "My profile",
+    "historyTitle": "Work history",
+    "historyTotals": "{days} days · {hours} verified"
   },
   "checkin": {
     "title": "Check in",
@@ -248,7 +366,9 @@
     "howTitle": "How it works",
     "step1": "Find the FairShift QR code at the gate or ward desk.",
     "step2": "Tap the button and point your camera at it.",
-    "step3": "No internet? It is saved and sent later."
+    "step3": "No internet? It is saved and sent later.",
+    "checkinDoneHint": "Your hours are being counted. Tap Check out when you finish.",
+    "checkoutDoneHint": "Your hours today are saved. Rest well."
   },
   "admin": {
     "overview": "Overview",
@@ -292,9 +412,21 @@
       "feature": "Feature",
       "model": "Model",
       "latency": "Time",
-      "fallback": "Fallback used",
+      "fallback": "Backup model",
       "yes": "Yes",
-      "no": "No"
+      "no": "No",
+      "configured": "Gemini is connected",
+      "missingKey": "Gemini key missing — using standard text",
+      "result": "Result",
+      "ok": "OK",
+      "failed": "Failed (standard text shown)",
+      "features": {
+        "hazard": "Hazard report",
+        "explainPay": "Pay explanation",
+        "brief": "Weekly brief",
+        "similar": "Similar issues",
+        "tts": "Read aloud"
+      }
     },
     "risk": {
       "none": "No risk signals",
@@ -314,18 +446,54 @@
     },
     "hazardsPage": {
       "title": "Hazards",
-      "intro": "Highest severity first. Workers see every status change on their phone.",
+      "intro": "Escalated and most urgent first. Workers see every change and the reason on their phone.",
       "empty": "Nothing here.",
       "photoAlt": "Photo attached by the worker",
       "anonymous": "Anonymous",
       "reopen": "Reopen",
       "start": "Start work",
       "markFixed": "Mark fixed",
-      "dismiss": "Dismiss"
+      "dismiss": "Dismiss",
+      "escalatedTo": "Escalated to {role}",
+      "reportedBy": "{count} workers reported this",
+      "confirmation": {
+        "pending": "Waiting for reporter",
+        "confirmed": "Reporter confirmed",
+        "auto_closed": "Closed (no answer)"
+      },
+      "dismissedBecause": "Closed because:",
+      "whatWasDone": "What was done:",
+      "merge": "Same as…",
+      "unmerge": "Separate {label}",
+      "fixTitle": "Mark as fixed",
+      "fixNoteLabel": "What was done? (required)",
+      "fixNoteHint": "The worker who reported it will read this and confirm.",
+      "afterPhoto": "Add an “after” photo (optional)",
+      "afterPhotoAdded": "After photo added ✓",
+      "confirmFixed": "Mark fixed",
+      "dismissTitle": "Close without fixing",
+      "dismissReasonLabel": "Why? (required)",
+      "dismissNoteRequired": "Explain the reason (required)",
+      "dismissNoteOptional": "Add a note (optional)",
+      "dismissWorkerSees": "The worker will see this reason.",
+      "confirmDismiss": "Close report",
+      "mergeTitle": "Join with another report",
+      "mergeHint": "Pick the report this one duplicates. All photos and reports are kept, and you can separate them later.",
+      "confirmMerge": "Join reports",
+      "errors": {
+        "invalid": "Please fill in what is needed.",
+        "invalid_transition": "This report has already moved on. Refresh the page.",
+        "reason_required": "Pick a reason.",
+        "note_required": "Please write a short note.",
+        "not_found": "Report not found.",
+        "forbidden": "Not allowed.",
+        "photo": "Photo could not be added.",
+        "not_awaiting_confirmation": "This report is not waiting for confirmation."
+      }
     },
     "peoplePage": {
       "title": "People",
-      "intro": "Sorted by quit risk. Every score shows why.",
+      "intro": "Sorted by individual quit risk. Every score shows why.",
       "worker": "Worker",
       "status": "Status",
       "thisWeek": "This week",
@@ -334,7 +502,25 @@
       "onSite": "On site",
       "offSite": "Off site",
       "overtime": "{hours} overtime",
-      "method": "Quit risk is a transparent weighted score (0–100) from overtime and its trend, missed working days, team mood (only from groups of 5+), open hazards at the site and pay disputes. It is a prompt to talk, not a judgement."
+      "method": "Individual quit risk is a transparent weighted score (0–100) of overtime and its trend (40), missed working days with one rest day a week allowed (35) and open pay disputes (25). Site mood and open hazards are site context. It is a prompt to talk, not a judgement.",
+      "individualTitle": "Each worker",
+      "siteContext": "Site conditions",
+      "siteContextHint": "Shared by everyone at the site, so they are shown here and not added to individual scores.",
+      "siteScore": "Site {score}",
+      "certificates": {
+        "title": "Work certificates for welfare boards",
+        "hint": "Workers who have met (or nearly met) the days a welfare scheme needs. Approving signs a certificate they can show at the office.",
+        "none": "No one is close yet.",
+        "progress": "{done}/{needed} days",
+        "requested": "Requested a certificate for {days} days",
+        "view": "View certificate",
+        "rejected": "Rejected",
+        "eligibleNoRequest": "Eligible — has not asked yet",
+        "close": "Close to eligible",
+        "approve": "Approve and sign",
+        "reject": "Reject",
+        "error": "Could not save. Please try again."
+      }
     },
     "feedbackPage": {
       "title": "Feedback",
@@ -353,6 +539,21 @@
         "safety": "Safety",
         "respect": "Respect",
         "facilities": "Facilities"
+      },
+      "issues": {
+        "title": "Issues raised together",
+        "hint": "Only issues signed by {k} or more workers appear here. Who signed is never stored.",
+        "none": "No issue has reached the threshold yet.",
+        "signers": "{count} workers signed",
+        "status": {
+          "escalated": "New",
+          "acknowledged": "Acknowledged",
+          "resolved": "Resolved"
+        },
+        "replyLabel": "Your reply (every worker at the site will see it)",
+        "acknowledge": "Acknowledge",
+        "resolve": "Mark resolved",
+        "error": "Could not save. Write a reply first."
       }
     },
     "brief": {
@@ -368,7 +569,7 @@
       "title": "Payroll",
       "export": "Export CSV",
       "month": "Month",
-      "intro": "Hours and pay are calculated by tested code from check-in records. Overtime is paid at 2×.",
+      "intro": "Hours and pay are calculated by tested code from check-in records. Overtime is paid at 2×. FairPay Sentinel compares them with what you actually paid.",
       "worker": "Worker",
       "days": "Days",
       "regular": "Regular",
@@ -381,6 +582,67 @@
         "daily": "daily wage",
         "monthly": "monthly",
         "hourly": "hourly"
+      },
+      "paid": "Paid",
+      "checkColumn": "Check",
+      "check": {
+        "noRecord": "Not entered",
+        "matches": "Matches",
+        "shortfall": "Possible shortfall {amount}"
+      },
+      "sentinel": {
+        "title": "FairPay Sentinel",
+        "hint": "Enter what you actually paid each worker. FairShift compares it with their check-ins and flags possible shortfalls before workers have to.",
+        "flagged": "{count, plural, one {1 worker has} other {# workers have}} a possible shortfall this month.",
+        "clear": "No possible shortfalls for the records entered.",
+        "minimumWageNote": "Minimum wages used in checks are demo values — verify for your state."
+      },
+      "record": {
+        "manual": "Enter for one worker",
+        "upload": "Upload CSV",
+        "template": "Download CSV template",
+        "manualTitle": "What was actually paid",
+        "worker": "Worker",
+        "paidRegularHours": "Regular hours paid",
+        "paidOvertimeHours": "Overtime hours paid",
+        "grossPaid": "Gross ₹",
+        "deductions": "Deductions ₹",
+        "netPaid": "Net paid ₹",
+        "save": "Save",
+        "saved": "Saved. The check is updated.",
+        "uploadTitle": "Upload what was paid",
+        "uploadHint": "Use the template: one row per worker, money in rupees. Each row is checked on its own.",
+        "file": "CSV file",
+        "import": "Import",
+        "imported": "{count} rows saved.",
+        "rowError": "Row {row}: {reason}",
+        "errors": {
+          "invalid": "Some values are not valid numbers (net cannot be more than gross).",
+          "unknown_worker": "Unknown worker code",
+          "file": "Choose a CSV file under 100 KB.",
+          "rate_limited": "Too many uploads. Please wait a few minutes.",
+          "columns": "The columns do not match the template."
+        }
+      },
+      "disputes": {
+        "title": "Pay review requests",
+        "none": "No pay reviews requested.",
+        "shortfall": "possible shortfall {amount}",
+        "status": {
+          "open": "New",
+          "reviewing": "Reviewing",
+          "resolved": "Resolved"
+        },
+        "codes": {
+          "OVERTIME_UNDERPAID": "Overtime underpaid",
+          "REGULAR_UNDERPAID": "Regular hours underpaid",
+          "BELOW_MINIMUM_WAGE": "Below minimum wage",
+          "DEDUCTION_MISMATCH": "Deductions do not match"
+        },
+        "noteLabel": "Note to the worker (needed to resolve)",
+        "startReview": "Start review",
+        "resolve": "Resolve",
+        "error": "Could not save. A note is needed to resolve."
       }
     },
     "sitesPage": {
@@ -393,6 +655,24 @@
       "noGeofence": "QR only",
       "hazardTypes": "Hazard types for this sector",
       "openKiosk": "Open QR kiosk"
+    },
+    "escalatedCount": "{count} escalated",
+    "escalatedTo": "Escalated to {role}",
+    "welcome": {
+      "morning": "Good morning, {name}",
+      "midday": "Good afternoon, {name}",
+      "evening": "Good evening, {name}",
+      "attention": "{count, plural, =0 {Nothing needs attention right now} one {1 thing needs attention} other {# things need attention}}"
+    },
+    "attention": {
+      "dispute": "{name} asked for a pay review ({amount})",
+      "issue": "{count} workers signed this issue",
+      "certificate": "{name} asked for a work certificate ({days} days)"
+    },
+    "disputeStatus": {
+      "open": "New",
+      "reviewing": "Reviewing",
+      "resolved": "Resolved"
     }
   },
   "offline": {
@@ -406,7 +686,11 @@
     "navHome": "Go to home",
     "navPay": "Go to pay",
     "navReport": "Go to report",
-    "navMe": "Go to profile"
+    "navMe": "Go to profile",
+    "audioUnavailable": "Audio is not available on this device.",
+    "dictate": "Speak instead of typing",
+    "stopDictation": "Stop listening",
+    "hearLanguage": "Hear “{language}”"
   },
   "kiosk": {
     "title": "QR Kiosk",
@@ -415,5 +699,133 @@
     "scanHere": "Scan to check in or out",
     "qrLabel": "Check-in QR code",
     "refreshIn": "New code in {seconds}s"
+  },
+  "welcome": {
+    "skip": "Tap anywhere to skip"
+  },
+  "issues": {
+    "privacy": "Management sees an issue only when {k} workers sign it. Nobody — not even management — can see who signed.",
+    "needed": "{count} of {k} needed",
+    "status": {
+      "gathering": "Gathering signatures",
+      "escalated": "Sent to management · {count} signed",
+      "acknowledged": "Management is acting · {count} signed",
+      "resolved": "Resolved · {count} signed"
+    },
+    "managementReply": "Management replied",
+    "youSigned": "You signed this",
+    "meToo": "Me too",
+    "raise": "Raise a new issue",
+    "newLabel": "What is the problem at your site?",
+    "newHint": "Do not write names. Names and phone numbers are removed.",
+    "isItOneOfThese": "Is it one of these?",
+    "noMineIsDifferent": "No, mine is different — raise it",
+    "cancel": "Cancel",
+    "next": "Next",
+    "empty": "No open issues at your site.",
+    "escalatedToast": "{k} workers signed — management can see it now.",
+    "signedToast": "Signed. Thank you.",
+    "raisedToast": "Your issue is up. Others can now sign it.",
+    "errors": {
+      "rate_limited": "You have raised enough issues today. Please try tomorrow.",
+      "general": "Could not sign. Please try again.",
+      "invalid": "Please write a little more about the problem."
+    }
+  },
+  "benefits": {
+    "title": "Benefits you can claim",
+    "intro": "Your check-ins prove the days you worked. Use them to get government welfare.",
+    "progress": "{done} of {needed} days",
+    "status": {
+      "eligible": "You can apply",
+      "answer": "Answer to check",
+      "daysLeft": "{count} more days to go",
+      "notEligible": "Not for you right now"
+    },
+    "conditions": {
+      "age_18_60": "Are you between 18 and 60 years old?",
+      "age_16_59": "Are you between 16 and 59 years old?",
+      "age_18_40": "Are you between 18 and 40 years old?",
+      "not_epf_esic_member": "Are you NOT already in PF (EPFO) or ESIC?",
+      "not_esic_member": "Are you NOT already covered by ESIC?"
+    },
+    "yes": "Yes",
+    "no": "No",
+    "answersPrivate": "Your answers stay on this phone. FairShift does not store your age.",
+    "howToApply": "How to apply",
+    "whatYouGet": "What you get",
+    "documents": "Documents to carry",
+    "steps": "How to apply",
+    "officialSite": "Official website",
+    "source": "Rule source",
+    "verifyNote": "Rules differ by state; check at the office.",
+    "certificate": {
+      "request": "Request work certificate",
+      "requested": "Certificate requested",
+      "open": "Open work certificate",
+      "error": "Could not request the certificate. Please try again."
+    }
+  },
+  "passport": {
+    "passportOf": "Skill passport: {name}",
+    "issuedBy": "verified by {org}",
+    "validity": "Issued {issued} · Valid until {until}",
+    "totalDays": "Days worked",
+    "totalHours": "Hours worked",
+    "historyTitle": "Work history",
+    "skillsTitle": "Verified skills",
+    "days": "{count} days",
+    "verifiedByEmployer": "Verified by employer",
+    "selfReported": "Self-reported",
+    "sector": {
+      "construction": "Construction",
+      "hospital": "Hospital",
+      "campus": "Campus",
+      "factory": "Factory"
+    },
+    "share": {
+      "title": "Show a new employer",
+      "hint": "They scan the code to see what you choose. The link stops working after 30 days.",
+      "choose": "What to show",
+      "sections": {
+        "skills": "Skills",
+        "history": "Work history",
+        "hours": "Hours worked"
+      },
+      "show": "Show my QR code",
+      "regenerate": "Make a new QR code",
+      "qrLabel": "Skill passport QR code",
+      "validity": "Issued {issued} · Valid until {until}",
+      "openLink": "Open the link",
+      "pickOne": "Choose at least one thing to show.",
+      "error": "Could not make the QR code. Please try again."
+    }
+  },
+  "verify": {
+    "passportExpired": "This passport has expired — ask the worker for a new one",
+    "passportInvalid": "This passport could not be verified",
+    "certificateExpired": "This certificate has expired",
+    "certificateInvalid": "This certificate could not be verified",
+    "expiredHint": "Links are valid for 30 days. The worker can make a fresh one in FairShift any time.",
+    "invalidHint": "The link may be incomplete or changed. Ask for the original link or QR code."
+  },
+  "certificate": {
+    "title": "Certificate of work",
+    "verified": "Signed by FairShift",
+    "body": "This certifies that {name}, {role}, worked {days} days for {org} between {from} and {to}, as recorded by FairShift check-ins.",
+    "worker": "Worker",
+    "employer": "Employer",
+    "daysWorked": "Days worked",
+    "period": "Period",
+    "issued": "Issued",
+    "approvedBy": "Approved by",
+    "qrLabel": "QR code to verify this certificate",
+    "verifyHint": "Scan to check this certificate online. Any change to the link makes it invalid.",
+    "print": "Print or save as PDF"
+  },
+  "notFound": {
+    "title": "We could not find this page",
+    "hint": "The link may be old or typed wrong.",
+    "home": "Go to the start"
   }
 }

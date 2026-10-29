@@ -1,35 +1,35 @@
 import { clsx, type ClassValue } from "clsx";
 import { extendTailwindMerge } from "tailwind-merge";
 
-// Our theme colours (globals.css @theme) so `bg-brand` correctly overrides `bg-card`, etc.
+// Our theme colours (globals.css @theme) so `bg-primary` correctly overrides `bg-surface`, etc.
 const THEME_COLORS = [
-  "brand",
-  "brand-foreground",
-  "brand-soft",
-  "brand-soft-foreground",
-  "accent",
-  "accent-foreground",
+  "paper",
+  "surface",
+  "surface-2",
+  "line",
   "ink",
+  "ink-2",
+  "primary",
+  "primary-strong",
+  "primary-soft",
+  "on-primary",
+  "accent",
+  "accent-soft",
+  "on-accent",
   "danger",
-  "warning",
+  "danger-soft",
   "success",
-  "status-foreground",
-  "background",
-  "foreground",
-  "muted",
-  "muted-foreground",
-  "border",
-  "card",
-  "card-foreground",
-  "slab",
-  "slab-foreground",
-  "slab-muted",
-  "slab-line",
+  "success-soft",
+  "warning",
+  "warning-ink",
+  "warning-soft",
+  "info",
+  "info-soft",
 ];
 
 const twMerge = extendTailwindMerge({
   extend: {
-    theme: { color: THEME_COLORS, radius: ["worker", "admin"] },
+    theme: { color: THEME_COLORS, radius: ["card", "tile"] },
   },
 });
 
