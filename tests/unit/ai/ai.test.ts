@@ -20,6 +20,7 @@ function fakeClient(...responses: (string | Error)[]): AiClient & { calls: strin
       if (next instanceof Error) throw next;
       return next ?? "";
     }),
+    synthesizeSpeech: vi.fn(async () => null),
   };
 }
 

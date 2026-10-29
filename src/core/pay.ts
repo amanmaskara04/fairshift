@@ -25,6 +25,11 @@ export function deriveHourlyRate(pay: PayConfig, rules: LabourRules): number {
   }
 }
 
+/** Full-time monthly wage in paise (26 standard days), used for wage-ceiling rules. */
+export function monthlyWage(pay: PayConfig, rules: LabourRules): number {
+  return pay.basis === 'monthly' ? pay.rate : deriveHourlyRate(pay, rules) * rules.dailyHrs * WORKING_DAYS_PER_MONTH;
+}
+
 export interface Deduction {
   label: string;
   amount: number;

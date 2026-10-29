@@ -14,11 +14,11 @@ const closed = (shifts: Awaited<ReturnType<ReturnType<typeof getRepos>["shifts"]
 describe("seeded demo data (in-memory repos)", () => {
   beforeEach(() => resetMemoryStore());
 
-  it("has two orgs in two sectors with six workers each", async () => {
+  it("has two orgs in two sectors with 18 workers each", async () => {
     const repos = getRepos();
     const orgs = await repos.orgs.getAll();
     expect(orgs.map((o) => o.sector)).toEqual(["construction", "hospital"]);
-    for (const org of orgs) expect(await repos.workers.getByOrg(org.id)).toHaveLength(6);
+    for (const org of orgs) expect(await repos.workers.getByOrg(org.id)).toHaveLength(18);
     expect(await repos.sites.getByOrg("org2")).toHaveLength(2);
   });
 

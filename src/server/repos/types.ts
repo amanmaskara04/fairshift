@@ -1,12 +1,18 @@
 /**
- * Repository interfaces for FairShift data layer.
- * Implementations can be in-memory (dev) or Firestore (production).
+ * Repository interfaces for the FairShift data layer.
+ * Implementations: in-memory (dev, tests) and MongoDB (production).
  */
+import type { Hazard, Sector, Shift } from "@/core/types";
+import type { PaidRecord, FindingCode } from "@/core/pay-check";
+import type { IssueStatus } from "@/core/cosign";
+import type { SkillLevel } from "@/config/minimum-wage";
+
+export type { Hazard, Shift };
 
 export interface Org {
   id: string;
   name: string;
-  sector: "construction" | "hospital" | "campus" | "factory";
+  sector: Sector;
   labourRules: {
     dailyHrs: number;
     weeklyHrs: number;
@@ -18,9 +24,20 @@ export interface Site {
   id: string;
   orgId: string;
   name: string;
-  sector: "construction" | "hospital" | "campus" | "factory";
+  sector: Sector;
+  /** State code used for the minimum-wage table, e.g. "TN" */
+  state: string;
   geofence?: { lat: number; lng: number; radiusM: number };
   qrSecret: string;
+}
+
+/** Work a worker did before FairShift, entered by them: shown but never counted as verified. */
+export interface SelfReportedWork {
+  employer: string;
+  role: string;
+  sector: Sector;
+  from: string;
+  to: string;
 }
 
 export interface Worker {
@@ -33,11 +50,15 @@ export interface Worker {
   pinSalt: string;
   lang: string;
   role: "worker";
+  /** Job title shown on the skill passport, e.g. "Mason" */
+  jobTitle: string;
+  skillLevel: SkillLevel;
   pay: {
     basis: "daily" | "monthly" | "hourly";
     rate: number; // paise
   };
   joinedAt: Date;
+  pastWork?: SelfReportedWork[];
 }
 
 export interface Admin {
@@ -49,27 +70,6 @@ export interface Admin {
   passwordSalt: string;
   role: "admin";
   siteIds: string[];
-}
-
-import type { Shift } from "@/core/types";
-
-export type { Shift };
-
-export interface Hazard {
-  id: string;
-  siteId: string;
-  orgId: string;
-  reporterId: string | null;
-  category: string;
-  severity: "critical" | "high" | "medium" | "low";
-  transcript?: string;
-  transcriptEn?: string;
-  location?: string;
-  photoDataUrl?: string;
-  status: "received" | "in_progress" | "fixed" | "dismissed";
-  assigneeUid?: string;
-  timeline: { status: string; at: Date; by?: string }[];
-  createdAt: Date;
 }
 
 export interface FeedbackEntry {
@@ -94,6 +94,77 @@ export interface Skill {
   date: Date;
   verifiedBy?: string;
   evidence?: string;
+}
+
+/** What the employer actually paid one worker for one month (FairPay Sentinel's second source). */
+export interface PaidRecordEntry extends PaidRecord {
+  /** `${workerId}:${month}` — one record per worker and month */
+  id: string;
+  orgId: string;
+  workerId: string;
+  month: string;
+  recordedAt: Date;
+  recordedBy: string;
+}
+
+export type DisputeStatus = "open" | "reviewing" | "resolved";
+
+export interface PayDispute {
+  id: string;
+  orgId: string;
+  workerId: string;
+  month: string;
+  /** Possible shortfall in paise when the worker asked for a review */
+  shortfall: number;
+  findings: FindingCode[];
+  status: DisputeStatus;
+  resolutionNote?: string;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+/** A co-signed site issue. No signer or creator identity is ever stored. */
+export interface SiteIssue {
+  id: string;
+  orgId: string;
+  siteId: string;
+  /** PII-scrubbed text */
+  text: string;
+  signerCount: number;
+  status: IssueStatus;
+  /** Management's reply, shown to every worker at the site */
+  response?: string;
+  /** Day precision only ('YYYY-MM-DD', IST) so times can't be matched to check-ins */
+  createdDay: string;
+  updatedDay: string;
+}
+
+export type CertificateStatus = "requested" | "approved" | "rejected";
+
+/** A worker's request for an employer-signed work certificate (e.g. 90 days for the BOCW board). */
+export interface CertificateRequest {
+  id: string;
+  orgId: string;
+  workerId: string;
+  schemeId: string;
+  status: CertificateStatus;
+  daysWorked: number;
+  /** IST days 'YYYY-MM-DD' */
+  from: string;
+  to: string;
+  requestedAt: Date;
+  decidedAt?: Date;
+  decidedBy?: string;
+}
+
+export interface AiLogEntry {
+  feature: "hazard" | "explainPay" | "brief" | "similar" | "tts";
+  model: string;
+  latencyMs: number;
+  fallbackUsed: boolean;
+  /** Short error class when the call failed, never prompt or output content */
+  error?: string;
+  at: Date;
 }
 
 export interface OrgRepo {
@@ -146,8 +217,8 @@ export interface FeedbackRepo {
   create(entry: FeedbackEntry): Promise<void>;
 }
 
-/** One-way HMAC keys that stop double voting without storing who voted. */
-export interface FeedbackGuardRepo {
+/** One-way HMAC keys that stop double voting/signing without storing who did it. */
+export interface GuardRepo {
   has(key: string): Promise<boolean>;
   add(key: string): Promise<void>;
 }
@@ -155,6 +226,48 @@ export interface FeedbackGuardRepo {
 export interface SkillRepo {
   getByWorker(workerId: string): Promise<Skill[]>;
   create(skill: Skill): Promise<void>;
+}
+
+export interface PaidRecordRepo {
+  getByOrgMonth(orgId: string, month: string): Promise<PaidRecordEntry[]>;
+  get(workerId: string, month: string): Promise<PaidRecordEntry | undefined>;
+  /** Insert or replace the record for that worker and month */
+  upsert(record: PaidRecordEntry): Promise<void>;
+}
+
+export interface PayDisputeRepo {
+  getByOrg(orgId: string): Promise<PayDispute[]>;
+  getByWorker(workerId: string): Promise<PayDispute[]>;
+  getById(id: string): Promise<PayDispute | undefined>;
+  create(dispute: PayDispute): Promise<void>;
+  update(id: string, data: Partial<PayDispute>): Promise<void>;
+}
+
+export interface IssueRepo {
+  getBySite(siteId: string): Promise<SiteIssue[]>;
+  getByOrg(orgId: string): Promise<SiteIssue[]>;
+  getById(id: string): Promise<SiteIssue | undefined>;
+  create(issue: SiteIssue): Promise<void>;
+  update(id: string, data: Partial<SiteIssue>): Promise<void>;
+}
+
+export interface CertificateRepo {
+  getByOrg(orgId: string): Promise<CertificateRequest[]>;
+  getByWorker(workerId: string): Promise<CertificateRequest[]>;
+  getById(id: string): Promise<CertificateRequest | undefined>;
+  create(request: CertificateRequest): Promise<void>;
+  update(id: string, data: Partial<CertificateRequest>): Promise<void>;
+}
+
+export interface AiLogRepo {
+  add(entry: AiLogEntry): Promise<void>;
+  recent(limit: number): Promise<AiLogEntry[]>;
+}
+
+/** Synthesised speech, keyed by a hash of locale + text. */
+export interface TtsCacheRepo {
+  get(key: string): Promise<string | undefined>;
+  set(key: string, wavBase64: string): Promise<void>;
 }
 
 export interface Repos {
@@ -166,5 +279,12 @@ export interface Repos {
   hazards: HazardRepo;
   feedback: FeedbackRepo;
   skills: SkillRepo;
-  feedbackGuards: FeedbackGuardRepo;
+  feedbackGuards: GuardRepo;
+  paidRecords: PaidRecordRepo;
+  payDisputes: PayDisputeRepo;
+  issues: IssueRepo;
+  issueSigners: GuardRepo;
+  certificates: CertificateRepo;
+  aiLog: AiLogRepo;
+  ttsCache: TtsCacheRepo;
 }

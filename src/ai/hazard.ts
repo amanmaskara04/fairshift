@@ -4,7 +4,7 @@ import { getAiClient, MODELS, type AiClient } from "./client";
 import { hazardJsonSchema, HazardExtraction } from "./schemas";
 import { hazardSystemPrompt, untrusted } from "./prompts";
 import { classifyByKeywords } from "./fallback";
-import { logAiCall } from "./log";
+import { describeAiError, logAiCall } from "./log";
 
 export interface HazardInput {
   audioBase64?: string;
@@ -30,12 +30,18 @@ export interface HazardOutput extends HazardExtraction {
  * sends text instead.
  * The result is only a suggestion: the worker confirms it, and core/hazard-rules decides severity.
  */
-export async function extractHazard(input: HazardInput, client: AiClient | null = getAiClient()): Promise<HazardOutput | null> {
+export async function extractHazard(
+  input: HazardInput,
+  client: AiClient | null = getAiClient(),
+): Promise<HazardOutput | null> {
   const allowed = [...input.categories, "other"];
 
   if (client) {
     const parts = input.audioBase64
-      ? [{ text: "Classify the attached audio report." }, { inlineData: { mimeType: input.audioMimeType ?? "audio/webm", data: input.audioBase64 } }]
+      ? [
+          { text: "Classify the attached audio report." },
+          { inlineData: { mimeType: input.audioMimeType ?? "audio/webm", data: input.audioBase64 } },
+        ]
       : [{ text: untrusted(input.text ?? "") }];
 
     for (const [index, model] of [MODELS.fast, MODELS.fallback].entries()) {
@@ -48,13 +54,25 @@ export async function extractHazard(input: HazardInput, client: AiClient | null 
           jsonSchema: hazardJsonSchema,
         });
         const parsed = HazardExtraction.safeParse(JSON.parse(raw));
-        logAiCall({ feature: "hazard", model, latencyMs: Date.now() - started, fallbackUsed: index > 0 });
+        await logAiCall({
+          feature: "hazard",
+          model,
+          latencyMs: Date.now() - started,
+          fallbackUsed: index > 0,
+          error: parsed.success ? undefined : "rejected: invalid JSON shape",
+        });
         if (parsed.success) {
           const category = allowed.includes(parsed.data.category) ? parsed.data.category : "other";
           return { ...parsed.data, category, source: index === 0 ? "gemini" : "gemini-fallback" };
         }
-      } catch {
-        logAiCall({ feature: "hazard", model, latencyMs: Date.now() - started, fallbackUsed: true });
+      } catch (error) {
+        await logAiCall({
+          feature: "hazard",
+          model,
+          latencyMs: Date.now() - started,
+          fallbackUsed: true,
+          error: describeAiError(error),
+        });
       }
     }
   }

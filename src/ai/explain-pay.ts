@@ -2,7 +2,7 @@ import "server-only";
 import { getAiClient, MODELS, type AiClient } from "./client";
 import { PayExplanation, payJsonSchema } from "./schemas";
 import { paySystemPrompt, untrusted } from "./prompts";
-import { logAiCall } from "./log";
+import { describeAiError, logAiCall } from "./log";
 
 export interface PayFacts {
   /** Pre-formatted values exactly as the worker sees them, e.g. "42", "₹4,200.00" */
@@ -35,10 +35,18 @@ export async function explainPay(
     try {
       const raw = await client.generateText({ model, system: paySystemPrompt(locale), parts: [{ text: payload }], jsonSchema: payJsonSchema });
       const parsed = PayExplanation.safeParse(JSON.parse(raw));
-      logAiCall({ feature: "explainPay", model, latencyMs: Date.now() - started, fallbackUsed: index > 0 });
-      if (parsed.success && keepsAllNumbers(parsed.data.sentences, facts)) return parsed.data.sentences;
-    } catch {
-      logAiCall({ feature: "explainPay", model, latencyMs: Date.now() - started, fallbackUsed: true });
+      const accepted = parsed.success && keepsAllNumbers(parsed.data.sentences, facts);
+      await logAiCall({
+        feature: "explainPay",
+        model,
+        latencyMs: Date.now() - started,
+        fallbackUsed: index > 0,
+        // A rewrite that changes or drops a number is never shown: the worker keeps the exact template.
+        error: accepted ? undefined : parsed.success ? "rejected: a number was changed or dropped" : "rejected: invalid JSON shape",
+      });
+      if (accepted) return parsed.data.sentences;
+    } catch (error) {
+      await logAiCall({ feature: "explainPay", model, latencyMs: Date.now() - started, fallbackUsed: true, error: describeAiError(error) });
     }
   }
   return null;

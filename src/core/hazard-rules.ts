@@ -52,15 +52,24 @@ export function resolveSeverity(
 }
 
 /**
- * Allowed status moves for a hazard. A fixed hazard is final (report a new one if it recurs);
- * a dismissed one can be reopened.
+ * Allowed status moves for a hazard. A fixed hazard goes back to received only when its
+ * reporter says it is not really fixed; a dismissed one can be reopened by management.
  */
 const TRANSITIONS: Record<HazardStatus, HazardStatus[]> = {
   received: ['in_progress', 'fixed', 'dismissed'],
   in_progress: ['fixed', 'dismissed'],
-  fixed: [],
+  fixed: ['received'],
   dismissed: ['received'],
 };
+
+/** One level up, capped at critical. */
+export function raiseSeverity(severity: HazardSeverity): HazardSeverity {
+  return SEVERITY_ORDER[Math.min(severityIndex(severity) + 1, SEVERITY_ORDER.length - 1)];
+}
+
+export function maxSeverity(a: HazardSeverity, b: HazardSeverity): HazardSeverity {
+  return severityIndex(a) >= severityIndex(b) ? a : b;
+}
 
 export function nextStatuses(status: HazardStatus): HazardStatus[] {
   return TRANSITIONS[status];
