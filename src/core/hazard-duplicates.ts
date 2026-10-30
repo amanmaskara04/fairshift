@@ -48,3 +48,18 @@ export function findDuplicateHazard(report: NewReport, openReports: Hazard[]): H
 export function severityForReports(base: HazardSeverity, reportCount: number): HazardSeverity {
   return reportCount >= REPORTS_FOR_SEVERITY_BUMP ? raiseSeverity(base) : base;
 }
+
+/**
+ * Manual merge is only for the same danger: same category at the same site. Scaffolding and
+ * heat are two problems with two fixes, so they stay two reports.
+ */
+export function canMerge(source: Hazard, target: Hazard): boolean {
+  return (
+    source.id !== target.id &&
+    source.category === target.category &&
+    source.siteId === target.siteId &&
+    !source.mergedInto &&
+    !target.mergedInto &&
+    isOpen(target)
+  );
+}

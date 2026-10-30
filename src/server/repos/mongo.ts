@@ -89,6 +89,7 @@ async function ensureSeeded(database: Db): Promise<void> {
     database.collection("payDisputes").createIndex({ orgId: 1 }),
     database.collection("issues").createIndex({ siteId: 1 }),
     database.collection("certificates").createIndex({ orgId: 1 }),
+    database.collection("skills").createIndex({ workerId: 1 }),
     // Metadata only, kept 30 days; cached speech kept 90 days.
     database.collection("aiLog").createIndex({ at: 1 }, { expireAfterSeconds: 30 * 86_400 }),
     database.collection("ttsCache").createIndex({ at: 1 }, { expireAfterSeconds: 90 * 86_400 }),
@@ -187,7 +188,11 @@ export function createMongoRepos(): Repos {
       getByCohortAndWeek: (cohort, weekBucket) => find("feedback", { cohort, weekBucket }),
       create: (entry) => insert("feedback", entry),
     },
-    skills: { getByWorker: (workerId) => find("skills", { workerId }), create: (skill) => insert("skills", skill) },
+    skills: {
+      ...crud("skills"),
+      getByWorker: (workerId) => find("skills", { workerId }),
+      getByWorkers: (workerIds) => find("skills", { workerId: { $in: workerIds } }),
+    },
     feedbackGuards: guards("feedbackGuards"),
     paidRecords: {
       getByOrgMonth: (orgId, month) => find("paidRecords", { orgId, month }),

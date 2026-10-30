@@ -124,3 +124,12 @@ export function checkPay(input: PayCheckInput): PayCheckResult {
 
   return { status: 'checked', findings, totalShortfall: totalShortfall(findings) };
 }
+
+/**
+ * What is still owed once the employer has paid arrears on top of its record. A gap paid
+ * in full (to within rounding) is zero, so it disappears from the worker's screen.
+ */
+export function outstandingShortfall(result: PayCheckResult, arrearsPaid: number): number {
+  const left = result.totalShortfall - arrearsPaid;
+  return left > PAY_TOLERANCE_PAISE ? left : 0;
+}

@@ -1,8 +1,9 @@
 import { createHmac, randomBytes } from "node:crypto";
 import { ESCALATION_CHAINS } from "@/config/hazard-sla";
 import { applyHazardAction, isOpen, sweepHazard, type ActionError, type HazardAction } from "@/core/hazard-lifecycle";
-import { findDuplicateHazard, severityForReports } from "@/core/hazard-duplicates";
+import { canMerge, findDuplicateHazard, severityForReports } from "@/core/hazard-duplicates";
 import { maxSeverity, resolveSeverity } from "@/core/hazard-rules";
+import { urgencyFromText } from "@/core/hazard-urgency";
 import type { Hazard, HazardCategory, HazardReport, HazardSeverity } from "@/core/types";
 import type { Repos } from "@/server/repos/types";
 
@@ -79,18 +80,20 @@ export async function reportHazard(repos: Repos, input: ReportInput): Promise<Re
       ? findDuplicateHazard({ category: input.category, siteId: input.siteId, location: input.location, at: input.now }, await openHazards(repos, input.orgId))
       : null;
 
+  // Severity: the category's floor, raised by Gemini's reading of the report and by urgent words in it.
+  const severity = maxSeverity(resolveSeverity(input.category, input.severityHint), urgencyFromText(input.transcript, input.transcriptEn) ?? "low");
+
   if (duplicate) {
     const reports = [...duplicate.reports, report];
     await repos.hazards.update(duplicate.id, {
       reports,
-      severity: maxSeverity(duplicate.severity, severityForReports(duplicate.baseSeverity, reports.length)),
+      severity: maxSeverity(maxSeverity(duplicate.severity, severity), severityForReports(duplicate.baseSeverity, reports.length)),
       trackingRefs: [...duplicate.trackingRefs, ...refHashes],
       timeline: [...duplicate.timeline, { status: "report_added", at: input.now }],
     });
     return { hazardId: duplicate.id, merged: true, trackingRef };
   }
 
-  const severity = resolveSeverity(input.category, input.severityHint);
   const hazard: Hazard = {
     id: `haz-${crypto.randomUUID()}`,
     siteId: input.siteId,
@@ -183,7 +186,8 @@ export async function mergeHazards(
 ): Promise<{ ok: true } | { ok: false; error: HazardServiceError }> {
   const [source, target] = await Promise.all([repos.hazards.getById(input.sourceId), repos.hazards.getById(input.targetId)]);
   if (!source || !target || source.id === target.id || source.orgId !== input.orgId || target.orgId !== input.orgId) return { ok: false, error: "not_found" };
-  if (source.mergedInto || target.mergedInto || !isOpen(target)) return { ok: false, error: "invalid_transition" };
+  // Only the same danger at the same site: different hazards need different fixes.
+  if (!canMerge(source, target)) return { ok: false, error: "invalid_transition" };
 
   const reports = [...target.reports, ...source.reports.map((r) => ({ ...r, fromHazardId: source.id }))];
   await repos.hazards.update(target.id, {

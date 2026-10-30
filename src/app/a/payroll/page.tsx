@@ -11,10 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/page-header";
-import { DisputeControls, PaidRecordTools } from "@/components/admin/paid-records";
+import { DisputeControls, PaidRecordTools, PayGapButton } from "@/components/admin/paid-records";
 
-/** Sentinel status for one row: nothing recorded yet, matches, or a possible shortfall. */
-function CheckBadge({ row, t }: { row: PayrollRow; t: (key: string, values?: Record<string, string>) => string }) {
+/** Sentinel status for one row: nothing recorded yet, matches, gap paid, or a possible shortfall (with "Pay the gap"). */
+function CheckBadge({ row, month, t }: { row: PayrollRow; month: string; t: (key: string, values?: Record<string, string>) => string }) {
   if (row.check.status === "no_record") {
     return (
       <Badge>
@@ -23,19 +23,23 @@ function CheckBadge({ row, t }: { row: PayrollRow; t: (key: string, values?: Rec
       </Badge>
     );
   }
-  if (row.check.totalShortfall === 0) {
+  if (row.outstanding === 0) {
     return (
       <Badge tone="success">
         <CircleCheck aria-hidden="true" className="size-4" />
-        {t("check.matches")}
+        {row.arrearsPaid > 0 ? t("check.gapPaid", { amount: formatRupees(row.arrearsPaid) }) : t("check.matches")}
       </Badge>
     );
   }
+  const amount = formatRupees(row.outstanding);
   return (
-    <Badge tone="danger">
-      <Scale aria-hidden="true" className="size-4" />
-      {t("check.shortfall", { amount: formatRupees(row.check.totalShortfall) })}
-    </Badge>
+    <span className="flex flex-wrap items-center gap-2">
+      <Badge tone="danger">
+        <Scale aria-hidden="true" className="size-4" />
+        {t("check.shortfall", { amount })}
+      </Badge>
+      <PayGapButton workerId={row.workerId} month={month} amount={amount} />
+    </span>
   );
 }
 
@@ -49,7 +53,7 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
   const [rows, disputes] = await Promise.all([buildPayroll(repos, session.orgId, month), repos.payDisputes.getByOrg(session.orgId)]);
   const nameOf = new Map(rows.map((r) => [r.workerId, r.name]));
   const totals = rows.reduce((acc, r) => ({ gross: acc.gross + r.gross, net: acc.net + r.net, ot: acc.ot + r.overtimeMinutes }), { gross: 0, net: 0, ot: 0 });
-  const flagged = rows.filter((r) => r.check.totalShortfall > 0);
+  const flagged = rows.filter((r) => r.outstanding > 0);
   const sortedDisputes = [...disputes].sort((a, b) => Number(a.status === "resolved") - Number(b.status === "resolved") || b.createdAt.getTime() - a.createdAt.getTime());
 
   return (
@@ -87,7 +91,18 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
         </h2>
         <p className="text-ink-2">{t("sentinel.hint")}</p>
         <p className="font-bold">{flagged.length ? t("sentinel.flagged", { count: flagged.length }) : t("sentinel.clear")}</p>
-        <PaidRecordTools month={month} workers={rows.map((r) => ({ id: r.workerId, label: `${r.name} (#${r.code})` }))} />
+        <PaidRecordTools
+          month={month}
+          workers={rows.map((r) => ({
+            id: r.workerId,
+            label: `${r.name} (#${r.code})`,
+            regularMinutes: r.regularMinutes,
+            overtimeMinutes: r.overtimeMinutes,
+            rates: r.rates,
+            gross: r.gross,
+            deductions: r.deductions,
+          }))}
+        />
         <p className="text-xs text-ink-2">{t("sentinel.minimumWageNote")}</p>
       </section>
 
@@ -122,7 +137,7 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
                   <dd className="figure">{r.paid ? formatINR(r.paid.netPaid) : "—"}</dd>
                 </div>
               </dl>
-              <CheckBadge row={r} t={t} />
+              <CheckBadge row={r} month={month} t={t} />
             </Card>
           </li>
         ))}
@@ -167,7 +182,7 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
                 <td className="figure px-4 py-3 text-right font-bold whitespace-nowrap">{formatINR(r.net)}</td>
                 <td className="figure px-4 py-3 text-right whitespace-nowrap">{r.paid ? formatINR(r.paid.netPaid) : "—"}</td>
                 <td className="px-4 py-3">
-                  <CheckBadge row={r} t={t} />
+                  <CheckBadge row={r} month={month} t={t} />
                 </td>
               </tr>
             ))}
@@ -213,6 +228,9 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
                     </li>
                   ))}
                 </ul>
+                {d.settledAmount !== undefined && (
+                  <p className="rounded-xl bg-success-soft px-3 py-2 text-sm font-semibold text-success">{t("disputes.settled", { amount: formatRupees(d.settledAmount) })}</p>
+                )}
                 {d.resolutionNote && <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">{d.resolutionNote}</p>}
                 <DisputeControls id={d.id} status={d.status} />
               </li>

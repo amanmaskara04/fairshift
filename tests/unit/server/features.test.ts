@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { getRepos } from "@/server/repos";
 import { resetMemoryStore } from "@/server/repos/memory";
-import { payCheckFor, importPaidCsv, PAID_CSV_HEADER } from "@/server/services/pay-check";
+import { payArrears, payCheckFor, importPaidCsv, PAID_CSV_HEADER, savePaidRecord } from "@/server/services/pay-check";
 import { requestPayReview, updateDispute } from "@/server/services/disputes";
 import { buildPayslip } from "@/server/services/payslip";
 import { earnedFor } from "@/server/services/earned";
@@ -9,7 +9,8 @@ import { benefitsFor, certificateCandidates, decideCertificate, requestCertifica
 import { issuesForAdmin, issuesForWorker, raiseIssue, signIssue, signerKey } from "@/server/services/issues";
 import { confirmFix, duplicateFor, mergeHazards, reportHazard, sweepHazards, unmergeHazard } from "@/server/services/hazards";
 import { passportData } from "@/server/services/passport";
-import { buildOrgSnapshot } from "@/server/services/workforce";
+import { buildOrgSnapshot, onDutyCount } from "@/server/services/workforce";
+import { addSkillByAdmin, addSkillByWorker, decideSkill, MAX_PENDING_SKILLS, pendingSkills } from "@/server/services/skills";
 import { verifiedTotals } from "@/core/work-history";
 import { minutesByDay } from "@/core/overtime";
 import { monthKey } from "@/core/period";
@@ -169,14 +170,29 @@ describe("hazard reports", () => {
     expect(swept.find((h) => h.id === "haz-c1")?.escalationLevel).toBe(2);
   });
 
-  it("merges and unmerges by hand", async () => {
+  it("never merges two different dangers (heat into scaffolding)", async () => {
     const repos = getRepos();
-    expect(await mergeHazards(repos, { orgId: "org1", sourceId: "haz-c4", targetId: "haz-c2", adminId: "admin1", now })).toEqual({ ok: true });
-    expect((await repos.hazards.getById("haz-c2"))!.reports).toHaveLength(3);
-    expect((await repos.hazards.getById("haz-c4"))!.mergedInto).toBe("haz-c2");
-    expect(await unmergeHazard(repos, { orgId: "org1", sourceId: "haz-c4", adminId: "admin1", now })).toEqual({ ok: true });
-    expect((await repos.hazards.getById("haz-c2"))!.reports).toHaveLength(2);
+    expect(await mergeHazards(repos, { orgId: "org1", sourceId: "haz-c4", targetId: "haz-c2", adminId: "admin1", now })).toEqual({ ok: false, error: "invalid_transition" });
     expect((await repos.hazards.getById("haz-c4"))!.mergedInto).toBeUndefined();
+  });
+
+  it("merges and unmerges the same danger by hand", async () => {
+    const repos = getRepos();
+    const extra = await reportHazard(repos, { ...report, location: "Gate 2", attach: "new" });
+    expect(await mergeHazards(repos, { orgId: "org1", sourceId: extra.hazardId, targetId: "haz-c2", adminId: "admin1", now })).toEqual({ ok: true });
+    expect((await repos.hazards.getById("haz-c2"))!.reports).toHaveLength(3);
+    expect((await repos.hazards.getById(extra.hazardId))!.mergedInto).toBe("haz-c2");
+    expect(await unmergeHazard(repos, { orgId: "org1", sourceId: extra.hazardId, adminId: "admin1", now })).toEqual({ ok: true });
+    expect((await repos.hazards.getById("haz-c2"))!.reports).toHaveLength(2);
+    expect((await repos.hazards.getById(extra.hazardId))!.mergedInto).toBeUndefined();
+  });
+
+  it("records a fire as critical, even when the AI hint said low", async () => {
+    const repos = getRepos();
+    const fire = await reportHazard(repos, { ...report, category: "fire", severityHint: "low", attach: "new" });
+    expect((await repos.hazards.getById(fire.hazardId))!.severity).toBe("critical");
+    const words = await reportHazard(repos, { ...report, category: "machinery", severityHint: "low", transcript: "मशीन के पास आग लगी है", attach: "new" });
+    expect((await repos.hazards.getById(words.hazardId))!.severity).toBe("critical");
   });
 });
 
@@ -202,5 +218,76 @@ describe("skill passport work history", () => {
     const byDay = minutesByDay(shifts);
     expect(verifiedTotals(data!.history)).toEqual({ days: byDay.size, minutes: [...byDay.values()].reduce((a, b) => a + b, 0) });
     expect(data!.history.map((h) => h.source)).toEqual(["verified_employer", "self_reported"]);
+  });
+});
+
+describe("paying the gap", () => {
+  it("clears the worker's shortfall and resolves their review", async () => {
+    const repos = getRepos();
+    const month = monthKey(now);
+    const before = await payCheckFor(repos, "w1001", month);
+    expect(before!.outstanding).toBeGreaterThan(0);
+    expect((await requestPayReview(repos, { workerId: "w1001", orgId: "org1", month, now })).ok).toBe(true);
+
+    expect(await payArrears(repos, { orgId: "org1", adminId: "admin1", workerId: "w1001", month, now })).toEqual({ ok: true, amount: before!.outstanding });
+    const after = await payCheckFor(repos, "w1001", month);
+    expect(after).toMatchObject({ outstanding: 0, arrearsPaid: before!.outstanding });
+    const dispute = (await repos.payDisputes.getByWorker("w1001")).find((d) => d.month === month);
+    expect(dispute).toMatchObject({ status: "resolved", settledAmount: before!.outstanding });
+
+    // Nothing left to pay, nothing left to dispute.
+    expect(await payArrears(repos, { orgId: "org1", adminId: "admin1", workerId: "w1001", month, now })).toEqual({ ok: false, error: "nothing_owed" });
+    expect(await requestPayReview(repos, { workerId: "w1001", orgId: "org1", month, now })).toEqual({ ok: false, error: "no_shortfall" });
+  });
+
+  it("keeps arrears when the pay record is corrected, and refuses other organisations", async () => {
+    const repos = getRepos();
+    const month = monthKey(now);
+    await payArrears(repos, { orgId: "org1", adminId: "admin1", workerId: "w1001", month, now });
+    const record = (await repos.paidRecords.get("w1001", month))!;
+    await savePaidRecord(repos, "org1", "admin1", { ...record, workerId: "w1001", month }, now);
+    expect((await repos.paidRecords.get("w1001", month))!.arrears).toHaveLength(1);
+    expect(await payArrears(repos, { orgId: "org2", adminId: "admin2", workerId: "w1001", month, now })).toEqual({ ok: false, error: "not_found" });
+  });
+});
+
+describe("skills", () => {
+  const input = { title: "Bar bending", issuer: "ITI Pune", date: "2025-01-15" };
+
+  it("a worker's skill waits for the employer; verifying puts it on the passport", async () => {
+    const repos = getRepos();
+    expect(await addSkillByWorker(repos, "w1001", input, now)).toEqual({ ok: true });
+    const queued = (await pendingSkills(repos, "org1")).find((p) => p.skill.title === "Bar bending")!;
+    expect(queued.worker.id).toBe("w1001");
+    expect(await decideSkill(repos, { id: queued.skill.id, orgId: "org2", adminId: "admin2", verify: true, now })).toEqual({ ok: false, error: "not_found" });
+    expect(await decideSkill(repos, { id: queued.skill.id, orgId: "org1", adminId: "admin1", verify: true, now })).toEqual({ ok: true });
+    expect(await decideSkill(repos, { id: queued.skill.id, orgId: "org1", adminId: "admin1", verify: false, now })).toEqual({ ok: false, error: "not_pending" });
+    const passport = await passportData(repos, "w1001");
+    expect(passport!.skills.find((s) => s.title === "Bar bending")?.verifiedBy).toBe("admin1");
+  });
+
+  it("a rejected skill stays unverified; an admin's own entry is verified at once", async () => {
+    const repos = getRepos();
+    await addSkillByWorker(repos, "w1002", input, now);
+    const queued = (await pendingSkills(repos, "org1")).find((p) => p.worker.id === "w1002")!;
+    await decideSkill(repos, { id: queued.skill.id, orgId: "org1", adminId: "admin1", verify: false, now });
+    expect(await repos.skills.getById(queued.skill.id)).toMatchObject({ rejected: true });
+    expect((await repos.skills.getById(queued.skill.id))!.verifiedBy).toBeUndefined();
+    expect(await addSkillByAdmin(repos, { ...input, title: "Rigging", workerId: "w1002", orgId: "org1", adminId: "admin1", now })).toEqual({ ok: true });
+    expect((await repos.skills.getByWorker("w1002")).find((s) => s.title === "Rigging")).toMatchObject({ verifiedBy: "admin1", addedBy: "admin" });
+    expect(await addSkillByAdmin(repos, { ...input, workerId: "w1002", orgId: "org2", adminId: "admin2", now })).toEqual({ ok: false, error: "not_found" });
+  });
+
+  it("limits how many skills can wait at once", async () => {
+    const repos = getRepos();
+    for (let i = 0; i < MAX_PENDING_SKILLS; i++) await addSkillByWorker(repos, "w1005", { ...input, title: `Skill ${i}` }, now);
+    expect(await addSkillByWorker(repos, "w1005", input, now)).toEqual({ ok: false, error: "too_many" });
+  });
+});
+
+describe("on duty now", () => {
+  it("counts workers with an open shift out of the whole roll", async () => {
+    const snapshot = await buildOrgSnapshot(getRepos(), "org1", now);
+    expect(await onDutyCount(getRepos(), "org1")).toEqual({ onDuty: snapshot!.workers.filter((w) => w.onSite).length, total: snapshot!.workers.length });
   });
 });

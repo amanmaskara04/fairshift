@@ -18,6 +18,9 @@ function severityIndex(s: HazardSeverity): number {
  * Categories not listed here have no floor (default to 'low').
  */
 const SEVERITY_FLOORS: Partial<Record<HazardCategory, HazardSeverity>> = {
+  // Always 'critical': a fire is danger now, whatever words were used
+  fire: 'critical',
+
   // Never below 'high'
   fall_from_height: 'high',
   electrical: 'high',

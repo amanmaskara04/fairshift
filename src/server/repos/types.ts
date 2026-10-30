@@ -92,8 +92,16 @@ export interface Skill {
   title: string;
   issuer: string;
   date: Date;
+  /** Admin who verified it; absent while pending */
   verifiedBy?: string;
+  /** The employer could not confirm it: kept for the worker, never shown on the passport */
+  rejected?: boolean;
+  decidedAt?: Date;
+  /** Certificate number or a short note from the worker */
   evidence?: string;
+  /** Who added it: the worker (needs verifying) or an admin (verified on entry) */
+  addedBy?: "worker" | "admin";
+  createdAt?: Date;
 }
 
 /** What the employer actually paid one worker for one month (FairPay Sentinel's second source). */
@@ -105,6 +113,8 @@ export interface PaidRecordEntry extends PaidRecord {
   month: string;
   recordedAt: Date;
   recordedBy: string;
+  /** Top-up payments made after FairPay Sentinel found a gap (paise each) */
+  arrears?: { amount: number; at: Date; by: string }[];
 }
 
 export type DisputeStatus = "open" | "reviewing" | "resolved";
@@ -119,6 +129,8 @@ export interface PayDispute {
   findings: FindingCode[];
   status: DisputeStatus;
   resolutionNote?: string;
+  /** Arrears paid to settle it (paise), when it was resolved by paying the gap */
+  settledAmount?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -158,7 +170,7 @@ export interface CertificateRequest {
 }
 
 export interface AiLogEntry {
-  feature: "hazard" | "explainPay" | "brief" | "similar" | "tts";
+  feature: "hazard" | "explainPay" | "brief" | "similar" | "tts" | "help";
   model: string;
   latencyMs: number;
   fallbackUsed: boolean;
@@ -225,7 +237,11 @@ export interface GuardRepo {
 
 export interface SkillRepo {
   getByWorker(workerId: string): Promise<Skill[]>;
+  /** One query for many workers (the admin's verification queue) */
+  getByWorkers(workerIds: string[]): Promise<Skill[]>;
+  getById(id: string): Promise<Skill | undefined>;
   create(skill: Skill): Promise<void>;
+  update(id: string, data: Partial<Skill>): Promise<void>;
 }
 
 export interface PaidRecordRepo {

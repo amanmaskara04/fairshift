@@ -5,7 +5,7 @@ export const factory: SectorProfile = {
   sector: 'factory',
   defaultPayBasis: 'hourly',
   standardShiftHours: 8,
-  hazardCategories: ['machinery_guard', 'noise', 'chemical', 'fire_exit', 'ppe_missing'],
+  hazardCategories: ['fire', 'machinery_guard', 'noise', 'chemical', 'fire_exit', 'ppe_missing'],
   fatigueRules: [
     { ruleId: 'fac-daily-10h', check: 'maxDailyHours', threshold: 10 },
     { ruleId: 'fac-rest-11h', check: 'minRestHours', threshold: 11 },

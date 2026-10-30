@@ -112,3 +112,41 @@ test("sites page lists sector rules and kiosk links", async ({ page }) => {
   await expect(page.getByText(/8h\/day · 48h\/week · OT 2×/)).toBeVisible();
   await expectNoA11yViolations(page);
 });
+
+test("manual pay entry from presets, then paying the gap clears it", async ({ page }) => {
+  await loginAs(page, /Priya/);
+  await page.goto("/a/payroll");
+  await page.getByRole("button", { name: "Record pay for one worker" }).click();
+  await page.locator("#paid-worker").selectOption({ label: "Arun Yadav (#1002)" });
+  await page.getByText("Overtime not paid").click();
+  await expect(page.getByText(/less than due/)).toBeVisible();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  const row = page.getByRole("row", { name: /Arun Yadav/ });
+  await expect(row.getByText(/Possible shortfall/)).toBeVisible();
+  await row.getByRole("button", { name: /^Pay ₹/ }).click();
+  await page.getByRole("button", { name: /I have paid/ }).click();
+  await expect(row.getByText(/Gap paid/)).toBeVisible();
+});
+
+test("a worker adds a skill, the admin verifies it", async ({ browser }) => {
+  test.setTimeout(90_000);
+  const worker = await (await browser.newContext()).newPage();
+  await loginAs(worker, /Ramesh/);
+  await worker.goto("/w/skills");
+  await worker.getByRole("button", { name: "Add a skill" }).click();
+  await worker.getByLabel("Skill or training").fill("Bar bending (e2e)");
+  await worker.getByLabel("Given by").fill("ITI Pune");
+  await worker.getByLabel("Completed on").fill("2025-02-01");
+  await worker.getByRole("button", { name: "Save skill" }).click();
+  await expect(worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Pending")).toBeVisible();
+
+  const admin = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
+  await loginAs(admin, /Priya/);
+  await admin.goto("/a/people");
+  const card = admin.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" });
+  await card.getByRole("button", { name: "Verify" }).click();
+  await expect(card).toHaveCount(0);
+
+  await worker.reload();
+  await expect(worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Verified")).toBeVisible();
+});

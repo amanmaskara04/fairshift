@@ -5,7 +5,7 @@ export const campus: SectorProfile = {
   sector: 'campus',
   defaultPayBasis: 'monthly',
   standardShiftHours: 8,
-  hazardCategories: ['electrical', 'slip', 'chemical_labs', 'ppe_missing'],
+  hazardCategories: ['fire', 'electrical', 'slip', 'chemical_labs', 'ppe_missing'],
   fatigueRules: [
     { ruleId: 'cam-daily-10h', check: 'maxDailyHours', threshold: 10 },
     { ruleId: 'cam-rest-11h', check: 'minRestHours', threshold: 11 },

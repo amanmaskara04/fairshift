@@ -74,7 +74,7 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
   const weekText = t("weekOfLimit", { used: formatDuration(weekMinutes), limit: weekLimit });
   const monthGross = earned?.monthGross ?? 0;
   const earnedText = t("earned.spoken", { amount: formatRupees(monthGross), today: formatRupees(earned?.todayGross ?? 0) });
-  const shortfall = check?.result.totalShortfall ?? 0;
+  const shortfall = check?.outstanding ?? 0;
   const closest = benefits?.results
     .filter((r) => r.daysRemaining > 0 && r.progress.done > 0 && r.progress.needed > 1)
     .sort((a, b) => a.daysRemaining - b.daysRemaining)[0];

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { House, IndianRupee, TriangleAlert, UserRound } from "lucide-react";
+import { House, IndianRupee, LifeBuoy, TriangleAlert, UserRound } from "lucide-react";
 import { PILL_CLASS, useSlidingPill } from "@/components/layout/sliding-pill";
 import { cn } from "@/lib/utils";
 
@@ -12,6 +12,7 @@ const ITEMS = [
   { href: "/w/pay", key: "pay", Icon: IndianRupee },
   { href: "/w/report", key: "report", Icon: TriangleAlert },
   { href: "/w/skills", key: "me", Icon: UserRound },
+  { href: "/w/help", key: "help", Icon: LifeBuoy },
 ] as const;
 
 function useActiveIndex(): number {
@@ -31,7 +32,7 @@ export function BottomNav() {
       style={{ viewTransitionName: "tab-bar" }}
       className="fixed inset-x-0 bottom-0 z-30 px-3 pb-[calc(0.6rem+env(safe-area-inset-bottom))] md:hidden"
     >
-      <ul ref={listRef} className="relative mx-auto grid max-w-md grid-cols-4 gap-1 rounded-[26px] border border-line bg-surface/95 p-1.5 shadow-[0_18px_40px_-18px_rgb(31_29_26/0.35)] backdrop-blur">
+      <ul ref={listRef} className="relative mx-auto grid max-w-md grid-cols-5 gap-1 rounded-[26px] border border-line bg-surface/95 p-1.5 shadow-[0_18px_40px_-18px_rgb(31_29_26/0.35)] backdrop-blur">
         <li aria-hidden="true" className={cn(PILL_CLASS, "rounded-[20px] bg-primary-soft")} style={pillStyle} />
         {ITEMS.map(({ href, key, Icon }, i) => (
           <li key={href} className="relative">
@@ -61,7 +62,7 @@ export function TopNav() {
 
   return (
     <nav aria-label={t("label")} className="hidden md:block">
-      <ul ref={listRef} className="relative grid grid-cols-4 gap-1 rounded-full border border-line bg-surface p-1">
+      <ul ref={listRef} className="relative grid grid-cols-5 gap-1 rounded-full border border-line bg-surface p-1">
         <li aria-hidden="true" className={cn(PILL_CLASS, "rounded-full bg-primary")} style={pillStyle} />
         {ITEMS.map(({ href, key, Icon }, i) => (
           <li key={href} className="relative">

@@ -197,3 +197,15 @@ test("sync endpoint rejects bad input and unauthenticated calls", async ({ page,
   expect((await page.request.post("/api/sync", { data: { ops: [] } })).status()).toBe(400);
   expect((await page.request.post("/api/sync", { data: "x".repeat(20_000), headers: { "content-type": "application/json" } })).status()).toBe(413);
 });
+
+test("help page: one-tap 112, and a typed problem gets steps and the right helplines", async ({ page }) => {
+  await loginAs(page, /Ramesh/);
+  await page.getByRole("link", { name: "Help" }).first().click();
+  await expect(page.getByRole("link", { name: /Emergency\? Call 112/ })).toHaveAttribute("href", "tel:112");
+  await expectNoA11yViolations(page);
+  await page.getByLabel("What happened?").fill("There is smoke coming from the store room");
+  await page.getByRole("button", { name: "Get help" }).click();
+  const answer = page.locator("[aria-live=polite]").filter({ hasText: "Report the danger" });
+  await expect(answer.getByText("Emergency", { exact: true }).first()).toBeVisible();
+  await expect(answer.getByRole("link", { name: /Emergency\s*112/ })).toHaveAttribute("href", "tel:112");
+});

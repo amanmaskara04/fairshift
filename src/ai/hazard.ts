@@ -4,6 +4,7 @@ import { getAiClient, MODELS, type AiClient } from "./client";
 import { hazardJsonSchema, HazardExtraction } from "./schemas";
 import { hazardSystemPrompt, untrusted } from "./prompts";
 import { classifyByKeywords } from "./fallback";
+import { urgencyFromText } from "@/core/hazard-urgency";
 import { describeAiError, logAiCall } from "./log";
 
 export interface HazardInput {
@@ -28,7 +29,9 @@ export interface HazardOutput extends HazardExtraction {
  * null means "not understood": the UI falls back to the icon grid. Nothing is ever invented:
  * without Gemini, audio cannot be transcribed on the server, so the phone's own speech recognition
  * sends text instead.
- * The result is only a suggestion: the worker confirms it, and core/hazard-rules decides severity.
+ * The result is only a suggestion: the worker confirms it. Severity is Gemini's reading of the
+ * situation, which code can only raise (category floors in core/hazard-rules, urgent words in
+ * core/hazard-urgency), never lower.
  */
 export async function extractHazard(
   input: HazardInput,
@@ -82,7 +85,7 @@ export async function extractHazard(
       transcript: input.text.slice(0, 500),
       transcriptEn: "",
       category: classifyByKeywords(input.text, input.categories),
-      severityHint: "medium",
+      severityHint: urgencyFromText(input.text) ?? "medium",
       locationHint: "",
       source: "keywords",
     };

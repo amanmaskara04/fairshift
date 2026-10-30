@@ -6,6 +6,7 @@ export const hospital: SectorProfile = {
   defaultPayBasis: 'monthly',
   standardShiftHours: 8,
   hazardCategories: [
+    'fire',
     'needle_stick',
     'chemical_biohazard',
     'patient_aggression',

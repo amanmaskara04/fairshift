@@ -4,6 +4,7 @@ import {
   CircleHelp,
   Construction,
   DoorOpen,
+  Flame,
   FlaskConical,
   Hand,
   HardHat,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 const ICONS: Record<string, LucideIcon> = {
+  fire: Flame,
   fall_from_height: PersonStanding,
   scaffolding: Construction,
   electrical: Zap,

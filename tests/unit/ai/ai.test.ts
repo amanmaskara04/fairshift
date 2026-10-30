@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { extractHazard } from "@/ai/hazard";
+import { adviseHelp } from "@/ai/help";
 import { explainPay, keepsAllNumbers } from "@/ai/explain-pay";
 import { classifyByKeywords } from "@/ai/fallback";
 import { REDACTED, redactPII } from "@/ai/redact";
@@ -133,5 +134,35 @@ describe("phone speech recognition helpers", () => {
   it("joins recognition chunks into one clean sentence", () => {
     const results = [[{ transcript: "exposed  wire" }], [{ transcript: " near the tank " }]];
     expect(transcriptFrom(results)).toBe("exposed wire near the tank");
+  });
+});
+
+describe("adviseHelp", () => {
+  const answer = { urgency: "normal", topic: "pay", steps: ["Open your pay page.", "Call 1800 999 1234 for help."], helplines: ["eshram"], action: "check_pay" };
+
+  it("keeps Gemini's steps but never a phone number it wrote", async () => {
+    const result = await adviseHelp("overtime not paid", "en", fakeClient(JSON.stringify(answer)));
+    expect(result).toMatchObject({ source: "gemini", topic: "pay", helplines: ["eshram"], action: "check_pay" });
+    expect(result.steps.join(" ")).not.toMatch(/\d{3}/);
+  });
+
+  it("puts 112 first when the words say emergency, even if the model did not", async () => {
+    const result = await adviseHelp("there is a fire in the store room", "en", fakeClient(JSON.stringify(answer)));
+    expect(result.urgency).toBe("emergency");
+    expect(result.helplines[0]).toBe("emergency");
+  });
+
+  it("rejects helplines that are not on the official list, then falls back to rules", async () => {
+    const bad = fakeClient(JSON.stringify({ ...answer, helplines: ["my_scam_line"] }));
+    expect(await adviseHelp("overtime not paid", "en", bad)).toMatchObject({ source: "keywords", topic: "pay", steps: [] });
+    expect(await adviseHelp("supervisor threatens me", "en", null)).toMatchObject({ source: "keywords", topic: "harassment" });
+  });
+});
+
+describe("fire reports without Gemini", () => {
+  it("classifies a fire as fire (not the fire exit) and as critical", async () => {
+    const result = await extractHazard({ text: "आग लगी है, धुआं भर गया", sector: "construction", categories: ["fire", ...construction] }, null);
+    expect(result).toMatchObject({ category: "fire", severityHint: "critical", source: "keywords" });
+    expect(classifyByKeywords("the fire exit is blocked", ["fire", "fire_exit"])).toBe("fire_exit");
   });
 });

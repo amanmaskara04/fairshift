@@ -59,21 +59,32 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
         ))}
       </nav>
 
-      {findings.length > 0 ? (
+      {check.outstanding > 0 ? (
         <ShortfallCard
           month={month}
-          total={formatRupees(check.result.totalShortfall)}
+          total={formatRupees(check.outstanding)}
           lines={await findingSentences(findings)}
           dispute={dispute ? { status: dispute.status, note: dispute.resolutionNote } : undefined}
           minimumWageNote={findings.some((f) => f.code === "BELOW_MINIMUM_WAGE") ? t("sentinel.minimumWageNote", { source: check.minimumWage.source }) : undefined}
         />
+      ) : check.arrearsPaid > 0 ? (
+        // The employer paid the gap: the shortfall is gone, and the worker sees it was settled.
+        <section aria-labelledby="arrears-title" className="card rise-in flex items-start gap-3 border-success/30 bg-success-soft p-5">
+          <CircleCheck aria-hidden="true" className="size-7 shrink-0 text-success" />
+          <div>
+            <h2 id="arrears-title" className="font-display text-xl font-extrabold">
+              {t("sentinel.arrearsPaid", { amount: formatRupees(check.arrearsPaid) })}
+            </h2>
+            <p className="text-sm text-ink-2">{t("sentinel.arrearsHint")}</p>
+          </div>
+        </section>
       ) : (
         <p className={cn("flex items-center gap-2 rounded-2xl px-4 py-3 text-sm font-semibold", check.record ? "bg-success-soft text-success" : "bg-surface-2 text-ink-2")}>
           {check.record ? <CircleCheck aria-hidden="true" className="size-5" /> : <FileClock aria-hidden="true" className="size-5" />}
           {check.record ? t("sentinel.matches") : t("sentinel.noRecord")}
         </p>
       )}
-      {dispute && findings.length === 0 && !isActiveDispute(dispute) && dispute.resolutionNote && (
+      {dispute && check.outstanding === 0 && !isActiveDispute(dispute) && dispute.resolutionNote && (
         <p className="card p-4 text-sm">{t("sentinel.employerReply", { note: dispute.resolutionNote })}</p>
       )}
 
