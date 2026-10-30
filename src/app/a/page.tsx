@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader, todayLabel } from "@/components/page-header";
 import { HazardIcon } from "@/components/hazard-icon";
 import { HazardAge } from "@/components/hazard-status";
-import { LazyBarChart } from "@/components/admin/lazy-chart";
+import { BarChartCard } from "@/components/admin/bar-chart-card";
 import { FatigueReasons, RiskReasons, riskTone } from "@/components/admin/reason-chips";
 import { WelcomeMoment } from "@/components/welcome/welcome";
 import { dayPart, istHour } from "@/lib/day-part";
@@ -247,13 +247,13 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
         </div>
 
         <div className="grid gap-4 lg:grid-cols-2">
-          <LazyBarChart
+          <BarChartCard
             title={t("charts.attendance")}
             unit={t("charts.workersUnit")}
             tableLabel={t("charts.attendance")}
             data={snapshot.attendanceByDay.map((d) => ({ label: shortDay(d.day), value: d.present }))}
           />
-          <LazyBarChart
+          <BarChartCard
             title={t("charts.overtime")}
             unit={t("charts.hoursUnit")}
             tableLabel={t("charts.overtime")}

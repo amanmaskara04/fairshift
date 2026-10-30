@@ -131,7 +131,7 @@ Every call is logged (feature, model, latency, fallback, content-free error) **i
 
 ## Performance on a ₹7,000 phone
 
-Server Components by default; client JS only for interactive islands. The animated scene is **inline SVG + CSS keyframes** (a few KB, no Lottie, no video, no animation library — page transitions use React 19's native `<ViewTransition>`). Recharts loads lazily on admin pages only. Fonts are self-hosted with only Latin preloaded. Icons are tree-shaken. The service worker precaches the shell; check-ins work offline.
+Server Components by default; client JS only for interactive islands. The animated scene is **inline SVG + CSS keyframes** (a few KB, no Lottie, no video, no animation library — page transitions use React 19's native `<ViewTransition>`). Admin charts are plain server-rendered HTML bars (no chart library, no client JS). Fonts are self-hosted with only Latin preloaded. Icons are tree-shaken. The service worker precaches the shell; check-ins work offline.
 
 ## Testing
 
