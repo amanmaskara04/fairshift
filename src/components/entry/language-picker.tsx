@@ -36,7 +36,8 @@ export function LanguagePicker() {
         const card = (
           <div
             className={cn(
-              "tile relative flex min-h-28 items-stretch overflow-hidden",
+              // Indic scripts get a taller line height; one fixed minimum keeps all four cards the same size.
+              "tile relative flex h-full min-h-36 items-stretch overflow-hidden",
               (chosen ?? current) === locale && "border-primary ring-2 ring-primary/30",
             )}
           >

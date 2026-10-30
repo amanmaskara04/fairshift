@@ -3,20 +3,18 @@ import { getTranslations } from "next-intl/server";
 import { Building2 } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
-import { onDutyCount } from "@/server/services/workforce";
 import { Badge } from "@/components/ui/badge";
 import { LanguageMenu } from "@/components/language-menu";
 import { LogoutButton } from "@/components/logout-button";
 import { BackButton } from "@/components/layout/back-button";
 import { Sidebar } from "@/components/admin/sidebar";
 import { BrandMark } from "@/components/brand-mark";
+import { OnDuty } from "@/components/admin/on-duty";
 
 export default async function AdminLayout({ children }: LayoutProps<"/a">) {
   const session = await requireRole("admin");
-  const repos = getRepos();
-  const [org, duty, t] = await Promise.all([repos.orgs.getById(session.orgId), onDutyCount(repos, session.orgId), getTranslations("admin")]);
+  const [org, t] = await Promise.all([getRepos().orgs.getById(session.orgId), getTranslations("admin")]);
   const sector = org ? t(`sector.${org.sector}`) : "";
-  const onDuty = t("onDuty", { count: duty.onDuty, total: duty.total });
 
   return (
     <div className="admin flex min-h-dvh flex-col md:flex-row">
@@ -34,10 +32,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
             <p className="text-sm text-ink-2">{sector}</p>
           </div>
         </div>
-        <Link href="/a/people" className="flex items-center gap-2.5 rounded-2xl border border-line px-3 py-2.5 text-sm font-bold hover:bg-surface-2">
-          <span className="live-dot" aria-hidden="true" />
-          {onDuty}
-        </Link>
+        <OnDuty variant="rail" />
         <Sidebar variant="rail" />
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-4">
           <LanguageMenu side="top" />
@@ -60,10 +55,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
         <div className="flex min-w-0 items-center gap-2 px-4 pb-2.5">
           <span className="min-w-0 truncate font-bold">{org?.name}</span>
           {org && <Badge tone="brand">{sector}</Badge>}
-          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-sm font-bold text-ink-2">
-            <span className="live-dot" aria-hidden="true" />
-            {onDuty}
-          </span>
+          <OnDuty variant="strip" />
         </div>
         <Sidebar variant="strip" />
       </header>

@@ -99,6 +99,10 @@ export function createMemoryRepos(): Repos {
         const ids = new Set(workerIds);
         return shifts.where((s) => ids.has(s.workerId));
       },
+      getOpenByWorkers: (workerIds) => {
+        const ids = new Set(workerIds);
+        return shifts.where((s) => ids.has(s.workerId) && !s.outAt);
+      },
       getByWorkerInRange: (workerId, from, to) => shifts.where((s) => s.workerId === workerId && s.inAt >= from && s.inAt <= to),
       getBySite: (siteId) => shifts.where((s) => s.siteId === siteId),
       create: shifts.create,
