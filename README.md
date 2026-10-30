@@ -8,6 +8,7 @@
 ![E2E tests](https://img.shields.io/badge/e2e%20tests-35%20passing-2e8b57)
 ![axe](https://img.shields.io/badge/axe-0%20violations-2e8b57)
 ![npm audit](https://img.shields.io/badge/npm%20audit-0%20vulnerabilities-2e8b57)
+![License: MIT](https://img.shields.io/badge/license-MIT-2e8b57)
 ![Languages](https://img.shields.io/badge/languages-EN%20·%20हिन्दी%20·%20தமிழ்%20·%20తెలుగు-0f6b5a)
 ![Gemini](https://img.shields.io/badge/Google-Gemini%203.5%20%2F%203.8-4285F4)
 ![Cloud Run](https://img.shields.io/badge/Google-Cloud%20Run%20ready-4285F4)
@@ -158,6 +159,7 @@ Full threat model with code and test pointers: **[`SECURITY.md`](SECURITY.md)**.
 - **WCAG AA** contrast verified by [`tests/unit/design/contrast.test.ts`](tests/unit/design/contrast.test.ts); visible focus rings; ARIA radiogroups, menus with full keyboard support, `aria-live` for check-in, reports and reviews; **axe scans in the e2e suite on every key screen**.
 - **Motion with care:** only `transform`/`opacity` animate; `prefers-reduced-motion` turns movement into short fades; loops pause when the tab is hidden.
 - **Back that behaves like an app:** tabs, steps, sheets and form submissions never add history entries.
+- **Honest limit: feature phones.** FairShift needs a smartphone browser; it is built for low-end Android (₹7,000 class), not keypad phones. Workers with keypad phones are not covered yet; **IVR / missed-call reporting** is the first item on the [roadmap](#roadmap). Voice input uses the phone's own speech recognition; where it is missing, every voice step also has a tap or type path.
 
 ## Performance on a ₹7,000 phone
 
@@ -261,3 +263,7 @@ docs/          demo-script.md
 - FairShift checks pay; it does not move money. *Pay the gap* records a payment the employer made.
 - Demo mode exposes one-tap logins and re-seeds data daily; turn it off for a real deployment.
 - Built with AI-assisted development (Claude Code); every rule is covered by tests and reviewed against the brief.
+
+## License
+
+[MIT](LICENSE).
