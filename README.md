@@ -153,7 +153,7 @@ Highlights: overtime underpaid / regular underpaid / below minimum wage / exact 
 | **Code quality** | Pure `core/` with no I/O; one repository interface; config over code; typed end to end; ESLint (React Compiler rules) with zero warnings | [`src/core`](src/core), [`src/config`](src/config), [`src/server/repos/types.ts`](src/server/repos/types.ts) |
 | **Security** | Nonce CSP, role + org checks on every mutation, Zod everywhere, rate limits, HMAC guards and signed tokens, Secret Manager | [`proxy.ts`](src/proxy.ts), [`server/actions`](src/server/actions), [`core/signed-token.ts`](src/core/signed-token.ts) |
 | **Efficiency** | Batched queries, concurrent payslips, idempotent hazard sweep, cached TTS, lazy charts, SVG-only visuals | [`services/workforce.ts`](src/server/services/workforce.ts), [`ai/tts.ts`](src/ai/tts.ts) |
-| **Testing** | 272 unit + 34 e2e, coverage gate, CI on every push | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| **Testing** | 272 unit + 35 e2e, coverage gate, CI on every push | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **Accessibility** | AA contrast test, axe in CI, keyboard menus/radiogroups, live regions, reduced motion, 4 languages + voice | [`tests/e2e`](tests/e2e), [`globals.css`](src/app/globals.css) |
 | **Problem alignment** | Worker + employer interfaces, construction + hospital, every brief pain point mapped above | [Pain point table](#pain-point--feature--code) |
 
