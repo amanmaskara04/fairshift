@@ -56,11 +56,16 @@ test("people page separates site conditions from individual risk, and approves a
   await expect(page.getByRole("heading", { name: "Site conditions" })).toBeVisible();
   await expect(page.getByRole("table")).toBeVisible();
   await expect(page.getByRole("rowheader", { name: /Ramesh Kumar/ })).toBeVisible();
+  // The menu's headcount loads on its own, after the page.
+  await expect(page.getByText(/^\d+ of 18 on duty$/).first()).toBeVisible();
   await expectNoA11yViolations(page);
 
-  const request = page.getByRole("listitem").filter({ hasText: "Venkat Rao" });
-  await request.getByRole("button", { name: "Approve and sign" }).click();
-  await request.getByRole("link", { name: "View certificate" }).click();
+  // Only requests wait up top; once approved, the certificate link sits with the worker's row (or card on phones).
+  const approvals = page.locator("#certificates");
+  await approvals.getByRole("listitem").filter({ hasText: "Venkat Rao" }).getByRole("button", { name: "Approve and sign" }).click();
+  await expect(approvals.getByText("Venkat Rao")).toBeHidden();
+  const venkat = page.getByRole("row").or(page.getByRole("listitem")).filter({ hasText: "Venkat Rao" });
+  await venkat.getByRole("link", { name: "View certificate" }).click();
   await expect(page.getByRole("heading", { name: "Certificate of work" })).toBeVisible();
   await expect(page.getByText(/Venkat Rao, Carpenter, worked \d+ days for BuildRight Constructions/)).toBeVisible();
   await expectNoA11yViolations(page);

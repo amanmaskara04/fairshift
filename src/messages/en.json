@@ -542,8 +542,8 @@
       "siteScore": "Site {score}",
       "certificates": {
         "title": "Work certificates for welfare boards",
-        "hint": "Workers who have met (or nearly met) the days a welfare scheme needs. Approving signs a certificate they can show at the office.",
-        "none": "No one is close yet.",
+        "hint": "Workers who asked for a certificate. Approving signs one they can show at the welfare board office. Everyone's progress is in the table below.",
+        "none": "No certificate requests are waiting.",
         "progress": "{done}/{needed} days",
         "requested": "Requested a certificate for {days} days",
         "view": "View certificate",
@@ -552,7 +552,10 @@
         "close": "Close to eligible",
         "approve": "Approve and sign",
         "reject": "Reject",
-        "error": "Could not save. Please try again."
+        "error": "Could not save. Please try again.",
+        "column": "Welfare certificate",
+        "waiting": "Waiting for your approval",
+        "notYet": "Not close yet"
       },
       "skills": {
         "title": "Skills to verify",

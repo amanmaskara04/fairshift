@@ -3,7 +3,7 @@ import { BadgeCheck, Building, FileText } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildOrgSnapshot } from "@/server/services/workforce";
-import { certificateCandidates } from "@/server/services/benefits";
+import { certificateCandidates, type EligibilityRow } from "@/server/services/benefits";
 import { pendingSkills } from "@/server/services/skills";
 import { certificateToken } from "@/server/passport";
 import { getScheme } from "@/config/schemes";
@@ -29,6 +29,10 @@ export default async function PeoplePage() {
   ]);
   if (!snapshot) return null;
   const siteOf = new Map(sites.map((s) => [s.id, s.name]));
+  // Only requests need a decision up top; everyone's progress sits with their row below.
+  const approvals = candidates.filter((c) => c.request?.status === "requested");
+  const certsOf = Map.groupBy(candidates, (c) => c.worker.id);
+  const certCell = (workerId: string) => <CertificateProgress rows={certsOf.get(workerId) ?? []} t={t} locale={locale} />;
 
   return (
     <div className="flex flex-col gap-5">
@@ -95,11 +99,11 @@ export default async function PeoplePage() {
           {t("certificates.title")}
         </h2>
         <p className="text-sm text-ink-2">{t("certificates.hint")}</p>
-        {candidates.length === 0 ? (
+        {approvals.length === 0 ? (
           <p className="text-ink-2">{t("certificates.none")}</p>
         ) : (
           <ul className="grid gap-3 md:grid-cols-2">
-            {candidates.map(({ worker, schemeId, progress, request }) => (
+            {approvals.map(({ worker, schemeId, progress, request }) => (
               <li key={`${worker.id}-${schemeId}`} className="card flex flex-col gap-2 p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div>
@@ -110,20 +114,8 @@ export default async function PeoplePage() {
                     {t("certificates.progress", { done: progress.done, needed: progress.needed })}
                   </Badge>
                 </div>
-                {request?.status === "requested" && (
-                  <>
-                    <p className="text-sm font-semibold">{t("certificates.requested", { days: request.daysWorked })}</p>
-                    <CertificateDecision id={request.id} />
-                  </>
-                )}
-                {request?.status === "approved" && (
-                  <a href={`/certificate/${certificateToken(request.id, request.decidedAt ?? request.requestedAt)}`} className="flex w-fit items-center gap-2 text-sm font-bold text-primary underline underline-offset-4">
-                    <FileText aria-hidden="true" className="size-4" />
-                    {t("certificates.view")}
-                  </a>
-                )}
-                {request?.status === "rejected" && <Badge className="w-fit">{t("certificates.rejected")}</Badge>}
-                {!request && <p className="text-sm text-ink-2">{progress.done >= progress.needed ? t("certificates.eligibleNoRequest") : t("certificates.close")}</p>}
+                <p className="text-sm font-semibold">{t("certificates.requested", { days: request!.daysWorked })}</p>
+                <CertificateDecision id={request!.id} />
               </li>
             ))}
           </ul>
@@ -173,6 +165,10 @@ export default async function PeoplePage() {
                   <p className="eyebrow">{t("risk")}</p>
                   <RiskReasons risk={w.risk} />
                 </div>
+                <div className="flex flex-col gap-1">
+                  <p className="eyebrow">{t("certificates.column")}</p>
+                  {certCell(w.worker.id)}
+                </div>
               </Card>
             </li>
           ))}
@@ -180,7 +176,7 @@ export default async function PeoplePage() {
 
         {/* Laptops: the full comparison table. */}
         <Card className="hidden overflow-x-auto p-0 md:block" tabIndex={0} role="region" aria-label={t("title")}>
-          <table className="w-full min-w-[760px] text-left">
+          <table className="w-full min-w-[920px] text-left">
             <caption className="sr-only">{t("title")}</caption>
             <thead className="border-b border-line text-xs tracking-wide text-ink-2 uppercase">
               <tr>
@@ -189,6 +185,7 @@ export default async function PeoplePage() {
                 <th scope="col" className="px-4 py-3 font-bold">{t("thisWeek")}</th>
                 <th scope="col" className="px-4 py-3 font-bold">{t("fatigue")}</th>
                 <th scope="col" className="px-4 py-3 font-bold">{t("risk")}</th>
+                <th scope="col" className="px-4 py-3 font-bold">{t("certificates.column")}</th>
               </tr>
             </thead>
             <tbody>
@@ -218,6 +215,7 @@ export default async function PeoplePage() {
                       <RiskReasons risk={w.risk} />
                     </div>
                   </td>
+                  <td className="px-4 py-3">{certCell(w.worker.id)}</td>
                 </tr>
               ))}
             </tbody>
@@ -226,5 +224,37 @@ export default async function PeoplePage() {
       </section>
       <p className="text-sm text-ink-2">{t("method")}</p>
     </div>
+  );
+}
+
+/** One worker's welfare-certificate progress, compact enough for a table cell. */
+function CertificateProgress({ rows, t, locale }: { rows: EligibilityRow[]; t: Awaited<ReturnType<typeof getTranslations<"admin.peoplePage">>>; locale: Locale }) {
+  if (rows.length === 0) return <p className="text-sm text-ink-2">{t("certificates.notYet")}</p>;
+  return (
+    <ul className="flex flex-col gap-2">
+      {rows.map(({ schemeId, progress, request }) => (
+        <li key={schemeId} className="flex flex-col items-start gap-1 text-sm">
+          <span className="flex flex-wrap items-center gap-1.5">
+            <span className="font-semibold">{getScheme(schemeId)?.name[locale]}</span>
+            <Badge tone={progress.done >= progress.needed ? "success" : "warning"} className="figure">
+              {t("certificates.progress", { done: progress.done, needed: progress.needed })}
+            </Badge>
+          </span>
+          {request?.status === "requested" && (
+            <a href="#certificates" className="font-bold text-primary underline underline-offset-4">
+              {t("certificates.waiting")}
+            </a>
+          )}
+          {request?.status === "approved" && (
+            <a href={`/certificate/${certificateToken(request.id, request.decidedAt ?? request.requestedAt)}`} className="flex items-center gap-1.5 font-bold text-primary underline underline-offset-4">
+              <FileText aria-hidden="true" className="size-4" />
+              {t("certificates.view")}
+            </a>
+          )}
+          {request?.status === "rejected" && <span className="text-ink-2">{t("certificates.rejected")}</span>}
+          {!request && <span className="text-ink-2">{progress.done >= progress.needed ? t("certificates.eligibleNoRequest") : t("certificates.close")}</span>}
+        </li>
+      ))}
+    </ul>
   );
 }
