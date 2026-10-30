@@ -211,6 +211,8 @@ export interface ShiftRepo {
   /** Only the shifts still open (no check-out yet): what "on duty" needs, without the history. */
   getOpenByWorkers(workerIds: string[]): Promise<Shift[]>;
   getByWorkerInRange(workerId: string, from: Date, to: Date): Promise<Shift[]>;
+  /** One query for many workers' shifts in a window (payroll for a whole organisation). */
+  getByWorkersInRange(workerIds: string[], from: Date, to: Date): Promise<Shift[]>;
   getBySite(siteId: string): Promise<Shift[]>;
   create(shift: Shift): Promise<void>;
   update(id: string, data: Partial<Shift>): Promise<void>;

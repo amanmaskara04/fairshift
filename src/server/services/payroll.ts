@@ -1,6 +1,8 @@
 import type { PayCheckResult } from "@/core/pay-check";
 import type { PaidRecordEntry, Repos } from "@/server/repos/types";
-import { payCheckFor } from "./pay-check";
+import { monthRange } from "@/core/period";
+import { payCheckFrom } from "./pay-check";
+import { payslipFrom } from "./payslip";
 
 export interface PayrollRow {
   workerId: string;
@@ -24,13 +26,23 @@ export interface PayrollRow {
 }
 
 export async function buildPayroll(repos: Repos, orgId: string, month: string): Promise<PayrollRow[]> {
-  const workers = await repos.workers.getByOrg(orgId);
-  // Payslips are independent, so build them concurrently instead of one round trip after another.
-  const checks = await Promise.all(workers.map((worker) => payCheckFor(repos, worker.id, month)));
+  // Two round trips for the whole organisation, then every payslip and check is computed in memory.
+  const [org, workers, sites, records] = await Promise.all([
+    repos.orgs.getById(orgId),
+    repos.workers.getByOrg(orgId),
+    repos.sites.getByOrg(orgId),
+    repos.paidRecords.getByOrgMonth(orgId, month),
+  ]);
+  if (!org) return [];
+  const { start, end } = monthRange(month);
+  const shifts = await repos.shifts.getByWorkersInRange(workers.map((w) => w.id), start, new Date(end.getTime() - 1));
+  const shiftsOf = Map.groupBy(shifts, (s) => s.workerId);
+  const stateOf = new Map(sites.map((s) => [s.id, s.state]));
+  const recordOf = new Map(records.map((r) => [r.workerId, r]));
+
   const rows: PayrollRow[] = [];
-  for (const [i, worker] of workers.entries()) {
-    const check = checks[i];
-    if (!check) continue;
+  for (const worker of workers) {
+    const check = payCheckFrom(payslipFrom(worker, org, month, shiftsOf.get(worker.id) ?? []), recordOf.get(worker.id), stateOf.get(worker.siteId));
     const { payslip, daysWorked } = check.view;
     rows.push({
       workerId: worker.id,
