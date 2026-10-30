@@ -40,6 +40,13 @@ export interface OrgSnapshot {
   moodAverage: number | null;
 }
 
+/** Workers checked in right now (an open shift), out of everyone on the organisation's roll. */
+export async function onDutyCount(repos: Repos, orgId: string): Promise<{ onDuty: number; total: number }> {
+  const workers = await repos.workers.getByOrg(orgId);
+  const open = new Set((await repos.shifts.getByWorkers(workers.map((w) => w.id))).filter((s) => !s.outAt).map((s) => s.workerId));
+  return { onDuty: workers.filter((w) => open.has(w.id)).length, total: workers.length };
+}
+
 /** IST calendar days from `count - 1` days ago through today, oldest first. */
 export function recentDays(now: Date, count: number): string[] {
   return Array.from({ length: count }, (_, i) => getISTDay(new Date(now.getTime() - (count - 1 - i) * DAY_MS)));

@@ -13,6 +13,8 @@ export type HazardSeverity = 'critical' | 'high' | 'medium' | 'low';
 export type HazardStatus = 'received' | 'in_progress' | 'fixed' | 'dismissed';
 
 export type HazardCategory =
+  // Every sector: a fire is an emergency anywhere
+  | 'fire'
   // Construction
   | 'fall_from_height'
   | 'scaffolding'

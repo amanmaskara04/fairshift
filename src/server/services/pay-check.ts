@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { checkPay, type PayCheckResult } from "@/core/pay-check";
+import { checkPay, outstandingShortfall, type PayCheckResult } from "@/core/pay-check";
 import { parseCsv, rupeesToPaise } from "@/core/csv";
 import { isMonthKey } from "@/core/period";
 import { findMinimumWage, type MinimumWageRate } from "@/config/minimum-wage";
@@ -11,6 +11,12 @@ export interface PayCheckView {
   record: PaidRecordEntry | undefined;
   result: PayCheckResult;
   minimumWage: MinimumWageRate;
+  /** Arrears already paid for this month (paise) */
+  arrearsPaid: number;
+  /** The gap still owed after arrears (paise); 0 when nothing is owed */
+  outstanding: number;
+  /** Paise per hour the check used */
+  rates: { regular: number; overtime: number };
 }
 
 /** Compare one worker's attendance-based payslip with what the employer recorded as paid. */
@@ -23,17 +29,19 @@ export async function payCheckFor(repos: Repos, workerId: string, month: string)
   const overtime = view.payslip.lines.find((l) => l.kind === "overtime");
   const hourlyRate = regular?.rate ?? 0;
 
+  const overtimeRate = overtime?.rate ?? Math.round(hourlyRate * view.org.labourRules.otMultiplier);
   const result = checkPay({
     attendance: { regularMinutes: regular?.minutes ?? 0, overtimeMinutes: overtime?.minutes ?? 0 },
     payRules: {
       hourlyRate,
-      overtimeRate: overtime?.rate ?? Math.round(hourlyRate * view.org.labourRules.otMultiplier),
+      overtimeRate,
       expectedDeductions: view.payslip.deductions.reduce((sum, d) => sum + d.amount, 0),
     },
     paidRecord: record ?? null,
     minimumWage,
   });
-  return { view, record, result, minimumWage };
+  const arrearsPaid = (record?.arrears ?? []).reduce((sum, a) => sum + a.amount, 0);
+  return { view, record, result, minimumWage, arrearsPaid, outstanding: outstandingShortfall(result, arrearsPaid), rates: { regular: hourlyRate, overtime: overtimeRate } };
 }
 
 // ── Recording what was paid (manual form or CSV) ──────────────────
@@ -55,8 +63,33 @@ export type PaidRecordInput = z.infer<typeof PaidRecordInput>;
 export async function savePaidRecord(repos: Repos, orgId: string, adminId: string, input: PaidRecordInput, now: Date): Promise<boolean> {
   const worker = await repos.workers.getById(input.workerId);
   if (!worker || worker.orgId !== orgId) return false;
-  await repos.paidRecords.upsert({ ...input, id: `${input.workerId}:${input.month}`, orgId, recordedAt: now, recordedBy: adminId });
+  // Arrears are separate payments: a corrected record keeps them.
+  const existing = await repos.paidRecords.get(input.workerId, input.month);
+  await repos.paidRecords.upsert({ ...input, id: `${input.workerId}:${input.month}`, orgId, recordedAt: now, recordedBy: adminId, arrears: existing?.arrears });
   return true;
+}
+
+/**
+ * The employer pays the gap. The amount is always the outstanding gap computed here, never a
+ * number from the browser. The worker's open review for that month is resolved with it.
+ */
+export async function payArrears(
+  repos: Repos,
+  input: { orgId: string; adminId: string; workerId: string; month: string; now: Date },
+): Promise<{ ok: true; amount: number } | { ok: false; error: "not_found" | "nothing_owed" }> {
+  const worker = await repos.workers.getById(input.workerId);
+  if (!worker || worker.orgId !== input.orgId) return { ok: false, error: "not_found" };
+  const check = await payCheckFor(repos, input.workerId, input.month);
+  if (!check?.record || check.outstanding === 0) return { ok: false, error: "nothing_owed" };
+  const amount = check.outstanding;
+  await repos.paidRecords.upsert({ ...check.record, arrears: [...(check.record.arrears ?? []), { amount, at: input.now, by: input.adminId }] });
+  const disputes = await repos.payDisputes.getByWorker(input.workerId);
+  await Promise.all(
+    disputes
+      .filter((d) => d.month === input.month && d.status !== "resolved")
+      .map((d) => repos.payDisputes.update(d.id, { status: "resolved", settledAmount: amount, updatedAt: input.now })),
+  );
+  return { ok: true, amount };
 }
 
 export const PAID_CSV_HEADER = ["code", "month", "paidRegularHours", "paidOvertimeHours", "grossPaidINR", "deductionsINR", "netPaidINR"] as const;

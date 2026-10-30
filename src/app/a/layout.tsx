@@ -3,6 +3,7 @@ import { getTranslations } from "next-intl/server";
 import { Building2 } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
+import { onDutyCount } from "@/server/services/workforce";
 import { Badge } from "@/components/ui/badge";
 import { LanguageMenu } from "@/components/language-menu";
 import { LogoutButton } from "@/components/logout-button";
@@ -12,8 +13,10 @@ import { BrandMark } from "@/components/brand-mark";
 
 export default async function AdminLayout({ children }: LayoutProps<"/a">) {
   const session = await requireRole("admin");
-  const [org, t] = await Promise.all([getRepos().orgs.getById(session.orgId), getTranslations("admin")]);
+  const repos = getRepos();
+  const [org, duty, t] = await Promise.all([repos.orgs.getById(session.orgId), onDutyCount(repos, session.orgId), getTranslations("admin")]);
   const sector = org ? t(`sector.${org.sector}`) : "";
+  const onDuty = t("onDuty", { count: duty.onDuty, total: duty.total });
 
   return (
     <div className="admin flex min-h-dvh flex-col md:flex-row">
@@ -31,9 +34,13 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
             <p className="text-sm text-ink-2">{sector}</p>
           </div>
         </div>
+        <Link href="/a/people" className="flex items-center gap-2.5 rounded-2xl border border-line px-3 py-2.5 text-sm font-bold hover:bg-surface-2">
+          <span className="live-dot" aria-hidden="true" />
+          {onDuty}
+        </Link>
         <Sidebar variant="rail" />
         <div className="mt-auto flex items-center justify-between gap-2 border-t border-line pt-4">
-          <LanguageMenu />
+          <LanguageMenu side="top" />
           <LogoutButton variant="ghost" size="sm" />
         </div>
       </aside>
@@ -42,8 +49,8 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
       <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur md:hidden">
         <div className="flex items-center gap-2 px-4 py-2">
           <BackButton />
-          <Link href="/a" className="rounded-xl">
-            <BrandMark className="shrink-0 text-lg" />
+          <Link href="/a" className="shrink-0 rounded-xl">
+            <BrandMark className="text-lg" />
           </Link>
           <div className="ml-auto flex shrink-0 items-center gap-1">
             <LanguageMenu />
@@ -53,6 +60,10 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
         <div className="flex min-w-0 items-center gap-2 px-4 pb-2.5">
           <span className="min-w-0 truncate font-bold">{org?.name}</span>
           {org && <Badge tone="brand">{sector}</Badge>}
+          <span className="ml-auto flex shrink-0 items-center gap-1.5 text-sm font-bold text-ink-2">
+            <span className="live-dot" aria-hidden="true" />
+            {onDuty}
+          </span>
         </div>
         <Sidebar variant="strip" />
       </header>

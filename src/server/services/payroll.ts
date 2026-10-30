@@ -16,6 +16,11 @@ export interface PayrollRow {
   /** What the employer recorded as paid, if anything yet */
   paid?: PaidRecordEntry;
   check: PayCheckResult;
+  /** Arrears already paid for the month, and the gap still owed (paise) */
+  arrearsPaid: number;
+  outstanding: number;
+  /** Paise per hour, for the manual entry form's calculations */
+  rates: { regular: number; overtime: number };
 }
 
 export async function buildPayroll(repos: Repos, orgId: string, month: string): Promise<PayrollRow[]> {
@@ -40,6 +45,9 @@ export async function buildPayroll(repos: Repos, orgId: string, month: string): 
       net: payslip.net,
       paid: check.record,
       check: check.result,
+      arrearsPaid: check.arrearsPaid,
+      outstanding: check.outstanding,
+      rates: check.rates,
     });
   }
   return rows.sort((a, b) => a.name.localeCompare(b.name));

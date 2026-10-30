@@ -5,9 +5,10 @@ import { z } from "zod";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { RateLimiter } from "@/server/rate-limit";
-import { importPaidCsv, PaidRecordInput, savePaidRecord, type CsvImportResult } from "@/server/services/pay-check";
+import { importPaidCsv, PaidRecordInput, payArrears, savePaidRecord, type CsvImportResult } from "@/server/services/pay-check";
 import { updateDispute } from "@/server/services/disputes";
 import { rupeesToPaise } from "@/core/csv";
+import { isMonthKey } from "@/core/period";
 import { Note } from "@/server/validation";
 
 const MAX_CSV_BYTES = 100 * 1024;
@@ -50,6 +51,21 @@ export async function importPaidCsvAction(_prev: CsvFormState, formData: FormDat
   const result = await importPaidCsv(getRepos(), session.orgId, session.uid, await file.text(), new Date());
   refresh();
   return { result };
+}
+
+const Arrears = z.object({ workerId: z.string().max(40), month: z.string().refine(isMonthKey) });
+const arrearsLimiter = new RateLimiter({ maxTokens: 30, refillIntervalMs: 60 * 60 * 1000 });
+
+/** "Pay the gap": records an arrears payment of exactly the outstanding shortfall. */
+export async function payArrearsAction(input: unknown): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("admin");
+  const parsed = Arrears.safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  if (!arrearsLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
+  const result = await payArrears(getRepos(), { ...parsed.data, orgId: session.orgId, adminId: session.uid, now: new Date() });
+  if (!result.ok) return { ok: false, error: result.error };
+  refresh();
+  return { ok: true };
 }
 
 const DisputeUpdate = z.object({

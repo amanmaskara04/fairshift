@@ -2,8 +2,11 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Camera, Check, Lock, MapPin, Mic, Pencil, Square, Users } from "lucide-react";
+import { Camera, Check, Lock, MapPin, Mic, Pencil, Phone, Square, Users } from "lucide-react";
 import { checkDuplicateAction, submitHazardAction } from "@/server/actions/hazards";
+import { maxSeverity, resolveSeverity } from "@/core/hazard-rules";
+import { urgencyFromText } from "@/core/hazard-urgency";
+import type { HazardCategory } from "@/core/types";
 import { compressImage } from "@/lib/image";
 import { createRecognizer, transcriptFrom, type Recognizer } from "@/lib/speech-recognition";
 import { cn } from "@/lib/utils";
@@ -138,7 +141,8 @@ export function HazardReporter({ categories }: { categories: string[] }) {
       // Words were heard but the type is unclear: keep them and let the worker tap the right icon.
       const text = data.transcript || (body.get("text") as string | null) || "";
       setHeard(text);
-      setSuggestion(text ? { category: "", transcript: text, transcriptEn: data.transcriptEn } : null);
+      // Keep Gemini's reading of how serious it is, even when the worker has to pick the type.
+      setSuggestion(text ? { category: "", transcript: text, transcriptEn: data.transcriptEn, severityHint: data.severityHint } : null);
       setError(text ? t("errors.pickForHeard") : t("errors.notUnderstood"));
       setPhase("pick");
     } catch {
@@ -222,6 +226,11 @@ export function HazardReporter({ categories }: { categories: string[] }) {
   if (phase === "confirm" && suggestion) {
     const heardText = suggestion.transcript ? t("weHeard", { text: suggestion.transcript }) : "";
     const label = t(`categories.${suggestion.category}`);
+    // The same rule the server applies, so the worker sees the severity that will be recorded.
+    const severity = maxSeverity(
+      resolveSeverity(suggestion.category as HazardCategory, suggestion.severityHint),
+      urgencyFromText(suggestion.transcript, suggestion.transcriptEn) ?? "low",
+    );
     return (
       <div className="flex flex-col gap-4">
         {errorBox}
@@ -236,8 +245,15 @@ export function HazardReporter({ categories }: { categories: string[] }) {
               <HazardIcon category={suggestion.category} className="size-8" />
             </span>
             {label}
-            {suggestion.severityHint && <Badge tone={SEVERITY_TONE[suggestion.severityHint]}>{t(`severity.${suggestion.severityHint}`)}</Badge>}
+            <Badge tone={SEVERITY_TONE[severity]}>{t(`severity.${severity}`)}</Badge>
           </p>
+          {severity === "critical" && (
+            // Danger to life: calling comes before finishing the report.
+            <a href="tel:112" className="press flex min-h-14 items-center justify-center gap-2 rounded-[18px] bg-danger px-5 text-lg font-bold text-white">
+              <Phone aria-hidden="true" className="size-5" />
+              {t("callNow")}
+            </a>
+          )}
           <label className="flex flex-col gap-1.5 font-bold">
             <span className="flex items-center gap-2">
               <MapPin aria-hidden="true" className="size-4" />

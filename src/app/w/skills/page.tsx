@@ -1,5 +1,5 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { BadgeCheck, Clock } from "lucide-react";
+import { BadgeCheck, Clock, XCircle } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { benefitsFor } from "@/server/services/benefits";
@@ -16,6 +16,7 @@ import { LogoutButton } from "@/components/logout-button";
 import { WorkHistoryList } from "@/components/work-history";
 import { Benefits, type BenefitCard } from "@/components/worker/benefits";
 import { PassportShare } from "@/components/worker/passport-share";
+import { AddSkill } from "@/components/skill-form";
 
 function formatYear(date: Date): string {
   return new Intl.DateTimeFormat("en-IN", { month: "short", year: "numeric", timeZone: "Asia/Kolkata" }).format(date);
@@ -94,8 +95,9 @@ export default async function MePage() {
           {t("title")}
         </h2>
         <p className="text-ink-2">{t("summary", { count: skills.length, verified })}</p>
+        <AddSkill />
         <ul className="stagger flex flex-col gap-2.5">
-          {skills.map((skill) => (
+          {[...skills].sort((a, b) => b.date.getTime() - a.date.getTime()).map((skill) => (
             <li key={skill.id} className="card flex items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
                 <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong">
@@ -113,8 +115,13 @@ export default async function MePage() {
                   <BadgeCheck aria-hidden="true" className="size-4" />
                   {t("verified")}
                 </Badge>
-              ) : (
+              ) : skill.rejected ? (
                 <Badge>
+                  <XCircle aria-hidden="true" className="size-4" />
+                  {t("rejected")}
+                </Badge>
+              ) : (
+                <Badge tone="warning">
                   <Clock aria-hidden="true" className="size-4" />
                   {t("pending")}
                 </Badge>

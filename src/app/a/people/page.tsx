@@ -1,17 +1,19 @@
 import { getLocale, getTranslations } from "next-intl/server";
-import { Building, FileText } from "lucide-react";
+import { BadgeCheck, Building, FileText } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildOrgSnapshot } from "@/server/services/workforce";
 import { certificateCandidates } from "@/server/services/benefits";
+import { pendingSkills } from "@/server/services/skills";
 import { certificateToken } from "@/server/passport";
 import { getScheme } from "@/config/schemes";
 import type { Locale } from "@/i18n/locales";
-import { formatDuration } from "@/lib/format";
+import { formatDay, formatDuration } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { FatigueReasons, RiskReasons, riskTone } from "@/components/admin/reason-chips";
-import { CertificateDecision } from "@/components/admin/decision-buttons";
+import { CertificateDecision, SkillDecision } from "@/components/admin/decision-buttons";
+import { AddSkill } from "@/components/skill-form";
 import { PageHeader } from "@/components/page-header";
 
 export default async function PeoplePage() {
@@ -19,10 +21,11 @@ export default async function PeoplePage() {
   const [t, locale] = await Promise.all([getTranslations("admin.peoplePage"), getLocale() as Promise<Locale>]);
   const repos = getRepos();
   const now = new Date();
-  const [snapshot, sites, candidates] = await Promise.all([
+  const [snapshot, sites, candidates, skillQueue] = await Promise.all([
     buildOrgSnapshot(repos, session.orgId, now),
     repos.sites.getByOrg(session.orgId),
     certificateCandidates(repos, session.orgId, now),
+    pendingSkills(repos, session.orgId),
   ]);
   if (!snapshot) return null;
   const siteOf = new Map(sites.map((s) => [s.id, s.name]));
@@ -50,6 +53,41 @@ export default async function PeoplePage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section id="skills" aria-labelledby="skills-title" className="flex scroll-mt-24 flex-col gap-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 id="skills-title" className="font-display text-xl font-extrabold">
+              {t("skills.title")}
+            </h2>
+            <p className="text-sm text-ink-2">{t("skills.hint")}</p>
+          </div>
+          <AddSkill workers={snapshot.workers.map(({ worker }) => ({ id: worker.id, label: `${worker.name} (#${worker.code})` }))} />
+        </div>
+        {skillQueue.length === 0 ? (
+          <p className="text-ink-2">{t("skills.none")}</p>
+        ) : (
+          <ul className="grid gap-3 md:grid-cols-2">
+            {skillQueue.map(({ skill, worker }) => (
+              <li key={skill.id} className="card flex flex-col gap-2 p-4">
+                <div className="flex items-start gap-3">
+                  <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong">
+                    <BadgeCheck className="size-5" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="font-bold">{skill.title}</p>
+                    <p className="text-sm text-ink-2">
+                      {worker.name} · {skill.issuer} · {formatDay(skill.date.toISOString().slice(0, 10), locale)}
+                    </p>
+                    {skill.evidence && <p className="mt-1 text-sm">{t("skills.evidence", { evidence: skill.evidence })}</p>}
+                  </div>
+                </div>
+                <SkillDecision id={skill.id} />
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section id="certificates" aria-labelledby="cert-title" className="flex scroll-mt-24 flex-col gap-3">

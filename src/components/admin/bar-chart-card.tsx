@@ -60,19 +60,22 @@ export function BarChartCard({ title, unit, data, tableLabel }: { title: string;
           ))}
         </div>
       </div>
-      <table className="sr-only">
-        <caption>{tableLabel}</caption>
-        <tbody>
-          {data.map((d, i) => (
-            <tr key={i}>
-              <th scope="row">{d.label}</th>
-              <td>
-                {d.value} {unit}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* The wrapper is what's visually hidden: a table ignores sr-only's 1px height and would stretch the page. */}
+      <div className="sr-only">
+        <table>
+          <caption>{tableLabel}</caption>
+          <tbody>
+            {data.map((d, i) => (
+              <tr key={i}>
+                <th scope="row">{d.label}</th>
+                <td>
+                  {d.value} {unit}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }

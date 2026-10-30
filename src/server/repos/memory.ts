@@ -117,7 +117,13 @@ export function createMemoryRepos(): Repos {
       getByCohortAndWeek: (cohort, weekBucket) => feedback.where((f) => f.cohort === cohort && f.weekBucket === weekBucket),
       create: feedback.create,
     },
-    skills: { getByWorker: (workerId) => skills.where((s) => s.workerId === workerId), create: skills.create },
+    skills: {
+      getByWorker: (workerId) => skills.where((s) => s.workerId === workerId),
+      getByWorkers: (workerIds) => skills.where((s) => workerIds.includes(s.workerId)),
+      getById: skills.byId,
+      create: skills.create,
+      update: skills.update,
+    },
     feedbackGuards: guards("feedbackGuards"),
     paidRecords: {
       getByOrgMonth: (orgId, month) => paidRecords.where((r) => r.orgId === orgId && r.month === month),

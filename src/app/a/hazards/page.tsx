@@ -5,6 +5,7 @@ import { getRepos } from "@/server/repos";
 import { sweepHazards } from "@/server/services/hazards";
 import { ESCALATION_CHAINS } from "@/config/hazard-sla";
 import { getHazardAge, isOpen } from "@/core/hazard-lifecycle";
+import { canMerge } from "@/core/hazard-duplicates";
 import type { Hazard, HazardSeverity, HazardStatus } from "@/core/types";
 import { formatWhen } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -130,7 +131,7 @@ export default async function HazardsPage() {
                         <HazardActions
                           hazardId={h.id}
                           status={h.status}
-                          mergeTargets={openHazards.filter((o) => o.id !== h.id).map((o) => ({ id: o.id, label: label(o) }))}
+                          mergeTargets={openHazards.filter((o) => canMerge(h, o)).map((o) => ({ id: o.id, label: label(o) }))}
                           merged={mergedHere.map((m) => ({ id: m.id, label: label(m) }))}
                         />
                       </article>

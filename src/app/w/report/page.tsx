@@ -51,20 +51,23 @@ export default async function ReportPage() {
           <ul className="flex flex-col gap-2">
             {reports.map((h) => (
               <li key={h.id}>
-                <Link href={`/w/report/${h.id}`} className="tile flex min-h-16 flex-wrap items-center gap-3 p-3">
+                <Link href={`/w/report/${h.id}`} className="tile flex min-h-16 items-start gap-3 p-3">
                   <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-danger-soft text-danger">
                     <HazardIcon category={h.category} className="size-6" />
                   </span>
-                  <span className="min-w-0 flex-1 font-bold">{t(`categories.${h.category}`)}</span>
-                  <span className="flex flex-wrap items-center justify-end gap-1.5">
-                    {h.status === "fixed" && h.confirmation === "pending" && (
-                      <Badge tone="info">
-                        <CircleHelp aria-hidden="true" className="size-4" />
-                        {t("confirm.badge")}
-                      </Badge>
-                    )}
-                    <HazardAge hazard={h} now={now} />
-                    <HazardStatusBadge status={h.status} />
+                  {/* Title on its own line, badges underneath: they wrap instead of squeezing the words. */}
+                  <span className="flex min-w-0 flex-1 flex-col gap-1.5">
+                    <span className="font-bold break-words">{t(`categories.${h.category}`)}</span>
+                    <span className="flex flex-wrap items-center gap-1.5">
+                      {h.status === "fixed" && h.confirmation === "pending" && (
+                        <Badge tone="info">
+                          <CircleHelp aria-hidden="true" className="size-4" />
+                          {t("confirm.badge")}
+                        </Badge>
+                      )}
+                      <HazardAge hazard={h} now={now} />
+                      <HazardStatusBadge status={h.status} />
+                    </span>
                   </span>
                 </Link>
               </li>

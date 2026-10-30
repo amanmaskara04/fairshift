@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const HAZARD_CATEGORIES = [
+  "fire",
   "fall_from_height",
   "scaffolding",
   "electrical",

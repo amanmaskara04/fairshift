@@ -6,6 +6,7 @@ export const construction: SectorProfile = {
   defaultPayBasis: 'daily',
   standardShiftHours: 8,
   hazardCategories: [
+    'fire',
     'fall_from_height',
     'scaffolding',
     'electrical',

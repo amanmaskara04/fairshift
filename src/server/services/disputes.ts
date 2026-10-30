@@ -12,7 +12,7 @@ export async function requestPayReview(
   input: { workerId: string; orgId: string; month: string; now: Date },
 ): Promise<{ ok: true; dispute: PayDispute } | { ok: false; error: DisputeError }> {
   const check = await payCheckFor(repos, input.workerId, input.month);
-  if (!check || check.result.findings.length === 0) return { ok: false, error: "no_shortfall" };
+  if (!check || check.outstanding === 0) return { ok: false, error: "no_shortfall" };
   const existing = await repos.payDisputes.getByWorker(input.workerId);
   if (existing.some((d) => d.month === input.month && isActiveDispute(d))) return { ok: false, error: "already_open" };
 
@@ -21,7 +21,7 @@ export async function requestPayReview(
     orgId: input.orgId,
     workerId: input.workerId,
     month: input.month,
-    shortfall: check.result.totalShortfall,
+    shortfall: check.outstanding,
     findings: check.result.findings.map((f) => f.code),
     status: "open",
     createdAt: input.now,

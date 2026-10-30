@@ -81,7 +81,8 @@
       "pay": "Pay",
       "report": "Report",
       "me": "Me",
-      "label": "Main menu"
+      "label": "Main menu",
+      "help": "Help"
     },
     "fatigue": {
       "title": "Please rest",
@@ -173,7 +174,9 @@
         "regular": "{recorded} regular hours recorded, {paid} paid → {missing} × {rate}/h = {amount}",
         "minimum": "For {hours} of work the minimum wage is {minimum}, but {paid} was paid",
         "deduction": "{withheld} was held back, but deductions should be {expected} → {amount} extra"
-      }
+      },
+      "arrearsPaid": "{amount} difference paid",
+      "arrearsHint": "Your employer paid the gap FairShift found for this month."
     }
   },
   "report": {
@@ -207,7 +210,8 @@
       "noise": "Noise",
       "chemical": "Chemical",
       "chemical_labs": "Lab chemical",
-      "fire_exit": "Fire exit"
+      "fire_exit": "Fire exit",
+      "fire": "Fire or smoke"
     },
     "tapToSpeak": "Tap and speak",
     "stopRecording": "Stop recording",
@@ -300,7 +304,8 @@
       "private": "Nobody will see who reported it.",
       "add": "Yes, add my report",
       "different": "No, it's a different problem"
-    }
+    },
+    "callNow": "Call 112 now"
   },
   "feedback": {
     "title": "Speak up",
@@ -337,7 +342,31 @@
     "passportIssuer": "Skills verified by {org}",
     "eyebrow": "My profile",
     "historyTitle": "Work history",
-    "historyTotals": "{days} days · {hours} verified"
+    "historyTotals": "{days} days · {hours} verified",
+    "rejected": "Not verified",
+    "add": {
+      "button": "Add a skill",
+      "adminButton": "Add a verified skill",
+      "title": "Add a skill",
+      "adminTitle": "Add a verified skill",
+      "hint": "A training, licence or certificate. Your employer checks it, then it shows on your skill passport.",
+      "adminHint": "For a skill you have checked yourself. It is verified straight away and shows on the worker's passport.",
+      "worker": "Worker",
+      "name": "Skill or training",
+      "namePlaceholder": "e.g. Scaffolding safety",
+      "issuer": "Given by",
+      "issuerPlaceholder": "e.g. NSDC, ITI, your employer",
+      "date": "Completed on",
+      "evidence": "Certificate no. (optional)",
+      "evidencePlaceholder": "e.g. NSDC-2025-1234",
+      "save": "Save skill",
+      "errors": {
+        "invalid": "Please fill in the skill, who gave it and the date.",
+        "too_many": "You already have 10 skills waiting for your employer. Ask them to check those first.",
+        "rate_limited": "Too many tries. Please wait a while.",
+        "not_found": "That worker was not found."
+      }
+    }
   },
   "checkin": {
     "title": "Check in",
@@ -425,7 +454,8 @@
         "explainPay": "Pay explanation",
         "brief": "Weekly brief",
         "similar": "Similar issues",
-        "tts": "Read aloud"
+        "tts": "Read aloud",
+        "help": "Help assistant"
       }
     },
     "risk": {
@@ -478,7 +508,7 @@
       "dismissWorkerSees": "The worker will see this reason.",
       "confirmDismiss": "Close report",
       "mergeTitle": "Join with another report",
-      "mergeHint": "Pick the report this one duplicates. All photos and reports are kept, and you can separate them later.",
+      "mergeHint": "Only reports of the same danger at the same site are listed. All photos and reports are kept, and you can separate them later.",
       "confirmMerge": "Join reports",
       "errors": {
         "invalid": "Please fill in what is needed.",
@@ -520,6 +550,15 @@
         "approve": "Approve and sign",
         "reject": "Reject",
         "error": "Could not save. Please try again."
+      },
+      "skills": {
+        "title": "Skills to verify",
+        "hint": "Workers added these. Verify the ones you can confirm: they then appear on the worker's skill passport.",
+        "none": "No skills are waiting.",
+        "verify": "Verify",
+        "reject": "Can't confirm",
+        "error": "Could not save. Please try again.",
+        "evidence": "Certificate: {evidence}"
       }
     },
     "feedbackPage": {
@@ -588,7 +627,8 @@
       "check": {
         "noRecord": "Not entered",
         "matches": "Matches",
-        "shortfall": "Possible shortfall {amount}"
+        "shortfall": "Possible shortfall {amount}",
+        "gapPaid": "Gap paid {amount}"
       },
       "sentinel": {
         "title": "FairPay Sentinel",
@@ -598,10 +638,10 @@
         "minimumWageNote": "Minimum wages used in checks are demo values — verify for your state."
       },
       "record": {
-        "manual": "Enter for one worker",
+        "manual": "Record pay for one worker",
         "upload": "Upload CSV",
         "template": "Download CSV template",
-        "manualTitle": "What was actually paid",
+        "manualTitle": "Record what was paid",
         "worker": "Worker",
         "paidRegularHours": "Regular hours paid",
         "paidOvertimeHours": "Overtime hours paid",
@@ -622,7 +662,23 @@
           "file": "Choose a CSV file under 100 KB.",
           "rate_limited": "Too many uploads. Please wait a few minutes.",
           "columns": "The columns do not match the template."
-        }
+        },
+        "manualHint": "Start from what FairShift calculated, then say what was actually paid.",
+        "calculated": "FairShift recorded {hours} h + {overtime} h overtime. Due: {amount}.",
+        "howPaid": "How was this worker paid?",
+        "presets": {
+          "full": "Paid in full",
+          "no_overtime": "Overtime not paid",
+          "custom": "Some hours not paid"
+        },
+        "regularHours": "Regular hours paid",
+        "overtimeHours": "Overtime hours paid",
+        "hoursOf": "{paid} of {total} h",
+        "amounts": "Amounts",
+        "changeAmounts": "Change amounts",
+        "useCalculated": "Use calculated",
+        "lessThanDue": "{amount} less than due",
+        "matchesDue": "Matches what is due"
       },
       "disputes": {
         "title": "Pay review requests",
@@ -642,7 +698,15 @@
         "noteLabel": "Note to the worker (needed to resolve)",
         "startReview": "Start review",
         "resolve": "Resolve",
-        "error": "Could not save. A note is needed to resolve."
+        "error": "Could not save. A note is needed to resolve.",
+        "settled": "Settled: {amount} arrears paid"
+      },
+      "arrears": {
+        "button": "Pay {amount}",
+        "title": "Pay the {amount} gap?",
+        "hint": "This records an arrears payment of exactly the gap FairPay Sentinel found. The worker sees it as paid, and any review they asked for is closed.",
+        "confirm": "I have paid {amount}",
+        "error": "Could not record it. Please try again."
       }
     },
     "sitesPage": {
@@ -673,7 +737,8 @@
       "open": "New",
       "reviewing": "Reviewing",
       "resolved": "Resolved"
-    }
+    },
+    "onDuty": "{count} of {total} on duty"
   },
   "offline": {
     "title": "You are offline",
@@ -827,5 +892,114 @@
     "title": "We could not find this page",
     "hint": "The link may be old or typed wrong.",
     "home": "Go to the start"
+  },
+  "help": {
+    "title": "Help",
+    "intro": "Free helplines, and quick advice for any problem at work.",
+    "callEmergency": "Emergency? Call {number}",
+    "emergencyHint": "Police, fire and ambulance. Free, all day and night.",
+    "askTitle": "Tell us the problem",
+    "askHint": "Type or speak. You get next steps, the right helpline and where to act in FairShift.",
+    "label": "What happened?",
+    "placeholder": "e.g. I have not been paid for overtime for 3 weeks",
+    "private": "Names and numbers are removed. What you write is not saved.",
+    "ask": "Get help",
+    "thinking": "Thinking…",
+    "urgency": {
+      "emergency": "Emergency",
+      "urgent": "Act today",
+      "normal": "Next steps"
+    },
+    "actions": {
+      "report_hazard": "Report the danger",
+      "check_pay": "Check my pay",
+      "speak_up": "Speak up safely",
+      "benefits": "See my benefits"
+    },
+    "sourceAi": "Advice written by AI. Phone numbers come from the official list, never from the AI.",
+    "sourceRules": "Advice from FairShift's built-in guide.",
+    "errors": {
+      "general": "Could not get advice. You can still call a helpline below.",
+      "rateLimited": "Too many questions. Please wait a while, or call a helpline below."
+    },
+    "groups": {
+      "emergency": "Emergency",
+      "support": "Support",
+      "rights": "Work rights and benefits"
+    },
+    "allDay": "24 hours",
+    "officeHours": "Office hours",
+    "disclaimer": "Numbers are national helplines. 108 is the ambulance in most states; 112 works everywhere.",
+    "lines": {
+      "emergency": {
+        "name": "Emergency",
+        "what": "Police, fire, ambulance"
+      },
+      "fire": {
+        "name": "Fire brigade",
+        "what": "Fire, smoke, people trapped"
+      },
+      "ambulance": {
+        "name": "Ambulance",
+        "what": "Injury or sudden illness"
+      },
+      "women": {
+        "name": "Women's helpline",
+        "what": "Harassment or violence"
+      },
+      "mental_health": {
+        "name": "Tele-MANAS",
+        "what": "Stress, sadness, worry"
+      },
+      "eshram": {
+        "name": "e-Shram helpline",
+        "what": "Worker rights and schemes"
+      },
+      "esic": {
+        "name": "ESIC",
+        "what": "ESI medical insurance"
+      },
+      "epfo": {
+        "name": "EPFO",
+        "what": "Provident fund (PF)"
+      }
+    },
+    "fallbackSteps": {
+      "emergency": [
+        "Get yourself and others to a safe place.",
+        "Call 112 now, or 101 for fire or 108 for an ambulance.",
+        "Tell your supervisor, then report it in FairShift."
+      ],
+      "safety": [
+        "Stop work near the danger if you can do so safely.",
+        "Report it in FairShift: it goes to your supervisor with a deadline.",
+        "You can hide your name."
+      ],
+      "pay": [
+        "Open your pay page: FairShift checks every hour against what was paid.",
+        "If it shows a gap, tap 'Ask for a review'.",
+        "For help with your rights, call the e-Shram helpline."
+      ],
+      "harassment": [
+        "You are not to blame. If you are in danger, call 112.",
+        "The women's helpline 181 gives free, confidential help.",
+        "You can also speak up anonymously in FairShift."
+      ],
+      "health": [
+        "Rest and drink water if you can.",
+        "Tele-MANAS (14416) gives free, private support any time.",
+        "If you feel unwell at work, tell your supervisor."
+      ],
+      "benefits": [
+        "See which schemes you can get on your profile page.",
+        "Ask your employer for a work certificate there.",
+        "The e-Shram, EPFO and ESIC helplines can explain the details."
+      ],
+      "other": [
+        "Write down what happened and when.",
+        "Speak up in FairShift: it is anonymous.",
+        "The e-Shram helpline can advise on your rights."
+      ]
+    }
   }
 }

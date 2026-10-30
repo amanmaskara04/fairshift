@@ -13,8 +13,9 @@ import { cn } from "@/lib/utils";
  * the current one. Arrow keys / Home / End move, Enter or Space picks, Escape closes, focus is
  * trapped inside while open. Changing language updates the cookie and <html lang> and
  * refreshes in place — it never adds a browser history entry.
+ * `side="top"` opens it upward, for a menu pinned to the bottom of a full-height rail.
  */
-export function LanguageMenu({ className }: { className?: string }) {
+export function LanguageMenu({ className, side = "bottom" }: { className?: string; side?: "top" | "bottom" }) {
   const t = useTranslations("a11y");
   const current = useLocale() as Locale;
   const router = useRouter();
@@ -107,7 +108,10 @@ export function LanguageMenu({ className }: { className?: string }) {
         aria-label={t("languageSwitch")}
         hidden={!open}
         onKeyDown={onMenuKeyDown}
-        className="menu-pop absolute right-0 z-50 mt-2 w-56 origin-top-right rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lift)]"
+        className={cn(
+          "menu-pop absolute z-50 w-56 rounded-2xl border border-line bg-surface p-1.5 shadow-[var(--shadow-lift)]",
+          side === "top" ? "bottom-full left-0 mb-2 origin-bottom-left" : "top-full right-0 mt-2 origin-top-right",
+        )}
       >
         {locales.map((locale, i) => {
           const selected = locale === current;
