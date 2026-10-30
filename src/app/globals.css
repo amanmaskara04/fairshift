@@ -303,13 +303,28 @@ html[data-hidden] *::after {
 }
 
 /*
+ * The entry scene's loops are SVG transforms, which the browser cannot hand to the GPU, so
+ * every frame costs main-thread style and layout work. They wait (drawn, but still) until
+ * the page has loaded and the browser is idle (html[data-scene-live], set by <MotionPolicy>),
+ * so they never compete with hydration or the first tap on a low-end phone.
+ */
+html:not([data-scene-live]) .work-scene * {
+  animation-play-state: paused;
+}
+
+/*
+ * Entrances start partly visible, never from opacity 0: content is readable from the first
+ * frame, and the browser counts it as painted at once instead of after the fade (LCP).
+ */
+
+/*
  * Skew reveal, adapted from the GSAP SplitText "AnimatedHeader" in D:/Animations
  * (Text Animations/12) as pure CSS. Split by word, never by letter, so Hindi, Tamil
  * and Telugu conjuncts are never broken apart.
  */
 .reveal-word {
   display: inline-block;
-  opacity: 0;
+  opacity: 0.25;
   transform: translateY(0.35em) skewX(10deg);
   animation: reveal-word 0.5s var(--ease-out) forwards;
   animation-delay: calc(var(--i, 0) * 40ms + var(--d, 0ms));
@@ -328,7 +343,7 @@ html[data-hidden] *::after {
 
 @keyframes rise-in {
   from {
-    opacity: 0;
+    opacity: 0.3;
     transform: translateY(12px);
   }
 }
