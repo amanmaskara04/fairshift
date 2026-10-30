@@ -2,13 +2,17 @@ import { attendanceRuleMet, checkEligibility, windowStart, type AttendanceDay, t
 import { minutesByDay } from "@/core/overtime";
 import { monthlyWage } from "@/core/pay";
 import { getISTDay } from "@/core/time";
-import type { ClosedShift } from "@/core/types";
+import type { ClosedShift, Sector, Shift } from "@/core/types";
 import { getScheme, SCHEMES } from "@/config/schemes";
-import type { CertificateRequest, Repos, Worker } from "@/server/repos/types";
+import type { CertificateRequest, Org, Repos, Worker } from "@/server/repos/types";
+
+/** Sector of every site (any employer: days worked elsewhere count towards a scheme too). */
+async function siteSectors(repos: Repos): Promise<Map<string, Sector>> {
+  return new Map((await repos.sites.getAll()).map((s) => [s.id, s.sector]));
+}
 
 /** Every IST day worked, with the sector of the site it was worked at. */
-async function attendanceDays(repos: Repos, shifts: ClosedShift[]): Promise<AttendanceDay[]> {
-  const sectorOf = new Map((await repos.sites.getAll()).map((s) => [s.id, s.sector]));
+function attendanceDays(shifts: ClosedShift[], sectorOf: Map<string, Sector>): AttendanceDay[] {
   const days: AttendanceDay[] = [];
   for (const shift of shifts) {
     const sector = sectorOf.get(shift.siteId);
@@ -27,15 +31,14 @@ export async function benefitsFor(repos: Repos, workerId: string, now: Date): Pr
   const worker = await repos.workers.getById(workerId);
   const org = worker ? await repos.orgs.getById(worker.orgId) : undefined;
   if (!worker || !org) return null;
-  const [shifts, certificates] = await Promise.all([repos.shifts.getByWorker(workerId), repos.certificates.getByWorker(workerId)]);
+  const [shifts, certificates, sectorOf] = await Promise.all([repos.shifts.getByWorker(workerId), repos.certificates.getByWorker(workerId), siteSectors(repos)]);
+  return { results: eligibilityFrom(worker, org, shifts, sectorOf, now), certificates };
+}
+
+/** Scheme eligibility from already-loaded data, so a whole organisation needs one batch of queries. */
+function eligibilityFrom(worker: Worker, org: Org, shifts: Shift[], sectorOf: Map<string, Sector>, now: Date): SchemeEligibility[] {
   const closed = shifts.filter((s): s is ClosedShift => Boolean(s.outAt));
-  const results = checkEligibility(
-    { sector: org.sector, monthlyWage: monthlyWage(worker.pay, org.labourRules) },
-    await attendanceDays(repos, closed),
-    SCHEMES,
-    now,
-  );
-  return { results, certificates };
+  return checkEligibility({ sector: org.sector, monthlyWage: monthlyWage(worker.pay, org.labourRules) }, attendanceDays(closed, sectorOf), SCHEMES, now);
 }
 
 export type CertificateError = "not_eligible" | "already_requested" | "not_found" | "not_pending";
@@ -54,7 +57,7 @@ export async function requestCertificate(
   const worker = (await repos.workers.getById(input.workerId))!;
   const shifts = (await repos.shifts.getByWorker(worker.id)).filter((s): s is ClosedShift => Boolean(s.outAt));
   const from = windowStart(input.now, scheme.rule.windowMonths);
-  const days = (await attendanceDays(repos, shifts))
+  const days = attendanceDays(shifts, await siteSectors(repos))
     .filter((d) => d.day >= from && (scheme.rule.workType !== "building" || d.sector === "construction"))
     .map((d) => d.day);
   const unique = [...new Set(days)].sort();
@@ -95,11 +98,18 @@ export interface EligibilityRow {
 
 /** For the admin People page: who has (nearly) met a certificate scheme's days, and their requests. */
 export async function certificateCandidates(repos: Repos, orgId: string, now: Date): Promise<EligibilityRow[]> {
-  const [workers, requests] = await Promise.all([repos.workers.getByOrg(orgId), repos.certificates.getByOrg(orgId)]);
+  // Two round trips for the whole organisation instead of a chain of queries per worker.
+  const [org, workers, requests, sectorOf] = await Promise.all([
+    repos.orgs.getById(orgId),
+    repos.workers.getByOrg(orgId),
+    repos.certificates.getByOrg(orgId),
+    siteSectors(repos),
+  ]);
+  if (!org) return [];
+  const shiftsOf = Map.groupBy(await repos.shifts.getByWorkers(workers.map((w) => w.id)), (s) => s.workerId);
   const rows: EligibilityRow[] = [];
-  const views = await Promise.all(workers.map((w) => benefitsFor(repos, w.id, now)));
-  for (const [i, worker] of workers.entries()) {
-    for (const result of views[i]?.results ?? []) {
+  for (const worker of workers) {
+    for (const result of eligibilityFrom(worker, org, shiftsOf.get(worker.id) ?? [], sectorOf, now)) {
       if (!getScheme(result.schemeId)?.needsWorkCertificate) continue;
       if (result.progress.done < result.progress.needed * CLOSE_TO_ELIGIBLE_SHARE) continue;
       const request = requests.find((r) => r.workerId === worker.id && r.schemeId === result.schemeId);

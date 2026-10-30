@@ -181,6 +181,7 @@ export function createMongoRepos(): Repos {
       // outAt: null matches both a stored null and a missing field.
       getOpenByWorkers: (workerIds) => find("shifts", { workerId: { $in: workerIds }, outAt: null }),
       getByWorkerInRange: (workerId, from, to) => find("shifts", { workerId, inAt: { $gte: from, $lte: to } }),
+      getByWorkersInRange: (workerIds, from, to) => find("shifts", { workerId: { $in: workerIds }, inAt: { $gte: from, $lte: to } }),
       getBySite: (siteId) => find("shifts", { siteId }),
     },
     hazards: { ...crud("hazards"), getAll: () => find("hazards"), getByOrg: (orgId) => find("hazards", { orgId }) },

@@ -24,7 +24,12 @@ export async function payCheckFor(repos: Repos, workerId: string, month: string)
   const [view, record] = await Promise.all([buildPayslip(repos, workerId, month), repos.paidRecords.get(workerId, month)]);
   if (!view) return null;
   const site = await repos.sites.getById(view.worker.siteId);
-  const minimumWage = findMinimumWage(site?.state ?? "IN", view.org.sector, view.worker.skillLevel);
+  return payCheckFrom(view, record, site?.state);
+}
+
+/** The pay check from already-loaded data (the payslip, the paid record and the site's state). */
+export function payCheckFrom(view: PayslipView, record: PaidRecordEntry | undefined, siteState: string | undefined): PayCheckView {
+  const minimumWage = findMinimumWage(siteState ?? "IN", view.org.sector, view.worker.skillLevel);
   const regular = view.payslip.lines.find((l) => l.kind === "regular");
   const overtime = view.payslip.lines.find((l) => l.kind === "overtime");
   const hourlyRate = regular?.rate ?? 0;
