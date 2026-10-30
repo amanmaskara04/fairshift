@@ -10,6 +10,7 @@ import { rankBySimilarity } from "@/core/similarity";
 import { getScheme } from "@/config/schemes";
 import { findMinimumWage, NATIONAL_FLOOR } from "@/config/minimum-wage";
 import { dayPart, istHour } from "@/lib/day-part";
+import { axisTicks } from "@/lib/axis";
 import { formatAge, formatDay, formatRupees, formatWhen } from "@/lib/format";
 import { dayShifts } from "../helpers";
 import { createHmac } from "node:crypto";
@@ -97,6 +98,15 @@ describe("display helpers", () => {
     expect(formatDay("2026-10-30")).toBe("30 Oct 2026");
     expect(formatDay("2026-10")).toBe("Oct 2026");
     expect(formatWhen(new Date("2026-10-30T08:45:00Z"))).toMatch(/30 Oct/);
+  });
+
+  it("picks whole-number chart ticks with a nice top that covers the data", () => {
+    expect(axisTicks(0)).toEqual([0, 1]);
+    expect(axisTicks(3)).toEqual([0, 1, 2, 3]);
+    expect(axisTicks(14)).toEqual([0, 5, 10, 15]);
+    expect(axisTicks(36)).toEqual([0, 10, 20, 30, 40]);
+    expect(axisTicks(40)).toEqual([0, 10, 20, 30, 40]);
+    expect(axisTicks(1234)).toEqual([0, 500, 1000, 1500]);
   });
 
   it("picks the part of the day in IST", () => {
