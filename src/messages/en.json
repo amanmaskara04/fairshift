@@ -34,13 +34,67 @@
     "forWorkersTitle": "For workers",
     "forWorkersText": "Big buttons, voice and your own language. Works on any phone, even offline.",
     "forManagersTitle": "For managers",
-    "forManagersText": "Live attendance, fatigue alerts and payroll that follows labour law.",
+    "forManagersText": "One honest view of attendance, safety and pay, built on labour-law rules.",
     "chipOffline": "Works offline",
     "chipVoice": "Voice in 4 languages",
     "chipPrivate": "Name hidden by default",
     "step": "Step {n}",
     "imWorker": "I'm a worker",
-    "imEmployer": "I'm an employer"
+    "imEmployer": "I'm an employer",
+    "insideTitle": "What's inside",
+    "features": {
+      "pay": {
+        "title": "Pay checked against your hours",
+        "text": "Spots unpaid overtime and shows the sum. Ask for a review in one tap."
+      },
+      "danger": {
+        "title": "Report danger by voice",
+        "text": "Fire and other emergencies go straight to the top, with a call-112 button. Your name stays hidden."
+      },
+      "help": {
+        "title": "Help when you need it",
+        "text": "One-tap emergency and free helplines, plus clear next steps for your problem."
+      },
+      "numbers": {
+        "title": "Speak up, safe in numbers",
+        "text": "Management sees an issue only when 5 workers sign. Who signed is never stored."
+      },
+      "welfare": {
+        "title": "Welfare you have earned",
+        "text": "Counts the days a welfare board needs and gets you a signed work certificate."
+      },
+      "passport": {
+        "title": "Skill passport",
+        "text": "Your verified work history and skills, shared by a QR link you control."
+      },
+      "duty": {
+        "title": "Who is on duty now",
+        "text": "Live attendance, with fatigue alerts for long days and night shifts."
+      },
+      "hazards": {
+        "title": "Hazards with deadlines",
+        "text": "Every report has a deadline and moves up the chain if it is ignored."
+      },
+      "payroll": {
+        "title": "Fair payroll",
+        "text": "Overtime by labour law, shortfalls flagged, and “Pay the gap” settles them."
+      },
+      "risk": {
+        "title": "Early warning on quitting",
+        "text": "Quit risk for each worker with the reasons, and site conditions shown apart."
+      }
+    },
+    "sdgTitle": "Built for UN SDG 8",
+    "sdgTargets": {
+      "t85": {
+        "label": "SDG 8.5",
+        "text": "Equal pay for work of equal value: every hour recorded, every rupee checked."
+      },
+      "t88": {
+        "label": "SDG 8.8",
+        "text": "Labour rights and safe workplaces: danger reported, fixed on time, voices heard."
+      }
+    }
   },
   "login": {
     "workerTab": "Worker",
@@ -666,7 +720,7 @@
           "invalid": "Some values are not valid numbers (net cannot be more than gross).",
           "unknown_worker": "Unknown worker code",
           "file": "Choose a CSV file under 100 KB.",
-          "rate_limited": "Too many uploads. Please wait a few minutes.",
+          "rate_limited": "Too many changes. Please wait a few minutes.",
           "columns": "The columns do not match the template."
         },
         "manualHint": "Start from what FairShift calculated, then say what was actually paid.",

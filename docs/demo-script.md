@@ -1,31 +1,34 @@
 # FairShift — 3-minute demo script
 
-Open the app on a phone (or a narrow browser window). No sign-up: every step uses the one-tap demo logins.
+Live: <https://fairshift-ashy.vercel.app>. Open it on a phone (or a narrow browser window). No sign-up: every step uses the one-tap demo logins on the home page.
 
-## 1. Worker, construction (Ramesh · Tamil-speaking mason) — 75 s
+Each step names the judging criterion it shows: **Impact** · **SDG 8** · **Inclusive** · **Tech** · **Scale**.
 
-1. **Landing** → *I'm a worker* → pick **தமிழ்** (tap the speaker to hear it) → the card morphs into the login. *(Or tap **Ramesh** under “Try the demo”.)*
-2. **Welcome moment**: “வணக்கம், Ramesh” and how much he has earned this month; it flies into the header.
-3. **Home**: *Earned this month so far* counts up (before deductions). A **“Possible pay shortfall: ₹907”** nudge and **“72 of 90 days”** for the Construction Workers Welfare Board.
-4. **Pay**: *Possible shortfall ₹907* — “13h 32m overtime recorded, 9h paid → 4h 32m × ₹200/h = ₹907”. Tap 🔊, then **Request review** → status *Sent*.
-5. **Report** → tap **Scaffolding**, type “Floor 3” → **“Someone already reported this. Add your report to it?”** → *Yes* → “3 workers reported this”, severity raised. Your name is hidden; you get a private number.
-6. **Report → PPE missing** (fixed by the manager) → **“Is it really fixed?”** → *No, still a problem* → reopened, deadline restarts.
-7. **Me**: benefits with progress rings and yes/no questions that stay on the phone; verified work history; choose what to share → **QR valid for 30 days**.
+## 1. Worker, construction (Ramesh · Tamil-speaking mason) — 80 s
 
-## 2. Worker, hospital (Sunita · Hindi-speaking ward attendant) — 45 s
+1. **Home page** → *I'm a worker* → pick **தமிழ்** (tap the speaker to hear it) → the card morphs into the login. *(Or tap **Ramesh** under “Try the demo”.)* **Inclusive**
+2. **Welcome**: “வணக்கம், Ramesh” and how much he has earned this month.
+3. **Home**: *Earned this month so far* counts up. A **“Possible pay shortfall: ₹907”** nudge and **“72 of 90 days”** for the Construction Workers Welfare Board. **SDG 8**
+4. **Pay**: “13h 32m overtime recorded, 9h paid → 4h 32m × ₹200/h = ₹907”. Tap 🔊 to hear it, then **Request review** → *Sent*. **SDG 8 · Inclusive**
+5. **Report** → tap the mic and say *“there is a fire near the cement store”* (or tap **Fire or smoke**) → the confirm screen says **Danger now** with a **Call 112 now** button. Your name is hidden; you get a private number. **Impact**
+6. **Report → Scaffolding** → *“Someone already reported this. Add your report to it?”* → *Yes* → “3 workers reported this”, severity raised. Only the same danger at the same site is ever joined. **Tech**
+7. **Help**: one-tap 112 and free national helplines. Type *“my overtime was not paid for two weeks”* → steps in your language, the e-Shram helpline, and a button to your pay check. **Impact · Inclusive**
+8. **Me**: benefits with progress rings; **Add a skill** (it shows *Pending* until the employer verifies it); choose what to share → **QR valid for 30 days**.
 
-1. **Home**: “Please rest” — three night shifts in a row and a short rest.
-2. **Speak up**: tap a face (each reacts differently), or speak a comment with the mic.
-3. **Issues at your site**: “Small-size gloves out of stock” shows *4 of 5 needed* → **Me too** → “5 workers signed — management can see it now.”
+## 2. Worker, hospital (Sunita · Hindi-speaking ward attendant) — 40 s
+
+1. **Home**: “Please rest”: three night shifts in a row and a short rest. **Impact**
+2. **Speak up**: tap a face, or speak a comment with the mic.
+3. **Issues at your site**: “Small-size gloves out of stock” shows *4 of 5 needed* → **Me too** → “5 workers signed — management can see it now.” **SDG 8.8**
 
 ## 3. Employers — 60 s
 
-1. **Priya (construction)**: *Needs attention* starts with **escalated** hazards (“Escalated to supervisor”, *Open 7h*), Ramesh's pay review, the 5-signer issue and a certificate request.
-2. **Hazards**: dismiss needs a reason; *Mark fixed* needs a note (+ optional after photo); merge/unmerge duplicates.
-3. **People**: site conditions are separate from individual quit-risk; **approve Venkat's work certificate** → open the signed certificate with its QR.
-4. **Payroll**: FairPay Sentinel flags each possible shortfall; record what was paid by hand or CSV (template download).
-5. **Dr. Arjun (hospital)**: the same dashboard with ward escalation (ward in-charge → nursing superintendent → HR) and Sunita's co-signed issue.
+1. **Priya (construction)**: the menu shows **X of 18 on duty**; *Needs attention* starts with **escalated** hazards (*Open 7h*), Ramesh's pay review, the 5-signer issue and a certificate request. **Impact**
+2. **Hazards**: dismiss needs a reason; *Mark fixed* needs a note (and an optional after photo).
+3. **Payroll**: FairPay Sentinel flags Ramesh's ₹907 → **Pay ₹907** → the gap is settled and disappears from Ramesh's phone. *Record pay for one worker* uses presets (*Paid in full*, *Overtime not paid*) and hour sliders instead of typing numbers. **SDG 8.5**
+4. **People**: only requests wait at the top. Verify Ramesh's skill; **approve Venkat's work certificate** → his row shows *View certificate* → the signed certificate with its QR. Every worker's welfare progress is in the table.
+5. **Dr. Arjun (hospital)**: the same product with ward escalation (ward in-charge → nursing superintendent → HR) and Sunita's co-signed issue. **Scale**
 
 ## What to say
 
-> “The AI phrases, the code computes. Every rupee, deadline and eligibility comes from tested rules; Gemini only understands speech, matches similar complaints, rewords and reads aloud — and each has a fallback. Workers are safe in numbers: management sees an issue only when five people sign, and we never store who signed.”
+> “The AI decides meaning, the code computes. Gemini understands a spoken report, judges how urgent it is and suggests next steps; every rupee, deadline and eligibility comes from tested rules, and each AI feature has a fallback. A fire is always critical; a phone number can only come from our verified list. Workers are safe in numbers: management sees an issue only when five people sign, and we never store who signed. Construction and hospitals run on the same code; a new industry is a config file.”
