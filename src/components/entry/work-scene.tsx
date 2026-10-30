@@ -5,7 +5,8 @@ import { SceneParallax } from "./scene-parallax";
  * The shared background of the landing, language and login screens: workers from both
  * sectors at their jobs, in a hand-drawn flat SVG (a few KB, no images, no Lottie).
  * Loops are CSS keyframes on transform/opacity only (see `.scene-*` in globals.css); they
- * pause when the tab is hidden and are static for prefers-reduced-motion. Colours are the
+ * start once the page is loaded and idle, pause when the tab is hidden, and are static for
+ * prefers-reduced-motion. Colours are the
  * palette at low contrast so text on top always stays readable.
  */
 
