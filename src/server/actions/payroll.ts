@@ -14,7 +14,9 @@ import { Note } from "@/server/validation";
 const MAX_CSV_BYTES = 100 * 1024;
 const importLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 10 * 60 * 1000 });
 
-export type PaidFormState = { ok?: boolean; error?: "invalid" | "unknown_worker" };
+export type PaidFormState = { ok?: boolean; error?: "invalid" | "unknown_worker" | "rate_limited" };
+
+const saveLimiter = new RateLimiter({ maxTokens: 60, refillIntervalMs: 60 * 60 * 1000 });
 
 function refresh(): void {
   revalidatePath("/a/payroll");
@@ -25,6 +27,7 @@ function refresh(): void {
 /** Manual entry of what was actually paid. Money is typed in rupees and stored in paise. */
 export async function savePaidRecordAction(_prev: PaidFormState, formData: FormData): Promise<PaidFormState> {
   const session = await requireRole("admin");
+  if (!saveLimiter.check(session.uid)) return { error: "rate_limited" };
   const parsed = PaidRecordInput.safeParse({
     workerId: formData.get("workerId"),
     month: formData.get("month"),

@@ -3,7 +3,7 @@ import { getLocale, getTranslations } from "next-intl/server";
 import { KeyRound, Lock, Users } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
-import { trackedReports } from "@/server/actions/hazards";
+import { trackedReports } from "@/server/hazard-tracking";
 import { isReporter, sweepHazards } from "@/server/services/hazards";
 import { SpeakButton } from "@/components/speak-button";
 import { SuccessCheck } from "@/components/success-check";

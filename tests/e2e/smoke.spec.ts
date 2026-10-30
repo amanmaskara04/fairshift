@@ -24,6 +24,11 @@ test("landing sends security headers and has no a11y violations", async ({ page 
   expect(headers["x-content-type-options"]).toBe("nosniff");
   expect(headers["x-powered-by"]).toBeUndefined();
   await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+  // What's inside: both interfaces' features, and the SDG 8 targets they serve.
+  await expect(page.getByRole("heading", { name: "What's inside" })).toBeVisible();
+  await expect(page.getByText("Pay checked against your hours")).toBeVisible();
+  await expect(page.getByText("Who is on duty now")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Built for UN SDG 8" })).toBeVisible();
   await expectNoA11yViolations(page);
 });
 

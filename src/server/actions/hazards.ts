@@ -1,6 +1,5 @@
 "use server";
 
-import { cookies } from "next/headers";
 import { redirect, RedirectType } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -13,10 +12,8 @@ import { confirmFix, duplicateFor, hazardByTrackingRef, reportHazard } from "@/s
 import { getSectorProfile } from "@/core/sectors";
 import type { HazardCategory } from "@/core/types";
 import { HAZARD_CATEGORIES, SEVERITIES } from "@/ai/schemas";
+import { rememberReport, trackedReports } from "@/server/hazard-tracking";
 
-const TRACK_COOKIE = "fs_tracked";
-const MAX_TRACKED = 20;
-const TRACKED_ENTRY = /^(haz-[0-9a-z-]{2,40})~(FS-[A-Z0-9]{6})$/;
 
 /** Ten reports an hour is plenty for one person; more is a stuck button or abuse. */
 const reportLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 60 * 60 * 1000 });
@@ -34,35 +31,6 @@ const SubmitHazard = z.object({
   attach: z.enum(["auto", "new"]).default("auto"),
   photo: JpegDataUrl.optional(),
 });
-
-interface TrackedReport {
-  hazardId: string;
-  ref: string;
-}
-
-/**
- * Anonymous reports are remembered only on the reporter's own device (httpOnly cookie):
- * the hazard id plus the private reference whose hash is stored on the hazard.
- */
-export async function trackedReports(): Promise<TrackedReport[]> {
-  const raw = (await cookies()).get(TRACK_COOKIE)?.value ?? "";
-  return raw.split(",").flatMap((entry) => {
-    const match = TRACKED_ENTRY.exec(entry);
-    return match ? [{ hazardId: match[1], ref: match[2] }] : [];
-  });
-}
-
-async function rememberReport(tracked: TrackedReport): Promise<void> {
-  const others = (await trackedReports()).filter((t) => t.hazardId !== tracked.hazardId);
-  const entries = [tracked, ...others].slice(0, MAX_TRACKED).map((t) => `${t.hazardId}~${t.ref}`);
-  (await cookies()).set(TRACK_COOKIE, entries.join(","), {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/w",
-    maxAge: 60 * 60 * 24 * 90,
-  });
-}
 
 async function allowedCategory(orgId: string, category: string): Promise<HazardCategory | null> {
   const org = await getRepos().orgs.getById(orgId);
