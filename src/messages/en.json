@@ -60,7 +60,10 @@
     "deleteDigit": "Delete last digit",
     "keypad": "Number keypad",
     "title": "Sign in to your workplace",
-    "demoArjun": "Dr. Arjun (Hospital employer)"
+    "demoArjun": "Dr. Arjun (Hospital employer)",
+    "signedInAs": "You are signed in as {name}",
+    "continueAs": "Continue as {name}",
+    "switchAccount": "Use a different account"
   },
   "worker": {
     "greeting": "Hello, {name}!",

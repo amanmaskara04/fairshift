@@ -105,7 +105,8 @@ export async function demoLogin(formData: FormData): Promise<void> {
   return enter({ uid: admin.id, role: "admin", orgId: admin.orgId });
 }
 
-export async function logout(): Promise<void> {
+/** Logs out. A form may send role=admin so "use a different account" lands on the employer tab. */
+export async function logout(formData?: FormData): Promise<void> {
   await deleteSession();
-  redirect("/login", RedirectType.replace);
+  redirect(formData?.get("role") === "admin" ? "/login?role=admin" : "/login", RedirectType.replace);
 }

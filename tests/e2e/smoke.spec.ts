@@ -69,6 +69,18 @@ test("demo worker reaches the worker home with the earnings counter", async ({ p
   await expect(page).not.toHaveURL(/\/login/);
 });
 
+test("an old demo session never hijacks “I'm an employer”", async ({ page }) => {
+  await demoLogin(page, /Ramesh/);
+  await page.goto("/");
+  await page.getByRole("link", { name: "I'm an employer" }).click();
+  await expect(page).toHaveURL(/\/login\?role=admin$/);
+  await expect(page.getByText(/signed in as Ramesh/)).toBeVisible();
+  await expectNoA11yViolations(page);
+  await page.getByRole("button", { name: "Use a different account" }).click();
+  await expect(page).toHaveURL(/\/login\?role=admin$/);
+  await expect(page.getByLabel("Email")).toBeVisible();
+});
+
 test("a worker cannot open admin pages", async ({ page }) => {
   await demoLogin(page, /Sunita/);
   await page.goto("/a");
