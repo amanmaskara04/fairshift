@@ -2,6 +2,8 @@
 
 Live: <https://fairshift-ashy.vercel.app>. Open it on a phone (or a narrow browser window). No sign-up: every step uses the one-tap demo logins on the home page.
 
+> **Shared demo data.** Everyone uses the same demo, and it resets once a day (India time). If another visitor has already pressed *Pay ₹907* today, Ramesh's shortfall shows only the remaining ₹167, and Priya's Payroll shows the gap as paid. That is the feature working: the ₹907 arithmetic is still listed on Ramesh's Pay screen.
+
 Each step names the judging criterion it shows: **Impact** · **SDG 8** · **Inclusive** · **Tech** · **Scale**.
 
 ## 1. Worker, construction (Ramesh · Tamil-speaking mason) — 80 s

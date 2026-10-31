@@ -23,7 +23,7 @@
 | **Security model** | [`SECURITY.md`](SECURITY.md): threats, controls, code and tests |
 | **Hosting** | Live on **Vercel** (Mumbai). The organisers could not provide Google Cloud credits and allowed any host; the same build is **Cloud Run-ready** (container + one-command deploy, smoke-tested in CI). [Details](#deployment) |
 
-**Contents:** [Judging criteria](#judging-criteria--evidence) · [The brief, point by point](#the-brief-point-by-point) · [Pain points](#pain-point--feature--code) · [Two sectors](#two-sectors-one-product) · [Architecture](#architecture) · [AI](#ai-decides-meaning-code-computes) · [Security](#privacy-and-security-by-design) · [Accessibility](#accessibility-and-inclusivity) · [Testing](#testing) · [Deployment](#deployment) · [Roadmap](#roadmap)
+**Contents:** [Judging criteria](#judging-criteria--evidence) · [The brief, point by point](#the-brief-point-by-point) · [Pain points](#pain-point--feature--code) · [Two sectors](#two-sectors-one-product) · [Architecture](#architecture) · [AI](#ai-decides-meaning-code-computes) · [Security](#privacy-and-security-by-design) · [Accessibility](#accessibility-and-inclusivity) · [Testing](#testing) · [Design trade-offs](#design-decisions-and-trade-offs) · [Deployment](#deployment) · [Roadmap](#roadmap)
 
 **One tap in, no sign-up.** Open the app and tap a demo person:
 
@@ -89,7 +89,7 @@ Every requirement in the official problem statement (*FairShift: Decent Work Pla
 | Delayed escalation | Hazard deadlines by severity with **auto-escalation** up the sector's chain; issues reach management the moment 5 workers sign; pay shortfalls flagged before they become disputes |
 | Regional languages | 4 languages in native scripts, a parity test on every key, AI that understands speech in any of them |
 | Limited literacy | Voice in, voice out, icons and faces instead of forms, numbers explained in plain words |
-| Basic smartphones | ~150 ms average page load on a phone profile (measured on the live demo), offline check-ins, no chart or animation libraries |
+| Basic smartphones | Every page loads in under 400 ms on a phone profile, typically 150–200 ms (measured on the live demo); offline check-ins; no chart or animation libraries |
 
 **Sectors named in the brief:** construction ✅ live · hospitals ✅ live · colleges & schools (campus profile) · factories (factory profile). A new sector is one configuration file.
 
@@ -215,7 +215,7 @@ Full threat model with code and test pointers: **[`SECURITY.md`](SECURITY.md)**.
 
 ## Performance on a ₹7,000 phone
 
-Server Components by default; client JS only for interactive islands. The animated scene is **inline SVG + CSS keyframes** (no Lottie, no video, no animation library; page transitions use React 19's native `<ViewTransition>`). Admin charts are server-rendered HTML (no chart library). Fonts are self-hosted with only Latin preloaded. Batched queries avoid N+1 round trips; the menu's live headcount loads off the critical path from a query that reads only open shifts. The service worker precaches the shell; check-ins work offline. Lighthouse (mobile): 96–100 performance, 100 accessibility, best practices and SEO on the main pages.
+Server Components by default; client JS only for interactive islands. The animated scene is **inline SVG + CSS keyframes** (no Lottie, no video, no animation library; page transitions use React 19's native `<ViewTransition>`). Admin charts are server-rendered HTML (no chart library). Fonts are self-hosted with only Latin preloaded. Batched queries avoid N+1 round trips; the menu's live headcount loads off the critical path from a query that reads only open shifts. The service worker precaches the shell; check-ins work offline. Measured on the live demo (31 October 2026, best of 3): every page loads in under 400 ms on both a phone and a desktop profile, typically 150–200 ms. An earlier Lighthouse run (mobile, 30 October) scored 96–100 for performance and 100 for accessibility, best practices and SEO on the main pages.
 
 ## Testing
 
@@ -253,6 +253,19 @@ Highlights: overtime underpaid / regular underpaid / below minimum wage / exact 
 | **Testing** | 323 unit + 36 e2e + 34 live probes; 98% line coverage gated in CI (95% on every measure for the core); security and tenant-isolation suites; container smoke test | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **Accessibility** | AA contrast test, axe in e2e, keyboard menus and radiogroups, live regions, reduced motion, 4 languages + voice | [`tests/e2e`](tests/e2e), [`globals.css`](src/app/globals.css) |
 | **Problem alignment** | Worker + employer interfaces, construction + hospital, every pain point in the brief mapped above | [Pain point table](#pain-point--feature--code) |
+
+## Design decisions and trade-offs
+
+| Decision | Why | Trade-off accepted |
+|---|---|---|
+| **AI understands, code computes** | Pay and deadlines must be exact and explainable; a model can be wrong about a number | Every AI feature also needs a rule-based fallback |
+| **QR check-in, not GPS** | No location permission, works offline, and the rotating code must be scanned at the site within about a minute | Needs a printed QR or a kiosk phone per site; location check-in is on the roadmap |
+| **Web app (PWA), not a native app** | No app store, installs from a link, one codebase for workers and managers | No background notifications on every phone |
+| **Server Components, no chart or animation libraries** | Small pages for ₹7,000 phones on slow networks | Charts and animations hand-built in HTML, SVG and CSS |
+| **One repository interface** | Keyless local runs and fast tests in memory; MongoDB in production | An extra layer to maintain |
+| **Groups of 5 for feedback and issues** | Workers can't be identified by elimination | Very small teams see no feedback until 5 respond |
+| **No payment gateway** | FairShift checks wages, it doesn't move money; a gateway would weaken the strict security policy | *Pay the gap* records a payment rather than making it |
+| **Strict security headers over Lighthouse points** | COOP and the nonce CSP protect users | Some local Lighthouse runs can't measure the page with these headers on |
 
 ## Getting started
 
