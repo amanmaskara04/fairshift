@@ -23,7 +23,7 @@
 | **Security model** | [`SECURITY.md`](SECURITY.md): threats, controls, code and tests |
 | **Hosting** | Live on **Vercel** (Mumbai). The organisers could not provide Google Cloud credits and allowed any host; the same build is **Cloud Run-ready** (container + one-command deploy, smoke-tested in CI). [Details](#deployment) |
 
-**Contents:** [Judging criteria](#judging-criteria--evidence) · [The brief, point by point](#the-brief-point-by-point) · [Pain points](#pain-point--feature--code) · [Two sectors](#two-sectors-one-product) · [Architecture](#architecture) · [AI](#ai-decides-meaning-code-computes) · [Security](#privacy-and-security-by-design) · [Accessibility](#accessibility-and-inclusivity) · [Testing](#testing) · [Design trade-offs](#design-decisions-and-trade-offs) · [Deployment](#deployment) · [Roadmap](#roadmap)
+**Contents:** [See it](#see-it) · [Judging criteria](#judging-criteria--evidence) · [The brief, point by point](#the-brief-point-by-point) · [Pain points](#pain-point--feature--code) · [Two sectors](#two-sectors-one-product) · [Architecture](#architecture) · [AI](#ai-decides-meaning-code-computes) · [Security](#privacy-and-security-by-design) · [Accessibility](#accessibility-and-inclusivity) · [Testing](#testing) · [Design trade-offs](#design-decisions-and-trade-offs) · [Deployment](#deployment) · [Roadmap](#roadmap)
 
 **One tap in, no sign-up.** Open the app and tap a demo person:
 
@@ -35,6 +35,20 @@
 | **Dr. Arjun** · `arjun@citycare.demo` / `demo1234` | Hospital employer | The same dashboard with hospital rules, wards and escalation chain |
 
 The app runs **with no API key and no cloud account**: seeded data (generated relative to *today*) and a deterministic fallback for every AI feature.
+
+## See it
+
+| Worker app (phone) | | |
+|---|---|---|
+| <img src="docs/screenshots/worker-pay-shortfall.jpg" width="240" alt="Pay screen: possible shortfall of ₹907 with the arithmetic in plain words"> | <img src="docs/screenshots/worker-fire-call-112.jpg" width="240" alt="Report danger: fire or smoke marked Danger now with a Call 112 button"> | <img src="docs/screenshots/worker-home-tamil.jpg" width="240" alt="Worker home screen in Tamil"> |
+| **FairPay Sentinel:** ₹907 of overtime, with the arithmetic | **Fire is always critical:** one-tap Call 112 | **Four languages:** here, Tamil |
+
+| Employer dashboard (laptop) | |
+|---|---|
+| <img src="docs/screenshots/employer-overview.jpg" alt="Employer overview: needs attention, escalated hazards first, AI transparency"> | <img src="docs/screenshots/employer-hazards.jpg" alt="Hazard board: escalated electrical danger with the worker's photo"> |
+| **Needs attention:** escalated hazards first | **Hazard board:** escalation, photos, history |
+| <img src="docs/screenshots/employer-payroll.jpg" alt="Payroll: not entered, gap paid, matches and possible shortfall"> | |
+| **Payroll:** every outcome, from *Matches* to *Possible shortfall* | |
 
 ---
 
@@ -284,6 +298,15 @@ npm run dev                    # http://localhost:3000
 | `npm run lint` / `typecheck` / `format:check` | ESLint (zero warnings) / TypeScript / Prettier |
 | `npm run icons` | Regenerates favicon and PWA icons from the logo geometry |
 
+| Variable | Needed | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | Optional | Live AI. Without it, every AI feature uses its rule-based fallback |
+| `MONGODB_URI`, `MONGODB_DB` | Optional | Persistent database. Without them, in-memory demo data |
+| `DEMO_MODE` | Optional | `true` shows one-tap demo logins and re-seeds the demo data daily |
+| `SESSION_SECRET` | **Production** | Signs login cookies (32+ random characters) |
+| `FEEDBACK_HMAC_SECRET` | **Production** (unless demo) | One-way keys for anonymous feedback, issue signing and private hazard tracking |
+| `QR_SIGNING_SECRET`, `PASSPORT_SECRET`, `CRON_SECRET` | Optional | QR codes, passport and certificate links, the scheduled escalation sweep |
+
 Every environment variable is documented in [`.env.example`](.env.example). Without `MONGODB_URI` the app uses an in-memory store seeded relative to today. With it, MongoDB is seeded on first connection and, in demo mode, re-seeded once per IST day so the demo never shows a stale week.
 
 ## Deployment
@@ -337,7 +360,7 @@ src/
   messages/    en · hi · ta · te
 tests/         unit (Vitest: core · server · lib · ai · i18n · design) · e2e (Playwright + axe)
 scripts/       deploy-cloudrun.sh · security-probe.mjs · gen-icons.mjs
-docs/          demo-script.md
+docs/          demo-script.md · screenshots/
 ```
 
 ## Roadmap
