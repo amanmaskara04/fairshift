@@ -13,7 +13,14 @@ const DAY_MS = 24 * HOUR_MS;
 
 // ── Hazards ────────────────────────────────────────────────────────
 
-type ReportSeed = [reporterId: string | null, hoursAgo: number, transcript: string, transcriptEn: string];
+type ReportSeed = [
+  reporterId: string | null,
+  hoursAgo: number,
+  transcript?: string,
+  transcriptEn?: string,
+  /** A photo in `public/demo/`, as the worker attached it */
+  photo?: string,
+];
 type EventSeed = [status: HazardEvent, hoursAgo: number, by?: string, note?: string, level?: number];
 
 interface HazardSeed extends Pick<Hazard, "id" | "siteId" | "orgId" | "category" | "status" | "location"> {
@@ -133,6 +140,55 @@ const HAZARDS: HazardSeed[] = [
     extra: { dismissReason: "already_fixed", dismissNote: "Serviced by the vendor the same morning (job card 4471)." },
   },
   {
+    // Reported by tapping the Machine icon with a photo and no words; the manager has started work.
+    id: "haz-c7",
+    siteId: "site1",
+    orgId: "org1",
+    category: "machinery",
+    severity: "low",
+    status: "in_progress",
+    location: "Concrete pump boom swinging over the wall formwork",
+    reports: [[null, 3, undefined, undefined, "/demo/hazard-machine.jpg"]],
+    events: [
+      ["received", 3],
+      ["in_progress", 1, "admin1"],
+    ],
+    extra: { assigneeUid: "admin1" },
+  },
+  {
+    // Ramesh, by name: marked fixed, he said it was still a problem, so it reopened and has missed
+    // two 4-hour "Danger now" deadlines since (supervisor, then site manager).
+    id: "haz-c8",
+    siteId: "site1",
+    orgId: "org1",
+    category: "electrical",
+    severity: "critical",
+    status: "received",
+    location: "Floor 4 corridor",
+    reports: [
+      [
+        "w1001",
+        30,
+        "நான்காம் மாடியில் மின் பெட்டிக்கு வெளியே பிரேக்கர் தொங்குகிறது, கம்பிகள் திறந்து கிடக்கின்றன",
+        "On floor 4 the breaker is hanging outside the board and the wires are exposed",
+        "/demo/hazard-electrical.jpg",
+      ],
+    ],
+    events: [
+      ["received", 30],
+      ["in_progress", 28, "admin1"],
+      ["fixed", 24, "admin1", "Loose wires taped and the breaker screwed back to the wall."],
+      ["reopened", 9, undefined, "not_fixed"],
+      ["escalated", 5, undefined, undefined, 1],
+      ["escalated", 1, undefined, undefined, 2],
+    ],
+    extra: {
+      escalationLevel: 2,
+      assigneeUid: "admin1",
+      fixNote: "Loose wires taped and the breaker screwed back to the wall.",
+    },
+  },
+  {
     id: "haz-h1",
     siteId: "site2",
     orgId: "org2",
@@ -235,11 +291,12 @@ export function buildHazards(now: Date): Hazard[] {
     ...seed,
     baseSeverity: severity,
     severity,
-    reports: reports.map(([reporterId, hours, transcript, transcriptEn]): HazardReport => ({
+    reports: reports.map(([reporterId, hours, transcript, transcriptEn, photo]): HazardReport => ({
       reporterId,
       at: ago(hours),
       transcript,
       transcriptEn,
+      photoDataUrl: photo,
     })),
     timeline: events.map(([status, hours, by, note, level]) => ({ status, at: ago(hours), by, note, level })),
     createdAt: ago(reports[0][1]),
