@@ -21,7 +21,7 @@
 | **3-minute judge walkthrough** | [`docs/demo-script.md`](docs/demo-script.md) |
 | **Pitch deck** | [`/pitch`](https://fairshift-ashy.vercel.app/pitch) in the app |
 | **Security model** | [`SECURITY.md`](SECURITY.md): threats, controls, code and tests |
-| **Google Cloud Run** | Production container + one-command deploy ([below](#deploy-to-google-cloud-run)); CI builds and smoke-tests the image on every push |
+| **Hosting** | Live on **Vercel** (Mumbai). The organisers could not provide Google Cloud credits and allowed any host; the same build is **Cloud Run-ready** (container + one-command deploy, smoke-tested in CI). [Details](#deployment) |
 
 **One tap in, no sign-up.** Open the app and tap a demo person:
 
@@ -51,7 +51,7 @@ The app runs **with no API key and no cloud account**: seeded data (generated re
 - **Problem.** India's unorganised workers (over 90% of the workforce) cannot prove their hours, cannot read their payslips, fear speaking up, lose their work history when they change jobs, and miss welfare they are entitled to because claiming it needs paperwork they do not have.
 - **Solution.** A phone app in their own language that **records every hour, checks every rupee against what was actually paid, lets workers raise issues safely in numbers, gets them help in a crisis, and turns verified attendance into welfare eligibility and a signed work certificate**. Employers get an honest early-warning dashboard.
 - **Why it is trustworthy.** *The AI decides meaning, the code computes.* Every rupee, hour, deadline, eligibility and risk score comes from pure, unit-tested TypeScript in [`src/core`](src/core). Gemini understands speech, judges urgency, matches similar complaints, rewords explanations and reads aloud, and each of those has a deterministic fallback.
-- **Google technology.** Gemini 3.5 Flash-Lite / 3.8 Flash (structured JSON output), Gemini 3.8 Flash-Lite TTS (Tamil/Telugu read-aloud), Cloud Run, Secret Manager, Cloud Build, Cloud Scheduler, Google Fonts (self-hosted).
+- **Google technology.** Live: Gemini 3.5 Flash-Lite / 3.8 Flash (structured JSON output), Gemini 3.8 Flash-Lite TTS (Tamil/Telugu read-aloud), Google Fonts (self-hosted). Ready to switch on: Cloud Run, Secret Manager, Cloud Build and Cloud Scheduler ([Deployment](#deployment)).
 
 ## Pain point → feature → code
 
@@ -87,7 +87,7 @@ Everything that differs is **configuration** ([`core/sectors`](src/core/sectors)
 - **A new industry is a config file**, not a fork: a sector profile sets pay basis, roster, fatigue thresholds, hazard categories, escalation chain and schemes. Four profiles exist; two are seeded end to end.
 - **Low adoption cost.** Workers need only a phone browser (installable PWA, no app store, works offline). A site needs a printed QR or any old phone as a kiosk. Employers can import what they paid from a CSV template, so FairShift fits beside existing payroll.
 - **Degrades gracefully.** Without `GEMINI_API_KEY` every AI feature falls back to deterministic rules; without `MONGODB_URI` the app runs on an in-memory store. The demo works on a laptop with no accounts.
-- **Cheap to run.** Server Components, no chart library, cached TTS, the fastest Gemini model first, and AI only where it adds meaning. One stateless container scales horizontally on Cloud Run; data is org-scoped and indexed.
+- **Cheap to run.** Server Components, no chart library, cached TTS, the fastest Gemini model first, and AI only where it adds meaning. The server is stateless, so it scales out as serverless functions on Vercel today or as one container on Cloud Run; data is org-scoped and indexed.
 - **Ready for more languages.** Anek already covers Kannada, Bengali, Marathi and Odia scripts; a new locale is a JSON file checked by the parity test.
 
 ## Architecture
@@ -101,7 +101,7 @@ flowchart LR
         TTS1["Device voice"]
     end
 
-    subgraph Run["Google Cloud Run · asia-south1 · Next.js 16"]
+    subgraph Run["Next.js 16 · live on Vercel bom1 Mumbai · same build runs on Cloud Run"]
         PX["proxy.ts<br/>nonce CSP · headers · auth redirect"]
         SA["Server Actions & API routes<br/>requireRole · Zod · rate limits"]
         CORE["core/ — pure, deterministic, unit-tested<br/>overtime · pay · pay-check · eligibility · co-sign<br/>hazard lifecycle · urgency · duplicates · help triage<br/>risk · signed tokens"]
@@ -112,8 +112,8 @@ flowchart LR
 
     GEM["Gemini 3.5 Flash-Lite / 3.8 Flash<br/>+ 3.8 Flash-Lite TTS"]
     DB[("MongoDB Atlas · Mumbai")]
-    SM["Secret Manager"]
-    SCH["Cloud Scheduler<br/>hazard escalation sweep"]
+    SM["Encrypted env vars<br/>Vercel · or Secret Manager"]
+    SCH["Cloud Scheduler (on Cloud Run)<br/>hazard escalation sweep"]
 
     UI --> PX --> SA
     SW <--> IDB
@@ -125,7 +125,7 @@ flowchart LR
     SCH -- "POST /api/cron/hazards" --> SA
 ```
 
-Escalation also runs on every hazard page read, so deadlines hold even without the scheduler.
+Escalation also runs on every hazard page read, so deadlines hold even without the scheduler; that is how the live Vercel demo runs it.
 
 ### AI decides meaning, code computes
 
@@ -151,7 +151,7 @@ Full threat model with code and test pointers: **[`SECURITY.md`](SECURITY.md)**.
 - **Signed, expiring links.** Skill passports and work certificates use HMAC-SHA256 tokens with the token *kind* bound into the MAC; passports expire after 30 days.
 - **Every mutation** is a Server Action or API route with `requireRole` (worker vs admin, org-scoped), **Zod** validation and **rate limits**. Money is always computed on the server (*Pay the gap* never trusts an amount from the browser).
 - **Headers.** Per-request nonce CSP with `strict-dynamic`, HSTS, `nosniff`, `frame-ancestors 'self'`, COOP `same-origin`, no `x-powered-by`; same-origin and body-size checks on JSON routes; CSV export neutralises formula injection.
-- **Secrets** come from env / Secret Manager only; production refuses to start without them. `npm audit --omit=dev`: 0 vulnerabilities, checked in CI (see [`SECURITY.md`](SECURITY.md#dependencies) for build-time tooling).
+- **Secrets** come only from environment variables (Vercel's encrypted environment on the live demo, Secret Manager on Cloud Run); production refuses to start without them. `npm audit --omit=dev`: 0 vulnerabilities, checked in CI (see [`SECURITY.md`](SECURITY.md#dependencies) for build-time tooling).
 
 ## Accessibility and inclusivity
 
@@ -198,7 +198,7 @@ Highlights: overtime underpaid / regular underpaid / below minimum wage / exact 
 | Area | What we did | Where to look |
 |---|---|---|
 | **Code quality** | Pure `core/` with no I/O; one repository interface; config over code; typed end to end; Server Actions hold only guarded mutations; ESLint (React Compiler rules) with zero warnings | [`src/core`](src/core), [`src/config`](src/config), [`src/server/repos/types.ts`](src/server/repos/types.ts) |
-| **Security** | Nonce CSP, role + org checks on every mutation (tested across tenants), Zod everywhere, rate limits, HMAC guards and signed tokens, Secret Manager, 0 production audit findings, live probe script | [`SECURITY.md`](SECURITY.md), [`proxy.ts`](src/proxy.ts), [`server/actions`](src/server/actions) |
+| **Security** | Nonce CSP, role + org checks on every mutation (tested across tenants), Zod everywhere, rate limits, HMAC guards and signed tokens, secrets only from encrypted env vars, 0 production audit findings, live probe script | [`SECURITY.md`](SECURITY.md), [`proxy.ts`](src/proxy.ts), [`server/actions`](src/server/actions) |
 | **Efficiency** | Organisation-wide pages load in two batched round trips (payroll, certificates), open-shift-only headcount, idempotent hazard sweep, cached TTS, server-rendered charts, SVG-only visuals | [`services/workforce.ts`](src/server/services/workforce.ts), [`ai/tts.ts`](src/ai/tts.ts) |
 | **Testing** | 323 unit + 35 e2e + 34 live probes; 98% line coverage gated in CI (95% on every measure for the core); security and tenant-isolation suites; container smoke test | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **Accessibility** | AA contrast test, axe in e2e, keyboard menus and radiogroups, live regions, reduced motion, 4 languages + voice | [`tests/e2e`](tests/e2e), [`globals.css`](src/app/globals.css) |
@@ -222,9 +222,19 @@ npm run dev                    # http://localhost:3000
 
 Every environment variable is documented in [`.env.example`](.env.example). Without `MONGODB_URI` the app uses an in-memory store seeded relative to today. With it, MongoDB is seeded on first connection and, in demo mode, re-seeded once per IST day so the demo never shows a stale week.
 
-## Deploy to Google Cloud Run
+## Deployment
 
-The image is a multi-stage, non-root [`Dockerfile`](Dockerfile) using Next.js `output: "standalone"` with a health check; [`.dockerignore`](.dockerignore) and [`.gcloudignore`](.gcloudignore) keep secrets and build output out. CI builds and smoke-tests it on every push.
+### Live demo: Vercel
+
+The brief asked for Google Cloud. The organisers could not provide free Google Cloud credits and allowed teams to deploy anywhere, so the live demo runs on **Vercel in Mumbai** (`bom1`, pinned in [`vercel.json`](vercel.json)), next to **MongoDB Atlas Mumbai**, with live Gemini. Secrets are Vercel encrypted environment variables (see [`.env.example`](.env.example)); `GET /api/health` reports the database, region and AI status.
+
+```bash
+vercel deploy --prod
+```
+
+### Google Cloud Run (ready)
+
+Nothing in the code is tied to Vercel. The image is a multi-stage, non-root [`Dockerfile`](Dockerfile) using Next.js `output: "standalone"` with a health check; [`.dockerignore`](.dockerignore) and [`.gcloudignore`](.gcloudignore) keep secrets and build output out. CI builds and smoke-tests it on every push.
 
 **One command** (creates secrets in Secret Manager, grants access, builds with Cloud Build, deploys to `asia-south1`, and schedules the hazard escalation sweep every 15 minutes):
 
@@ -244,7 +254,7 @@ gcloud run deploy fairshift --source . --region asia-south1 --allow-unauthentica
 curl https://<service-url>/api/health   # {"status":"ok","db":"mongodb","ai":"configured",…}
 ```
 
-The live demo above runs the same build on Vercel (`bom1`, Mumbai) with `vercel deploy --prod`.
+With credits, this is the intended production target: the same build, no code changes.
 
 ## Project structure
 
@@ -261,7 +271,8 @@ src/
                certificate · pitch · api
   components/  UI: design-system primitives, worker & admin pieces, welcome, entry scene, logo
   messages/    en · hi · ta · te
-tests/         unit (Vitest) · e2e (Playwright + axe)
+tests/         unit (Vitest: core · server · lib · ai · i18n · design) · e2e (Playwright + axe)
+scripts/       deploy-cloudrun.sh · security-probe.mjs · gen-icons.mjs
 docs/          demo-script.md
 ```
 
