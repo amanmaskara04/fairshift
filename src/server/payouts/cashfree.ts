@@ -20,6 +20,8 @@ const LINK_LIFETIME_MS = 24 * 60 * 60 * 1000;
  */
 const SANDBOX_PHONE = "9999999999";
 const SANDBOX_PAN = "ABCPV1234D";
+/** One of Cashfree's accepted business types (it rejects anything else). */
+const SANDBOX_BUSINESS_TYPE = "Miscellaneous";
 
 interface CashfreeConfig {
   appId: string;
@@ -91,7 +93,7 @@ export function createCashfreeCheckout(config: CashfreeConfig): CheckoutProvider
         dashboard_access: false,
         schedule_option: 1,
         bank: { account_number: split.account, account_holder: vendorName(split), ifsc: split.ifsc },
-        kyc_details: { account_type: "INDIVIDUAL", business_type: "Individual", pan: SANDBOX_PAN },
+        kyc_details: { account_type: "INDIVIDUAL", business_type: SANDBOX_BUSINESS_TYPE, pan: SANDBOX_PAN },
       },
     });
     if (!created.ok) throw await failure(created);
