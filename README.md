@@ -23,6 +23,8 @@
 | **Security model** | [`SECURITY.md`](SECURITY.md): threats, controls, code and tests |
 | **Hosting** | Live on **Vercel** (Mumbai). The organisers could not provide Google Cloud credits and allowed any host; the same build is **Cloud Run-ready** (container + one-command deploy, smoke-tested in CI). [Details](#deployment) |
 
+**Contents:** [Judging criteria](#judging-criteria--evidence) · [The brief, point by point](#the-brief-point-by-point) · [Pain points](#pain-point--feature--code) · [Two sectors](#two-sectors-one-product) · [Architecture](#architecture) · [AI](#ai-decides-meaning-code-computes) · [Security](#privacy-and-security-by-design) · [Accessibility](#accessibility-and-inclusivity) · [Testing](#testing) · [Deployment](#deployment) · [Roadmap](#roadmap)
+
 **One tap in, no sign-up.** Open the app and tap a demo person:
 
 | Demo login | Who | Shows |
@@ -52,6 +54,46 @@ The app runs **with no API key and no cloud account**: seeded data (generated re
 - **Solution.** A phone app in their own language that **records every hour, checks every rupee against what was actually paid, lets workers raise issues safely in numbers, gets them help in a crisis, and turns verified attendance into welfare eligibility and a signed work certificate**. Employers get an honest early-warning dashboard.
 - **Why it is trustworthy.** *The AI decides meaning, the code computes.* Every rupee, hour, deadline, eligibility and risk score comes from pure, unit-tested TypeScript in [`src/core`](src/core). Gemini understands speech, judges urgency, matches similar complaints, rewords explanations and reads aloud, and each of those has a deterministic fallback.
 - **Google technology.** Live: Gemini 3.5 Flash-Lite / 3.8 Flash (structured JSON output), Gemini 3.8 Flash-Lite TTS (Tamil/Telugu read-aloud), Google Fonts (self-hosted). Ready to switch on: Cloud Run, Secret Manager, Cloud Build and Cloud Scheduler ([Deployment](#deployment)).
+
+## The brief, point by point
+
+Every requirement in the official problem statement (*FairShift: Decent Work Platform*, Prompt Wars 2026 × SRM ACM), with where to see it working.
+
+**Deliverables**
+
+| Asked for | FairShift |
+|---|---|
+| **3+ working features** | 14 working features (the 8 examples below plus the 6 in *Beyond the brief*), all covered by unit and end-to-end tests |
+| **2 UIs: workers and employers** | **Worker app `/w`** (phone first: Home, Pay, Report, Me and Help tabs, with Check in and Speak up from Home) and **employer dashboard `/a`** (Overview, Hazards, People, Feedback, Payroll, Sites, QR kiosk) |
+| **2+ industries, with a short cross-sector explanation** | **Construction** and **hospital** seeded end to end; **campus** and **factory** profiles included. See [Two sectors, one product](#two-sectors-one-product) |
+
+**The eight example features**
+
+| # | Example in the brief | In FairShift | Try it |
+|---|---|---|---|
+| 1 | **Shift tracking:** QR or location check-in with automatic overtime | Rotating signed QR from a gate kiosk or printed poster, works offline (queued, synced later); overtime at 2× computed per the site's rules. Sites store a geofence; location check-in is on the [roadmap](#roadmap) | Ramesh → Check in · Priya → Sites → QR kiosk |
+| 2 | **Clear payslips** in the worker's language | Payslip with every line explained, *“Why this amount?”*, *Explain in simple words* (AI rewording, numbers locked), read aloud in 4 languages; plus **FairPay Sentinel** comparing hours with what was paid | Ramesh → Pay |
+| 3 | **Safety reporting** by voice or text, with status tracking | Speak in any of 4 languages or tap a hazard icon, add where and a photo; a status page with age timer, deadline, escalation and *“Is it really fixed?”*; anonymous reports tracked by a private number | Ramesh → Report |
+| 4 | **Honest feedback:** anonymous reviews of managers and conditions | Weekly faces for *pay*, *safety* and *“Is your manager respectful?”* plus a comment (names removed), shown only in groups of 5+; **co-signed issues** visible only at 5 signers | Sunita → Speak up · Priya → Feedback |
+| 5 | **Skill passport:** portable record of training and experience | Verified work history from attendance, skills the worker adds and the employer verifies, shared by a **signed link that expires in 30 days**; employer-signed **work certificate** | Ramesh → Me |
+| 6 | **Fatigue alerts:** excessive hours, back-to-back shifts | Sector rules (long days, short rest, nights in a row, weekly hours) on the worker's home and the manager's People board | Sunita → Home · Priya → People |
+| 7 | **Admin dashboard:** attendance trends, complaints, quit risk | Attendance by day, overtime by week, live on-duty count, *Needs attention* list, feedback and issues, pay disputes, **explainable quit risk** | Priya → Overview / People |
+| 8 | **Voice and local** for low-end smartphones | English, हिन्दी, தமிழ், తెలుగు; voice input and read-aloud everywhere; icon-first, ≥48px targets; installable PWA, offline, SVG-only visuals | Any screen → language menu, 🔊 |
+
+**Employer blind spots and accessibility needs**
+
+| The brief says | FairShift answers with |
+|---|---|
+| Zero workforce visibility | Live *on duty* count, fatigue board, weekly mood, attendance and overtime charts, *Needs attention* first |
+| High attrition risk | Quit risk from overtime trend, missed days and pay disputes, with the reasons shown and site conditions kept separate |
+| Delayed escalation | Hazard deadlines by severity with **auto-escalation** up the sector's chain; issues reach management the moment 5 workers sign; pay shortfalls flagged before they become disputes |
+| Regional languages | 4 languages in native scripts, a parity test on every key, AI that understands speech in any of them |
+| Limited literacy | Voice in, voice out, icons and faces instead of forms, numbers explained in plain words |
+| Basic smartphones | ~150 ms average page load on a phone profile (measured on the live demo), offline check-ins, no chart or animation libraries |
+
+**Sectors named in the brief:** construction ✅ live · hospitals ✅ live · colleges & schools (campus profile) · factories (factory profile). A new sector is one configuration file.
+
+**Beyond the brief:** FairPay Sentinel with *Pay the gap* · Benefits Unlocker (BOCW, e-Shram, ESIC, PM-SYM) with a signed work certificate · *Safe in numbers* co-signed issues · Help tab with verified helplines and AI next steps · hazard deadlines, escalation and fix confirmation · AI weekly brief and an AI transparency panel for managers.
 
 ## Pain point → feature → code
 
@@ -94,11 +136,14 @@ Everything that differs is **configuration** ([`core/sectors`](src/core/sectors)
 
 ```mermaid
 flowchart LR
-    subgraph Phone["Worker phone · manager laptop"]
-        UI["React 19 Server Components<br/>+ small client islands"]
-        SW["Service worker<br/>offline page + queue"]
+    subgraph Clients["Two interfaces, one codebase · React 19 Server Components + small client islands"]
+        W["Worker app /w<br/>phone · 4 languages · voice"]
+        A["Employer dashboard /a<br/>laptop or phone"]
+        K["Gate kiosk /a/kiosk<br/>rotating QR"]
+        V["Public verification<br/>/passport · /certificate"]
+        SW["Service worker<br/>offline shell + queue"]
         IDB[("IndexedDB<br/>offline check-ins")]
-        TTS1["Device voice"]
+        TTS1["Device voice +<br/>speech recognition"]
     end
 
     subgraph Run["Next.js 16 · live on Vercel bom1 Mumbai · same build runs on Cloud Run"]
@@ -115,8 +160,13 @@ flowchart LR
     SM["Encrypted env vars<br/>Vercel · or Secret Manager"]
     SCH["Cloud Scheduler (on Cloud Run)<br/>hazard escalation sweep"]
 
-    UI --> PX --> SA
-    SW <--> IDB
+    W --> PX
+    A --> PX
+    K --> PX
+    V --> PX
+    PX --> SA
+    W <--> SW <--> IDB
+    W -.-> TTS1
     SA --> CORE
     CORE --> CFG
     SA --> AI --> GEM
@@ -279,6 +329,7 @@ docs/          demo-script.md
 ## Roadmap
 
 - **IVR / missed-call reporting** for feature phones: a missed call to a site number logs a hazard callback in the worker's language.
+- **Location check-in** inside the site geofence (sites already store one) as an alternative to the QR.
 - **WhatsApp bot** for payslips, shortfall alerts and issue signing.
 - **More languages** (Kannada, Bengali, Marathi, Odia; Anek already covers their scripts).
 - Live minimum-wage and scheme rules per state from official notifications; direct e-Shram/BOCW application hand-off.
