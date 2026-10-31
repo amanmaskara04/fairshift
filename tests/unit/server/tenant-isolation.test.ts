@@ -8,6 +8,8 @@ import { decideCertificate } from "@/server/services/benefits";
 import { payArrears, savePaidRecord } from "@/server/services/pay-check";
 import { respondToIssue } from "@/server/services/issues";
 import { payFocusMonth } from "@/core/period";
+import { createSimulatedProvider } from "@/server/payouts/simulated";
+import { payWorkers, refreshPayoutBatch, savePayoutAccount } from "@/server/services/payouts";
 
 beforeEach(() => resetMemoryStore());
 
@@ -80,5 +82,37 @@ describe("one organisation can never act on another's records", () => {
     expect(
       await respondToIssue(getRepos(), { orgId: "org2", issueId: "iss-2", status: "resolved", response: "x", now }),
     ).toEqual(NOT_FOUND);
+  });
+
+  it("payouts: paying, checking a batch and changing bank details", async () => {
+    const month = payFocusMonth(now);
+    const provider = createSimulatedProvider();
+    expect(
+      await payWorkers(getRepos(), provider, { ...outsider, month, workerIds: ["w1003"], randomHex: "a".repeat(12) }),
+    ).toEqual({ ok: false, error: "rejected", rejected: [{ workerId: "w1003", reason: "not_found" }] });
+
+    const own = await payWorkers(getRepos(), provider, {
+      orgId: "org1",
+      adminId: "admin1",
+      now,
+      month,
+      workerIds: ["w1006"],
+      randomHex: "b".repeat(12),
+    });
+    if (!own.ok) throw new Error("expected a batch");
+    expect(await refreshPayoutBatch(getRepos(), provider, { ...outsider, batchId: own.batch.id })).toEqual(NOT_FOUND);
+    expect((await getRepos().payoutBatches.getById(own.batch.id))!.items[0].status).toBe("pending");
+
+    const before = await getRepos().payoutAccounts.get("w1001");
+    expect(
+      await savePayoutAccount(getRepos(), {
+        ...outsider,
+        workerId: "w1001",
+        holder: "Someone Else",
+        account: "388108022658",
+        ifsc: "ICIC0000009",
+      }),
+    ).toEqual(NOT_FOUND);
+    expect(await getRepos().payoutAccounts.get("w1001")).toEqual(before);
   });
 });

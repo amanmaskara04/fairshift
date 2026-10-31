@@ -171,3 +171,45 @@ test("a worker adds a skill, the admin verifies it", async ({ browser }) => {
     worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Verified"),
   ).toBeVisible();
 });
+
+test("bulk payout: add bank details, pay three workers in one batch, then check the processing one", async ({
+  page,
+}) => {
+  await loginAs(page, /Priya/);
+  await page.goto("/a/payroll");
+  const panel = page.getByRole("region", { name: "Pay workers" });
+  await expect(panel.getByText("Sandbox simulation")).toBeVisible();
+
+  // Valli has no bank details yet, so she can't be ticked until they are added.
+  const valli = panel.getByRole("checkbox", { name: /Valli Ammal/ });
+  await expect(valli).toBeDisabled();
+  await panel
+    .getByRole("listitem")
+    .filter({ hasText: "Valli Ammal" })
+    .getByRole("button", { name: "Add bank details" })
+    .click();
+  await page.getByLabel("Account number").fill("1233943142");
+  await page.getByLabel("IFSC").fill("icic0000009");
+  await page.getByRole("button", { name: "Save bank details" }).click();
+  await expect(valli).toBeEnabled();
+  await expect(
+    panel.getByRole("listitem").filter({ hasText: "Valli Ammal" }).getByText("••••3142 · ICIC0000009"),
+  ).toBeVisible();
+
+  await panel.getByRole("checkbox", { name: /Venkat Rao/ }).check();
+  await panel.getByRole("checkbox", { name: /Ravi Sharma/ }).check();
+  await valli.check();
+  await panel.getByRole("button", { name: /^Pay 3 workers · ₹/ }).click();
+  await expectNoA11yViolations(page);
+  await page.getByRole("button", { name: /^Send ₹/ }).click();
+
+  // Two are paid at once; Ravi's test account is still processing until the next check.
+  const batch = panel.getByRole("article").first();
+  await expect(batch.getByText("2 paid · 0 failed · 1 processing")).toBeVisible();
+  await batch.getByRole("button", { name: "Check status" }).click();
+  await expect(batch.getByText("3 paid · 0 failed · 0 processing")).toBeVisible();
+
+  // Each payment is now the worker's pay record, so FairPay Sentinel shows it as matching.
+  await expect(page.getByRole("row", { name: /Venkat Rao/ }).getByText("Matches")).toBeVisible();
+  await expect(panel.getByRole("checkbox", { name: /Venkat Rao/ })).toHaveCount(0);
+});

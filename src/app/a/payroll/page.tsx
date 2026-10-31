@@ -4,6 +4,8 @@ import { Download } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildPayroll } from "@/server/services/payroll";
+import { payoutOverview } from "@/server/services/payouts";
+import { getPayoutProvider } from "@/server/payouts/provider";
 import { isMonthKey, monthKey, payFocusMonth } from "@/core/period";
 import { formatMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -12,6 +14,7 @@ import { PageHeader } from "@/components/page-header";
 import { DisputeList } from "@/components/admin/dispute-list";
 import { PaidRecordTools } from "@/components/admin/paid-records";
 import { PayrollTable } from "@/components/admin/payroll-table";
+import { PayoutPanel } from "@/components/admin/payout-panel";
 
 export default async function PayrollPage({ searchParams }: PageProps<"/a/payroll">) {
   const session = await requireRole("admin");
@@ -24,9 +27,11 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
       ? requested
       : payFocusMonth(now);
   const repos = getRepos();
-  const [rows, disputes] = await Promise.all([
-    buildPayroll(repos, session.orgId, month),
+  const payroll = buildPayroll(repos, session.orgId, month);
+  const [rows, disputes, payouts] = await Promise.all([
+    payroll,
     repos.payDisputes.getByOrg(session.orgId),
+    payoutOverview(repos, session.orgId, month, payroll),
   ]);
   const flagged = rows.filter((r) => r.outstanding > 0);
 
@@ -87,6 +92,8 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
         />
         <p className="text-xs text-ink-2">{t("sentinel.minimumWageNote")}</p>
       </section>
+
+      <PayoutPanel month={month} provider={getPayoutProvider()?.name ?? null} overview={payouts} />
 
       <PayrollTable rows={rows} month={month} />
 

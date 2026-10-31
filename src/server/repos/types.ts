@@ -6,6 +6,7 @@ import type { Hazard, Sector, Shift } from "@/core/types";
 import type { PaidRecord, FindingCode } from "@/core/pay-check";
 import type { IssueStatus } from "@/core/cosign";
 import type { SkillLevel } from "@/config/minimum-wage";
+import type { PayoutFailure, PayoutKind, PayoutStatus } from "@/core/payouts";
 
 export type { Hazard, Shift };
 
@@ -169,6 +170,55 @@ export interface CertificateRequest {
   decidedBy?: string;
 }
 
+/**
+ * Where a worker's pay goes. Kept apart from Worker so the full account number is only ever
+ * read by the payout service: pages get the masked form.
+ */
+export interface PayoutAccount {
+  /** The worker id: one account per worker */
+  id: string;
+  orgId: string;
+  holder: string;
+  account: string;
+  ifsc: string;
+  updatedAt: Date;
+  updatedBy: string;
+}
+
+export interface PayoutItem {
+  transferId: string;
+  workerId: string;
+  name: string;
+  kind: PayoutKind;
+  /** Paise, computed by payroll when the batch was created */
+  amount: number;
+  /** "••••1191" and the IFSC, as they were when sent */
+  accountMasked: string;
+  ifsc: string;
+  status: PayoutStatus;
+  failure?: PayoutFailure;
+  /** The provider's own words for a failure, for the employer's records */
+  detail?: string;
+  /** Bank reference number once paid */
+  utr?: string;
+  /** Payroll at the moment of paying, so a later "paid" records exactly what was sent */
+  payslip: { regularMinutes: number; overtimeMinutes: number; gross: number; deductions: number };
+  /** Set once the payment is written to the worker's pay record (never twice) */
+  recordedAt?: Date;
+}
+
+export interface PayoutBatch {
+  /** Also the provider's batch id */
+  id: string;
+  orgId: string;
+  month: string;
+  provider: "cashfree" | "simulated";
+  createdAt: Date;
+  createdBy: string;
+  updatedAt: Date;
+  items: PayoutItem[];
+}
+
 export interface AiLogEntry {
   feature: "hazard" | "explainPay" | "brief" | "similar" | "tts" | "help";
   model: string;
@@ -279,6 +329,20 @@ export interface CertificateRepo {
   update(id: string, data: Partial<CertificateRequest>): Promise<void>;
 }
 
+export interface PayoutAccountRepo {
+  getByOrg(orgId: string): Promise<PayoutAccount[]>;
+  get(workerId: string): Promise<PayoutAccount | undefined>;
+  /** Insert or replace the worker's account */
+  upsert(account: PayoutAccount): Promise<void>;
+}
+
+export interface PayoutBatchRepo {
+  getByOrgMonth(orgId: string, month: string): Promise<PayoutBatch[]>;
+  getById(id: string): Promise<PayoutBatch | undefined>;
+  create(batch: PayoutBatch): Promise<void>;
+  update(id: string, data: Partial<PayoutBatch>): Promise<void>;
+}
+
 export interface AiLogRepo {
   add(entry: AiLogEntry): Promise<void>;
   recent(limit: number): Promise<AiLogEntry[]>;
@@ -305,6 +369,8 @@ export interface Repos {
   issues: IssueRepo;
   issueSigners: GuardRepo;
   certificates: CertificateRepo;
+  payoutAccounts: PayoutAccountRepo;
+  payoutBatches: PayoutBatchRepo;
   aiLog: AiLogRepo;
   ttsCache: TtsCacheRepo;
 }
