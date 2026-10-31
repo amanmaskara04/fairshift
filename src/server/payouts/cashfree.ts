@@ -41,6 +41,17 @@ async function failure(response: Response): Promise<Error> {
   return new Error((body.message ?? `HTTP ${response.status}`).slice(0, 120));
 }
 
+/** The sandbox answers a missing vendor with 400 "vendor does not exist" (sometimes 404). */
+async function vendorMissing(response: Response): Promise<boolean> {
+  if (response.status === 404) return true;
+  if (response.status !== 400) return false;
+  const body = (await response
+    .clone()
+    .json()
+    .catch(() => ({}))) as { message?: string };
+  return /does not exist|not found/i.test(body.message ?? "");
+}
+
 export function createCashfreeCheckout(config: CashfreeConfig): CheckoutProvider {
   const fetchImpl = config.fetchImpl ?? fetch;
   const now = config.now ?? (() => new Date());
@@ -66,7 +77,7 @@ export function createCashfreeCheckout(config: CashfreeConfig): CheckoutProvider
     const vendorId = vendorIdFor(split.workerId);
     const existing = await call(`/easy-split/vendors/${vendorId}`);
     if (existing.ok) return;
-    if (existing.status !== 404) throw await failure(existing);
+    if (!(await vendorMissing(existing))) throw await failure(existing);
     const created = await call("/easy-split/vendors", {
       method: "POST",
       idempotencyKey: `vendor_${vendorId}`,

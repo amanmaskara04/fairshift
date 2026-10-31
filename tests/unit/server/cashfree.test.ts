@@ -36,7 +36,7 @@ describe("Cashfree checkout (sandbox)", () => {
     const fetchImpl = vi
       .fn<typeof fetch>()
       .mockResolvedValueOnce(json(200, { vendor_id: "fairshift_w1001" })) // Ramesh already a vendor
-      .mockResolvedValueOnce(json(404, { message: "vendor not found" })) // Sunita is not
+      .mockResolvedValueOnce(json(400, { code: "api_request_failed", message: "vendor does not exist" })) // Sunita is not
       .mockResolvedValueOnce(json(200, { vendor_id: "fairshift_w2001", status: "IN_BENE_CREATION" }))
       .mockResolvedValueOnce(json(200, { link_url: linkUrl, link_status: "ACTIVE" }));
     expect(await checkout(fetchImpl).create(request)).toEqual({ url: linkUrl });
@@ -88,6 +88,11 @@ describe("Cashfree checkout (sandbox)", () => {
       .mockResolvedValueOnce(json(200, {}))
       .mockResolvedValueOnce(json(400, { message: "easy split is not enabled for this merchant" }));
     await expect(checkout(refused).create(request)).rejects.toThrow("easy split is not enabled");
+
+    const otherBadRequest = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(400, { message: "x-api-version is invalid" }));
+    await expect(checkout(otherBadRequest).create(request)).rejects.toThrow("x-api-version is invalid");
 
     const vendorDown = vi.fn<typeof fetch>().mockResolvedValue(new Response("no", { status: 503 }));
     await expect(checkout(vendorDown).create(request)).rejects.toThrow("HTTP 503");
