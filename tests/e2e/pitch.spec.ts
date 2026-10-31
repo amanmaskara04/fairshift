@@ -20,11 +20,19 @@ test("pitch deck navigates with the keyboard and keeps the slide in the URL", as
   await expect(page.getByText("01 / 16")).toBeVisible();
 });
 
-test("pitch deck opens on a linked slide and embeds the live demo", async ({ page }) => {
+test("pitch deck opens on a linked slide and embeds the live demo at a real phone size", async ({ page }) => {
   await page.goto("/pitch#demo");
   await expect(page.getByRole("heading", { level: 1, name: "Try it right here" })).toBeVisible();
   const demo = page.frameLocator('iframe[title="Worker app demo"]');
   await expect(demo.getByRole("button", { name: /Ramesh/ })).toBeVisible();
+  expect(await demo.locator("html").evaluate(() => window.innerWidth)).toBe(390);
+});
+
+test("the full-screen button switches to exit and back", async ({ page }) => {
+  await page.goto("/pitch");
+  await page.getByRole("button", { name: "Full screen" }).click();
+  await page.getByRole("button", { name: "Exit full screen" }).click();
+  await expect(page.getByRole("button", { name: "Full screen" })).toBeVisible();
 });
 
 test("every pitch slide has no accessibility violations", async ({ page }) => {

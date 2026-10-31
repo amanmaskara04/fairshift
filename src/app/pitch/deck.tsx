@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Expand } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SLIDES } from "./slides";
 
@@ -54,6 +54,16 @@ export function Deck() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [go, index, total]);
+
+  // Follow the browser's real state, so Esc or F11 also flips the button back.
+  const [fullScreen, setFullScreen] = useState(false);
+  useEffect(() => {
+    const onChange = () => setFullScreen(Boolean(document.fullscreenElement));
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, []);
+  const toggleFullScreen = () =>
+    document.fullscreenElement ? document.exitFullscreen?.() : document.documentElement.requestFullscreen?.();
 
   const slide = SLIDES[index];
 
@@ -112,10 +122,15 @@ export function Deck() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => document.documentElement.requestFullscreen?.()}
-              aria-label="Full screen"
+              onClick={toggleFullScreen}
+              aria-label={fullScreen ? "Exit full screen" : "Full screen"}
+              title={fullScreen ? "Exit full screen (Esc)" : "Full screen"}
             >
-              <Expand aria-hidden="true" className="size-4" />
+              {fullScreen ? (
+                <Minimize2 aria-hidden="true" className="size-4" />
+              ) : (
+                <Maximize2 aria-hidden="true" className="size-4" />
+              )}
             </Button>
             <Button size="sm" onClick={() => go(index + 1)} disabled={index === total - 1} aria-label="Next slide">
               Next

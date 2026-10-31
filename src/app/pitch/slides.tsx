@@ -22,7 +22,7 @@ import {
   Sparkles,
   TestTube2,
   UserRound,
-  WifiOff,
+  Users,
 } from "lucide-react";
 import { BrandMark } from "@/components/brand-mark";
 import { Arrow, Flow, Node } from "./flow";
@@ -59,9 +59,40 @@ function Stat({ value, label }: { value: string; label: string }) {
   );
 }
 
-function Prompt({ children }: { children: ReactNode }) {
+/** A prompt exactly as I typed it (typos included); `gloss` is the English meaning of a Hinglish prompt. */
+function Prompt({ children, gloss }: { children: ReactNode; gloss?: string }) {
   return (
-    <li className="rounded-tile border border-line bg-surface px-3 py-2 text-sm leading-snug italic">“{children}”</li>
+    <li className="rounded-tile border border-line bg-surface px-3 py-2 text-sm leading-snug">
+      <span className="italic">“{children}”</span>
+      {gloss && <span className="mt-1 block text-xs text-ink-2">({gloss})</span>}
+    </li>
+  );
+}
+
+// A real phone viewport (390 × 844 CSS px), scaled to fit the frame, so the app lays out exactly
+// as it does on a phone instead of squeezing into a narrower box.
+const PHONE = { width: 390, height: 844, scale: 0.7 };
+
+function PhoneDemo() {
+  const screen = { width: PHONE.width * PHONE.scale, height: PHONE.height * PHONE.scale };
+  return (
+    <div className="mx-auto flex shrink-0 flex-col items-center rounded-[2.75rem] bg-ink px-[11px] pt-3 pb-[11px] shadow-xl">
+      <span aria-hidden="true" className="mb-2 h-1.5 w-16 rounded-full bg-ink-2" />
+      <div className="relative overflow-hidden rounded-[2rem] bg-paper" style={screen}>
+        <iframe
+          src="/login"
+          title="Worker app demo"
+          loading="lazy"
+          className="absolute top-0 left-0 border-0"
+          style={{
+            width: PHONE.width,
+            height: PHONE.height,
+            transform: `scale(${PHONE.scale})`,
+            transformOrigin: "top left",
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -74,13 +105,14 @@ export const SLIDES: Slide[] = [
       <div className="flex flex-col gap-8">
         <BrandMark className="text-4xl md:text-5xl" />
         <p className="max-w-3xl text-xl md:text-2xl">
-          A voice-first, multilingual app that gives shift workers proof of their hours, a payslip they can hear, and a
-          safe way to report danger — and gives employers an early warning before people get hurt or quit.
+          A voice-first app in four Indian languages that gives shift workers proof of their hours, a pay check they can
+          hear, a safe way to report danger and speak up, and gives employers an early warning before people get hurt or
+          quit.
         </p>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <Stat value="4" label="languages, read aloud" />
           <Stat value="2+" label="industries, one codebase" />
-          <Stat value="141" label="automated tests" />
+          <Stat value="359" label="automated tests" />
           <Stat value="0" label="accessibility violations" />
         </div>
       </div>
@@ -93,7 +125,8 @@ export const SLIDES: Slide[] = [
     body: (
       <div className="grid gap-4 md:grid-cols-2">
         <Card icon={<Scale className="size-5" />} title="Opaque pay">
-          Paper registers and WhatsApp groups. Overtime goes uncounted; the payslip is unreadable.
+          Paper registers and WhatsApp groups. Overtime goes uncounted, and nobody can check the payslip against the
+          hours actually worked.
         </Card>
         <Card icon={<Fingerprint className="size-5" />} title="Fear of being identified">
           Workers stay silent about bad supervisors or conditions because complaints can be traced back.
@@ -102,8 +135,8 @@ export const SLIDES: Slide[] = [
           A shaking scaffold or exposed wire is ignored until someone is injured.
         </Card>
         <Card icon={<ClipboardList className="size-5" />} title="Lost career history">
-          No record of skills, so every new job starts from zero. Employers can&apos;t see who is overworked or about to
-          quit.
+          No record of skills or days worked, so every new job starts from zero and welfare benefits go unclaimed.
+          Employers can&apos;t see who is overworked or about to quit.
         </Card>
       </div>
     ),
@@ -115,16 +148,20 @@ export const SLIDES: Slide[] = [
     body: (
       <div className="grid gap-4 md:grid-cols-2">
         <Card icon={<UserRound className="size-5" />} title="Shift worker">
-          Mason, ward attendant, cleaner. Budget Android, patchy data, may not read well, speaks Tamil, Hindi or Telugu.
+          Mason, ward attendant, cleaner. A ₹7,000 Android phone, patchy data, may not read well, speaks Tamil, Hindi or
+          Telugu.
         </Card>
         <Card icon={<Building2 className="size-5" />} title="Site manager">
-          Needs to see who is on site, who is exhausted, which hazards are open, and export payroll.
+          Needs to see who is on duty, who is exhausted, which hazards are overdue, and whether everyone was paid what
+          they are owed.
         </Card>
         <Card icon={<QrCode className="size-5" />} title="Gate kiosk">
-          A spare phone at the gate shows a QR code that changes every 30 seconds — photos of it stop working.
+          A spare phone at the gate shows a QR code that changes every 30 seconds, so a photo of it stops working within
+          a minute.
         </Card>
-        <Card icon={<BadgeCheck className="size-5" />} title="Next employer">
-          Opens a signed link to verify a worker&apos;s skills — and nothing else about them.
+        <Card icon={<BadgeCheck className="size-5" />} title="Next employer or welfare officer">
+          Opens a signed link to verify a worker&apos;s skills, work history or certificate, and only what the worker
+          chose to share.
         </Card>
       </div>
     ),
@@ -140,24 +177,25 @@ export const SLIDES: Slide[] = [
             <Node key="1">Read the brief + rubric line by line</Node>,
             <Node key="2">Studied past Prompt Wars winners</Node>,
             <Node key="3" tone="accent">
-              Designed for Ramesh&apos;s ₹6,000 phone
+              Designed for Ramesh&apos;s ₹7,000 phone
             </Node>,
-            <Node key="4">Smallest feature set that hits every rubric row</Node>,
+            <Node key="4">Every pain point mapped to a feature</Node>,
             <Node key="5" tone="brand">
               Tests + security from day one
             </Node>,
           ]}
         />
         <div className="grid gap-4 md:grid-cols-3">
-          <Card icon={<Lightbulb className="size-5" />} title="Insight from winners">
-            Top projects were judged on code quality, security, efficiency, testing, accessibility and alignment — not
-            just features.
+          <Card icon={<Lightbulb className="size-5" />} title="What gets judged">
+            Code quality, security, efficiency, testing, accessibility and problem alignment, not just the number of
+            features.
           </Card>
           <Card icon={<Cpu className="size-5" />} title="The core idea">
-            Let the AI <em>understand</em> messy speech; let tested code <em>compute</em> every rupee and hour.
+            Let the AI <em>understand</em> messy speech; let tested code <em>compute</em> every rupee, hour and
+            deadline.
           </Card>
           <Card icon={<Smartphone className="size-5" />} title="Hard constraints">
-            Low literacy, regional languages, 3G, cheap phones — so voice, icons, offline and tiny pages.
+            Low literacy, regional languages, slow data, cheap phones: so voice, icons, offline and light pages.
           </Card>
         </div>
       </div>
@@ -176,29 +214,29 @@ export const SLIDES: Slide[] = [
               <Node key="a">Pick language (own script)</Node>,
               <Node key="b">Code + PIN keypad</Node>,
               <Node key="c" tone="accent">
-                Home: today&apos;s hours
+                Home: earned so far
               </Node>,
               <Node key="d">Scan gate QR (works offline)</Node>,
-              <Node key="e">Speak a hazard / hear payslip / speak up</Node>,
+              <Node key="e">Check pay · speak a hazard · get help · speak up</Node>,
             ]}
           />
         </div>
         <div className="flex justify-center">
-          <Arrow vertical label="MongoDB · real time" />
+          <Arrow vertical label="MongoDB · Mumbai" />
         </div>
         <div className="flex flex-col gap-2">
           <p className="eyebrow">Manager</p>
           <Flow
             steps={[
               <Node key="f" tone="ink">
-                Needs attention
+                Needs attention (escalated first)
               </Node>,
-              <Node key="g">Hazard board → Start work → Fixed</Node>,
+              <Node key="g">Hazard → fixed → worker confirms</Node>,
               <Node key="h" tone="brand">
-                Worker sees the update
+                Pay shortfall → Pay the gap
               </Node>,
               <Node key="i">Fatigue + quit-risk reasons</Node>,
-              <Node key="j">Payroll CSV</Node>,
+              <Node key="j">Approve skills and certificates</Node>,
             ]}
           />
         </div>
@@ -214,41 +252,43 @@ export const SLIDES: Slide[] = [
         <Flow
           steps={[
             <Node key="1">
-              Worker phone · PWA
-              <span className="block text-xs font-normal">offline queue · service worker</span>
+              Worker app /w · Employer /a
+              <span className="block text-xs font-normal">PWA · offline queue · service worker</span>
             </Node>,
             <Node key="2" tone="ink">
               proxy.ts
-              <span className="block text-xs font-normal">nonce CSP · auth</span>
+              <span className="block text-xs font-normal">nonce CSP · security headers</span>
             </Node>,
             <Node key="3">
               Server Actions
-              <span className="block text-xs font-normal">roles · Zod · rate limits</span>
+              <span className="block text-xs font-normal">roles · org checks · Zod · rate limits</span>
             </Node>,
             <Node key="4" tone="brand">
-              Google Cloud Run
-              <span className="block text-xs font-normal">Next.js 16 · Mumbai</span>
+              Next.js 16 · Vercel Mumbai
+              <span className="block text-xs font-normal">Cloud Run–ready container</span>
             </Node>,
           ]}
         />
         <div className="grid gap-3 md:grid-cols-3">
           <Node tone="accent">
-            core/ — pure TypeScript
+            core/ · pure TypeScript
             <span className="block text-xs font-normal">
-              IST time · 2× overtime · payslip · fatigue · quit risk · QR · k-anonymity
+              2× overtime · pay check · fatigue · quit risk · eligibility · hazard deadlines · signed tokens
             </span>
           </Node>
           <Node>
-            ai/ — Gemini 3.5 Flash-Lite
-            <span className="block text-xs font-normal">speech → JSON · reword pay · weekly brief · fallbacks</span>
+            ai/ · Gemini 3.5 Flash-Lite · 3.8 Flash · TTS
+            <span className="block text-xs font-normal">
+              speech → JSON · hazard urgency · help steps · reworded pay · fallbacks
+            </span>
           </Node>
           <Node>
-            repos/ — one interface
-            <span className="block text-xs font-normal">MongoDB Atlas (Mumbai) · in-memory seed for tests</span>
+            repos/ · one interface
+            <span className="block text-xs font-normal">MongoDB Atlas (Mumbai) · in-memory for tests</span>
           </Node>
         </div>
         <p className="text-ink-2">
-          Gemini never produces a number. If it is down, a keyword classifier and template text take over — the demo
+          Gemini never produces a number. If it is down, rule-based fallbacks and template text take over, so the demo
           cannot break.
         </p>
       </div>
@@ -260,23 +300,27 @@ export const SLIDES: Slide[] = [
     title: "Six things nobody else ships together",
     body: (
       <div className="grid gap-4 md:grid-cols-3">
+        <Card icon={<Scale className="size-5" />} title="Pay you can check">
+          FairPay Sentinel compares recorded hours with what was paid: “4h 32m × ₹200/h = ₹907”. The employer settles it
+          with <em>Pay the gap</em>.
+        </Card>
         <Card icon={<Mic className="size-5" />} title="Speak, don't type">
-          Report danger in Tamil, Hindi or Telugu. Gemini turns speech into a structured report the worker confirms.
+          Report danger in Tamil, Hindi or Telugu. The AI judges how urgent it is; a fire is always critical, with a
+          one-tap Call 112.
         </Card>
-        <Card icon={<Scale className="size-5" />} title="Numbers you can trust">
-          Pay is computed by tested code. AI rewording is rejected if a single number changes.
+        <Card icon={<Users className="size-5" />} title="Safe in numbers">
+          An issue reaches management only when 5 workers sign it. Signers are never stored; feedback shows only for
+          groups of 5+.
         </Card>
-        <Card icon={<Lock className="size-5" />} title="Anonymous by design">
-          No worker id stored on feedback, day-level timestamps, names redacted, groups of 5+ only.
+        <Card icon={<HardHat className="size-5" />} title="Hazards can't be ignored">
+          Deadlines by severity, automatic escalation up the chain, and the worker confirms whether it is really fixed.
         </Card>
-        <Card icon={<WifiOff className="size-5" />} title="Works offline">
-          Check-ins queue on the phone and sync later, without duplicates.
-        </Card>
-        <Card icon={<Sparkles className="size-5" />} title="Explainable alerts">
-          Every quit-risk score shows its reasons — a prompt to talk, not a black box.
+        <Card icon={<BadgeCheck className="size-5" />} title="Attendance becomes proof">
+          Verified days unlock welfare schemes (BOCW, e-Shram, ESIC) and a signed work certificate; a 30-day passport
+          link carries skills.
         </Card>
         <Card icon={<Languages className="size-5" />} title="Built for real phones">
-          Read-aloud on every screen, 48 px targets, menus two levels deep, tiny pages.
+          Read-aloud on every screen, a Help tab with verified helplines, offline check-ins, every page under 400 ms.
         </Card>
       </div>
     ),
@@ -286,23 +330,16 @@ export const SLIDES: Slide[] = [
     eyebrow: "Live demo",
     title: "Try it right here",
     body: (
-      <div className="grid items-start gap-6 md:grid-cols-[320px_1fr]">
-        <div className="mx-auto w-[300px] rounded-[2.2rem] border-[10px] border-foreground bg-foreground shadow-xl">
-          <iframe
-            src="/login"
-            title="Worker app demo"
-            className="h-[560px] w-full rounded-[1.5rem] bg-paper"
-            loading="lazy"
-          />
-        </div>
+      <div className="grid items-start gap-6 md:grid-cols-[300px_1fr]">
+        <PhoneDemo />
         <div className="flex flex-col gap-4">
           <ol className="flex flex-col gap-3">
             {[
-              "Tap “Ramesh” → Home shows today's hours and a rest warning.",
-              "Check in → “Demo: scan site QR” → ✓ checked in.",
-              "My pay → hear the payslip, tap “Why this amount?”.",
-              "Report danger → tap an icon → Send. It lands on the manager board.",
-              "Log in as Priya in another tab → Hazards → Start work → Ramesh sees “In progress”.",
+              "Tap “Ramesh” → Home shows what he has earned so far and a rest warning.",
+              "Pay → the possible shortfall, with the arithmetic in plain words. Tap 🔊 to hear it.",
+              "Report → tap “Fire or smoke” → Danger now, with a one-tap Call 112.",
+              "Help → type “my overtime was not paid” → next steps and the right helpline.",
+              "Open the manager dashboard as Priya → Needs attention, Payroll, People.",
             ].map((step, i) => (
               <li key={step} className="flex gap-3">
                 <span className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-ink">
@@ -312,6 +349,7 @@ export const SLIDES: Slide[] = [
               </li>
             ))}
           </ol>
+          <p className="text-sm text-ink-2">The phone shows the real app at a real phone size, not a screenshot.</p>
           <div className="flex flex-wrap gap-3">
             <a
               href="/login"
@@ -322,7 +360,7 @@ export const SLIDES: Slide[] = [
               Open worker app ↗
             </a>
             <a
-              href="/login"
+              href="/login?role=admin"
               target="_blank"
               rel="noreferrer"
               className="rounded-tile border-2 border-ink bg-surface px-4 py-2 font-bold"
@@ -342,23 +380,23 @@ export const SLIDES: Slide[] = [
       <div className="grid gap-6 md:grid-cols-2">
         <ul className="flex flex-col gap-2">
           <Prompt>
-            Check GitHub, LinkedIn and the internet for the best past Prompt Wars projects and what they did; read my
-            docs to learn what we must do to win.
+            check from github and linkedin and from internet that which are the best projects that have won older prompt
+            wars … and also read my docs to get a knowledge about what we have to do to win this promptwars
           </Prompt>
-          <Prompt>
-            Make proper build docs on a Next.js architecture — research the UI, research the architecture, make a build
-            plan, put it in the docs folder, and verify everything.
+          <Prompt gloss="Make proper build docs; we'll build on Next.js. Research the UI and the architecture, make a build plan, put it in the docs folder, and verify everything.">
+            build karne ka proper docs bana de, and next js arch pe banaenge. ui ka proper research kar, architecture ka
+            research kar, and then build plan bana, and docs folder mei daalde. sab kuch confirm and verify krna
           </Prompt>
-          <Prompt>Use the animations folder I added to make the app look great.</Prompt>
+          <Prompt>also i have added an animations folder in D drive from which you can use animation</Prompt>
         </ul>
         <div className="flex flex-col gap-3">
           <Card icon={<FileText className="size-5" />} title="What came out">
-            Six planning docs: past-winner research, product spec, UI/UX research for low-literacy users, architecture,
-            phased build plan, and a verification log with every library version checked against the registry.
+            Six planning docs before any code: past-winner research, product spec, UI/UX design for low-literacy users,
+            architecture, phased build plan, and a verification log.
           </Card>
           <Card icon={<Gauge className="size-5" />} title="Key decision">
-            Of the animation library, only the lightweight canvas “Waves” made it in — the WebGL effects were too heavy
-            for a ₹6,000 phone.
+            From the animation folder, one text effect made it in, rebuilt as pure CSS. The 3D and WebGL effects were
+            too heavy for a ₹7,000 phone; the landing scene is hand-made SVG.
           </Card>
         </div>
       </div>
@@ -366,27 +404,32 @@ export const SLIDES: Slide[] = [
   },
   {
     id: "prompts-2",
-    eyebrow: "My prompts · part 2 — build, polish & ship",
+    eyebrow: "My prompts · part 2 — build, test on my phone, fix",
     title: "How the product was sharpened",
     body: (
       <div className="grid gap-6 md:grid-cols-2">
         <ul className="flex flex-col gap-2">
-          <Prompt>Delegate the whole build to Antigravity, phase by phase.</Prompt>
           <Prompt>
-            I don&apos;t like the UI theme — make it distinctive and human-designed, not an AI template; keep it
-            accessible and fast.
+            deploy it on vercel and mongo db . we have to switch the services . and do it fast within 10 mins
           </Prompt>
-          <Prompt>Switch to MongoDB and deploy; follow the submission guide and push to GitHub.</Prompt>
-          <Prompt>Button clicks feel delayed — add hover effects and fix the click issue on every page.</Prompt>
+          <Prompt>the ui ux is very bad on android phone . please align it and fix it for both laptop and phone</Prompt>
           <Prompt>
-            There is no user flow or architecture diagram — show who our users are, why we stand out, and build the
-            pitch.
+            in danger when i am using voice command to report fire , its marking it low rank issue . the issue severity
+            if understood by ai would be better rather than depending on manual terms
+          </Prompt>
+          <Prompt>
+            everyone has same problem statement and used agents that gave everyone same thing . what different did we do
+          </Prompt>
+          <Prompt>
+            do full test and security audit and make it in the best possible form possible . make sure all tests passed
+            . act as proper testing engineer .
           </Prompt>
         </ul>
         <div className="flex flex-col gap-3">
           <Card icon={<Sparkles className="size-5" />} title="What came out">
-            The “worksite ledger” design system, MongoDB behind one data interface, Cloud Run deployment per the guide,
-            a 100× faster database path, and this deck.
+            Live on MongoDB in Mumbai within the hour; a phone-first redesign; AI-judged hazard severity (a fire is
+            always critical); FairPay Sentinel, Safe in numbers and the Benefits Unlocker; security and tenant-isolation
+            tests with a 98% coverage gate.
           </Card>
         </div>
       </div>
@@ -407,37 +450,38 @@ export const SLIDES: Slide[] = [
             <Node key="3" tone="ink">
               Antigravity task brief
             </Node>,
-            <Node key="4">Agent works through the phase</Node>,
+            <Node key="4">Agent builds the phase</Node>,
             <Node key="5" tone="brand">
-              Verified: build + tests + review
+              Verified: build + tests + my phone
             </Node>,
           ]}
         />
         <div className="grid gap-4 md:grid-cols-2">
-          <pre className="figure overflow-x-auto rounded-tile border border-ink bg-foreground p-4 text-xs leading-relaxed text-background md:text-sm">
+          <pre className="figure overflow-x-auto rounded-tile border border-ink bg-ink p-4 text-xs leading-relaxed text-paper md:text-sm">
             {`# Task A — FairShift: foundations + core engine
-You are working in D:/promptwars/fairshift …
-
-## Read first, fully
-1. docs/02-product-spec.md
-2. docs/04-architecture.md …
 
 ## Decisions (already made — do not deviate)
-- Sessions: HMAC-signed httpOnly cookie …
-- Money in integer paise; Gemini never computes
+- Data layer: repository interfaces; in-memory
+  backend now, one accessor getRepos()
+- i18n: en|hi|ta|te, short simple words
 
-## Deliver   ## Not your job
-## Done means
-- lint, typecheck, test, build all pass`}
+## Core engine — PURE TypeScript, no I/O
+- pay.ts: ALL money as integer paise
+
+## Tests (write them first for core)
+- coverage src/core/** ≥ 95
+
+## Not your job
+- no network/AI calls · no new dependencies`}
           </pre>
           <div className="flex flex-col gap-3">
             <Card icon={<Bot className="size-5" />} title="Why briefs, not chats">
               An agent starts cold. A brief fixes the decisions up front, lists exactly what to deliver, says what is{" "}
-              <em>not</em> its job, and defines “done” as passing checks.
+              <em>not</em> its job, and sets the tests that define “done”.
             </Card>
             <Card icon={<BadgeCheck className="size-5" />} title="Trust, but verify">
-              Agent output was never committed on faith: every phase had to pass lint, types, unit and end-to-end tests
-              first.
+              Agent output was never committed on faith: every phase had to pass lint, types, unit and end-to-end tests,
+              and then I used it on my own phone.
             </Card>
           </div>
         </div>
@@ -458,21 +502,31 @@ You are working in D:/promptwars/fairshift …
         </thead>
         <tbody>
           {[
-            ["Study past winners", "Treat security, tests and accessibility as features — they are scored."],
+            ["Study past winners", "Treat security, tests and accessibility as features: they are scored."],
             [
-              "Follow the submission guide",
-              "Google Cloud Run + Docker + Secret Manager; one branch, public .git repo.",
-            ],
-            [
-              "UI looks AI-generated",
-              "Original paper / ink / marigold system; every colour pair computed for WCAG AA.",
+              "Deploy on Vercel + MongoDB, fast",
+              "One data interface, so storage changed without touching a page; live in Mumbai within the hour.",
             ],
             [
               "Clicks feel slow",
-              "Measured 200 ms per DB query → moved servers to Mumbai (2 ms), added skeletons and spinners.",
+              "Measured the database round trip, moved the servers next to the data in Mumbai, added instant press feedback.",
             ],
-            ["Use the animations folder", "Kept one light canvas effect; skipped WebGL for low-end phones."],
-            ["Switch to MongoDB", "One data interface, so storage changed without touching a single page."],
+            [
+              "Fire marked as low severity",
+              "The AI judges severity from what is happening; code can only raise it. Fire is always critical.",
+            ],
+            [
+              "Use the animations folder",
+              "One text effect rebuilt as pure CSS; a hand-made SVG scene; no WebGL on low-end phones.",
+            ],
+            [
+              "Don't compromise security for Lighthouse",
+              "Strict security headers kept; speed won elsewhere (two database round trips per page).",
+            ],
+            [
+              "Follow the submission guide",
+              "A Cloud Run–ready container, smoke-tested in CI; live on Vercel, which the organisers allowed.",
+            ],
           ].map(([prompt, decision]) => (
             <tr key={prompt}>
               <td className="border-b border-line py-2 pr-4 font-semibold">{prompt}</td>
@@ -491,10 +545,19 @@ You are working in D:/promptwars/fairshift …
       <div className="grid gap-6 md:grid-cols-2">
         <div className="flex flex-col gap-3">
           {[
-            ["Unit · 117", "Pure engine: IST time, overtime, payslip, fatigue, risk, QR tokens — 99% line coverage."],
-            ["Integration", "Services + repositories: check-in idempotency, anonymity, payroll."],
-            ["End-to-end · 21", "Real browser (phone + desktop) through every flow, with axe accessibility checks."],
-            ["CI on every push", "Lint, types, tests, security audit, Docker build and smoke test."],
+            [
+              "Unit · 323",
+              "Pay, overtime, fatigue, risk, eligibility, hazard deadlines, signed tokens, AI guard rails, contrast, 4 languages.",
+            ],
+            ["Coverage · 98%", "Of all measured lines, enforced in CI: the build fails below 95%."],
+            [
+              "End-to-end · 36",
+              "Real browser (phone + desktop) through both interfaces, with axe accessibility checks.",
+            ],
+            [
+              "Live probes · 34",
+              "Read-only attacks on the deployed site: forged logins, cross-site requests, tampering.",
+            ],
           ].map(([name, text]) => (
             <div key={name} className="rounded-tile border border-line bg-surface p-3">
               <p className="font-display font-extrabold">{name}</p>
@@ -504,7 +567,7 @@ You are working in D:/promptwars/fairshift …
         </div>
         <Card icon={<Bug className="size-5" />} title="Real bugs the tests caught">
           <ul className="flex list-disc flex-col gap-1 pl-5">
-            <li>Overtime capped once per month instead of per week — workers underpaid.</li>
+            <li>Overtime capped once per month instead of per week: workers underpaid.</li>
             <li>Seeded shifts 5½ hours off on a UTC server.</li>
             <li>Keypad and PIN field shared a screen-reader label.</li>
             <li>“Thank you” screen swallowed by a page refresh.</li>
@@ -524,20 +587,22 @@ You are working in D:/promptwars/fairshift …
           A helper exported from a server-action file would have become a public endpoint leaking QR secrets. Moved to
           server-only code.
         </Card>
-        <Card icon={<Bot className="size-5" />} title="Prompt injection">
-          Speech and text are fenced as untrusted; output must match a strict schema; code decides final severity.
+        <Card icon={<Building2 className="size-5" />} title="Companies kept apart">
+          A test makes one company&apos;s manager try every action on another company&apos;s records: all refused,
+          nothing changed.
         </Card>
         <Card icon={<Lock className="size-5" />} title="Anonymity is a security property">
-          No identity on feedback, one-way guards, redaction — so a manager cannot unmask a worker.
+          No identity on feedback, one-way guards, names removed: a manager cannot unmask a worker.
         </Card>
         <Card icon={<Fingerprint className="size-5" />} title="Accounts">
           Hashed PINs, signed sessions, role checks on every action, login rate limits.
         </Card>
-        <Card icon={<FileText className="size-5" />} title="Secrets">
-          Only in Secret Manager — never in the repo, the image or the browser.
+        <Card icon={<Bot className="size-5" />} title="Prompt injection">
+          Speech and text are fenced as untrusted; output must match a strict schema; code decides the final severity.
         </Card>
-        <Card icon={<TestTube2 className="size-5" />} title="Headers & deps">
-          Nonce-based script policy, HSTS, no framing; 0 known vulnerabilities.
+        <Card icon={<TestTube2 className="size-5" />} title="Headers, secrets & dependencies">
+          Nonce script policy, HSTS, no framing. Secrets only in encrypted environment settings. 0 production
+          vulnerabilities; 34/34 live probes.
         </Card>
       </div>
     ),
@@ -551,15 +616,21 @@ You are working in D:/promptwars/fairshift …
         {[
           [
             "Real-world impact",
-            "Unpaid overtime visible; hazards reach managers in seconds and updates return to the worker.",
+            "Unpaid overtime found with its arithmetic; hazards escalate on deadlines; a fire always offers Call 112.",
           ],
           [
             "SDG 8",
-            "8.5 fair pay (2× overtime, readable payslips) · 8.8 safe workplaces (hazards, anonymous voice, fatigue rules).",
+            "8.5 fair pay (pay check, 2× overtime, Pay the gap) · 8.8 safe workplaces and rights (hazards, anonymous voice, welfare eligibility).",
           ],
-          ["Inclusivity", "4 languages, voice in and out, offline, big targets, axe 0 violations."],
-          ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 141 tests, green CI."],
-          ["Feasibility", "Construction and hospital from one codebase; Cloud Run autoscaling; MongoDB."],
+          [
+            "Inclusivity",
+            "4 languages, voice in and out, offline, big targets, axe 0 violations, every page under 400 ms.",
+          ],
+          ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 359 tests, 98% coverage, green CI."],
+          [
+            "Feasibility",
+            "Construction and hospital live from one codebase; a new industry is one config file; Cloud Run–ready.",
+          ],
         ].map(([k, v]) => (
           <div key={k} className="grid gap-1 border-b border-line pb-3 md:grid-cols-[220px_1fr]">
             <span className="font-display font-extrabold">{k}</span>
@@ -582,7 +653,9 @@ You are working in D:/promptwars/fairshift …
           <a href={REPO} className="font-bold text-primary underline underline-offset-4">
             github.com/amanmaskara04/fairshift
           </a>
-          <p className="text-ink-2">Built with Google Antigravity · Gemini · Google Cloud Run · Next.js · MongoDB</p>
+          <p className="text-ink-2">
+            Built with Claude Code and Google Antigravity · Gemini · Next.js · MongoDB Atlas · Vercel
+          </p>
         </div>
       </div>
     ),
