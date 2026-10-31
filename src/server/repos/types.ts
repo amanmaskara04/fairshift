@@ -186,29 +186,29 @@ export interface PayoutAccount {
 }
 
 export interface PayoutItem {
+  /** "<batch id>_<n>": one share of the checkout */
   transferId: string;
   workerId: string;
   name: string;
   kind: PayoutKind;
   /** Paise, computed by payroll when the batch was created */
   amount: number;
-  /** "••••1191" and the IFSC, as they were when sent */
+  /** "••••1191" and the IFSC, as they were when the checkout opened */
   accountMasked: string;
   ifsc: string;
   status: PayoutStatus;
   failure?: PayoutFailure;
-  /** The provider's own words for a failure, for the employer's records */
+  /** The provider's own words when the checkout could not be opened */
   detail?: string;
-  /** Bank reference number once paid */
-  utr?: string;
-  /** Payroll at the moment of paying, so a later "paid" records exactly what was sent */
+  /** Payroll at the moment of paying, so a later "paid" records exactly what was charged */
   payslip: { regularMinutes: number; overtimeMinutes: number; gross: number; deductions: number };
   /** Set once the payment is written to the worker's pay record (never twice) */
   recordedAt?: Date;
 }
 
+/** One checkout: the employer pays the total once, and it is split to each worker's bank account. */
 export interface PayoutBatch {
-  /** Also the provider's batch id */
+  /** Also the provider's payment link id */
   id: string;
   orgId: string;
   month: string;
@@ -216,6 +216,10 @@ export interface PayoutBatch {
   createdAt: Date;
   createdBy: string;
   updatedAt: Date;
+  /** Where the employer pays (a Cashfree payment link, or the simulated checkout page) */
+  checkoutUrl?: string;
+  /** Simulation only: the outcome chosen on the stand-in checkout page */
+  simulatedStatus?: PayoutStatus;
   items: PayoutItem[];
 }
 

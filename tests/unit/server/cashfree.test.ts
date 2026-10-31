@@ -1,149 +1,138 @@
-import { constants, generateKeyPairSync, privateDecrypt } from "node:crypto";
 import { describe, expect, it, vi } from "vitest";
-import { CASHFREE_SANDBOX_URL, cashfreeSignature, createCashfreeProvider } from "@/server/payouts/cashfree";
+import { CASHFREE_PG_SANDBOX_URL, createCashfreeCheckout, vendorIdFor } from "@/server/payouts/cashfree";
+import type { CheckoutRequest } from "@/server/payouts/provider";
 
 const NOW = new Date("2026-10-31T10:00:00Z");
-const transfers = [
-  {
-    transferId: "fs202610_abc_1",
-    amount: 90_750,
-    holder: "Ramesh Kumar",
-    account: "026291800001191",
-    ifsc: "YESB0000262",
-    remarks: "FairShift gap 2026-10",
-  },
-  {
-    transferId: "fs202610_abc_2",
-    amount: 18_400_00,
-    holder: "Arun Yadav",
-    account: "026291800001190",
-    ifsc: "YESB0000262",
-    remarks: "FairShift salary 2026-10",
-  },
-];
-
-const json = (status: number, body: unknown) =>
-  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
-
-const statusBody = {
-  batch_transfer_id: "fs202610_abc",
-  status: "SUCCESS",
-  transfers: [
-    { transfer_id: "fs202610_abc_1", status: "SUCCESS", transfer_utr: "UTR123" },
-    { transfer_id: "fs202610_abc_2", status: "FAILED", status_description: "Invalid account number" },
+const request: CheckoutRequest = {
+  batchId: "fs202610_abc123abc123",
+  amount: 90_750 + 18_400_00,
+  purpose: "FairShift wages 2026-10 (2 workers)",
+  returnUrl: "https://fairshift.test/api/checkout/return?batch=fs202610_abc123abc123",
+  payer: { id: "admin1", name: "Priya Menon" },
+  splits: [
+    {
+      workerId: "w1001",
+      holder: "Ramesh Kumar",
+      account: "026291800001191",
+      ifsc: "YESB0000262",
+      amount: 90_750,
+    },
+    { workerId: "w2001", holder: "सुनीता देवी", account: "00011020001772", ifsc: "HDFC0000001", amount: 18_400_00 },
   ],
 };
 
-function provider(fetchImpl: typeof fetch, publicKey?: string) {
-  return createCashfreeProvider({ clientId: "CF_ID", clientSecret: "CF_SECRET", publicKey, fetchImpl, now: () => NOW });
+const json = (status: number, body: unknown) =>
+  new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+const linkUrl = "https://payments-test.cashfree.com/links/o1tf1nvcvjhg";
+
+function checkout(fetchImpl: typeof fetch) {
+  return createCashfreeCheckout({ appId: "APP_ID", secretKey: "SECRET", fetchImpl, now: () => NOW });
 }
 
-describe("Cashfree payouts (sandbox)", () => {
-  it("sends one IMPS batch in rupees, then reads each transfer's outcome", async () => {
+const body = (call: Parameters<typeof fetch>) => JSON.parse(String(call[1]?.body));
+
+describe("Cashfree checkout (sandbox)", () => {
+  it("registers missing workers as vendors, then opens one payment link split between them", async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()
-      .mockResolvedValueOnce(json(200, { batch_transfer_id: "fs202610_abc", status: "RECEIVED" }))
-      .mockResolvedValueOnce(json(200, statusBody));
-    const results = await provider(fetchImpl).send("fs202610_abc", transfers);
+      .mockResolvedValueOnce(json(200, { vendor_id: "fairshift_w1001" })) // Ramesh already a vendor
+      .mockResolvedValueOnce(json(404, { message: "vendor not found" })) // Sunita is not
+      .mockResolvedValueOnce(json(200, { vendor_id: "fairshift_w2001", status: "IN_BENE_CREATION" }))
+      .mockResolvedValueOnce(json(200, { link_url: linkUrl, link_status: "ACTIVE" }));
+    expect(await checkout(fetchImpl).create(request)).toEqual({ url: linkUrl });
 
-    const [url, init] = fetchImpl.mock.calls[0];
-    expect(url).toBe(`${CASHFREE_SANDBOX_URL}/transfers/batch`);
-    expect(init?.method).toBe("POST");
-    const headers = init?.headers as Record<string, string>;
+    const calls = fetchImpl.mock.calls;
+    expect(calls.map(([url, init]) => `${init?.method} ${url}`)).toEqual([
+      `GET ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors/fairshift_w1001`,
+      `GET ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors/fairshift_w2001`,
+      `POST ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors`,
+      `POST ${CASHFREE_PG_SANDBOX_URL}/links`,
+    ]);
+    const headers = calls[3][1]?.headers as Record<string, string>;
     expect(headers).toMatchObject({
-      "x-api-version": "2024-01-01",
-      "x-client-id": "CF_ID",
-      "x-client-secret": "CF_SECRET",
+      "x-api-version": "2026-01-01",
+      "x-client-id": "APP_ID",
+      "x-client-secret": "SECRET",
+      "x-idempotency-key": request.batchId,
     });
-    expect(headers["x-cf-signature"]).toBeUndefined();
-    expect(JSON.parse(String(init?.body))).toEqual({
-      batch_transfer_id: "fs202610_abc",
-      transfers: [
-        {
-          transfer_id: "fs202610_abc_1",
-          transfer_amount: 907.5,
-          transfer_currency: "INR",
-          transfer_mode: "imps",
-          transfer_remarks: "FairShift gap 2026-10",
-          beneficiary_details: {
-            beneficiary_name: "Ramesh Kumar",
-            beneficiary_instrument_details: { bank_account_number: "026291800001191", bank_ifsc: "YESB0000262" },
-          },
-        },
-        expect.objectContaining({ transfer_id: "fs202610_abc_2", transfer_amount: 18400 }),
+
+    expect(body(calls[2])).toMatchObject({
+      vendor_id: "fairshift_w2001",
+      status: "ACTIVE",
+      // Cashfree vendor names allow Latin letters only, so a name in Devanagari falls back to the id.
+      name: "fairshift_w2001",
+      bank: { account_number: "00011020001772", ifsc: "HDFC0000001" },
+    });
+    expect(body(calls[3])).toEqual({
+      link_id: request.batchId,
+      link_amount: 18_400 + 907.5,
+      link_currency: "INR",
+      link_purpose: request.purpose,
+      link_partial_payments: false,
+      link_expiry_time: "2026-11-01T10:00:00.000Z",
+      customer_details: { customer_phone: "9999999999", customer_name: "Priya Menon" },
+      link_meta: { return_url: request.returnUrl },
+      link_notify: { send_sms: false, send_email: false },
+      order_splits: [
+        { vendor_id: "fairshift_w1001", amount: 907.5 },
+        { vendor_id: "fairshift_w2001", amount: 18_400 },
       ],
     });
-    expect(fetchImpl.mock.calls[1][0]).toBe(`${CASHFREE_SANDBOX_URL}/transfers/batch?batch_transfer_id=fs202610_abc`);
-    expect(results).toEqual([
-      { transferId: "fs202610_abc_1", status: "paid", utr: "UTR123" },
-      {
-        transferId: "fs202610_abc_2",
-        status: "failed",
-        failure: "invalid_account",
-        detail: "Invalid account number",
-      },
-    ]);
   });
 
-  it("signs requests with the account's public key when one is set", () => {
-    const { publicKey, privateKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
-    const pem = publicKey.export({ type: "spki", format: "pem" }).toString();
-    // Environment variables often carry the PEM with literal "\n".
-    const signature = cashfreeSignature("CF_ID", pem.replace(/\n/g, "\\n"), NOW);
-    const plain = privateDecrypt(
-      { key: privateKey, padding: constants.RSA_PKCS1_OAEP_PADDING, oaepHash: "sha1" },
-      Buffer.from(signature, "base64"),
-    ).toString();
-    expect(plain).toBe(`CF_ID.${NOW.getTime() / 1000}`);
+  it("explains why a checkout could not be opened", async () => {
+    const refused = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(json(200, {}))
+      .mockResolvedValueOnce(json(200, {}))
+      .mockResolvedValueOnce(json(200, {}))
+      .mockResolvedValueOnce(json(400, { message: "easy split is not enabled for this merchant" }));
+    await expect(checkout(refused).create(request)).rejects.toThrow("easy split is not enabled");
+
+    const vendorDown = vi.fn<typeof fetch>().mockResolvedValue(new Response("no", { status: 503 }));
+    await expect(checkout(vendorDown).create(request)).rejects.toThrow("HTTP 503");
+
+    const vendorRefused = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(404, {}))
+      .mockResolvedValueOnce(json(422, { message: "kyc_details.pan_missing" }));
+    await expect(checkout(vendorRefused).create(request)).rejects.toThrow("pan_missing");
+
+    const noUrl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(200, {}))
+      .mockResolvedValueOnce(json(200, {}))
+      .mockResolvedValueOnce(json(200, { link_status: "ACTIVE" }));
+    await expect(checkout(noUrl).create(request)).rejects.toThrow("did not return a payment link");
   });
 
-  it("sends the signature header when configured", async () => {
-    const { publicKey } = generateKeyPairSync("rsa", { modulusLength: 2048 });
-    const pem = publicKey.export({ type: "spki", format: "pem" }).toString();
-    const fetchImpl = vi.fn<typeof fetch>().mockResolvedValue(json(200, statusBody));
-    await provider(fetchImpl, pem).status("fs202610_abc");
-    expect((fetchImpl.mock.calls[0][1]?.headers as Record<string, string>)["x-cf-signature"]).toMatch(
-      /^[A-Za-z0-9+/=]+$/,
+  it("reads whether the link was paid", async () => {
+    const answer = (status: string) => vi.fn<typeof fetch>().mockResolvedValue(json(200, { link_status: status }));
+    expect(await checkout(answer("PAID")).status(request.batchId)).toBe("paid");
+    expect(await checkout(answer("ACTIVE")).status(request.batchId)).toBe("pending");
+    expect(await checkout(answer("EXPIRED")).status(request.batchId)).toBe("failed");
+    const paid = answer("PAID");
+    await checkout(paid).status(request.batchId);
+    expect(paid.mock.calls[0][0]).toBe(`${CASHFREE_PG_SANDBOX_URL}/links/${request.batchId}`);
+
+    await expect(checkout(vi.fn<typeof fetch>().mockResolvedValue(json(500, {}))).status("x")).rejects.toThrow("500");
+    await expect(checkout(vi.fn<typeof fetch>().mockResolvedValue(json(200, { nope: 1 }))).status("x")).rejects.toThrow(
+      "unexpected response",
     );
   });
 
-  it("never resends after a timeout or a 5xx: the transfers stay processing to be checked", async () => {
-    const offline = vi.fn<typeof fetch>().mockRejectedValue(new Error("timeout"));
-    expect((await provider(offline).send("b", transfers)).map((r) => r.status)).toEqual(["pending", "pending"]);
-    expect(offline).toHaveBeenCalledTimes(1);
-
-    const down = vi.fn<typeof fetch>().mockResolvedValue(json(503, {}));
-    expect((await provider(down).send("b", transfers)).map((r) => r.status)).toEqual(["pending", "pending"]);
-    expect(down).toHaveBeenCalledTimes(1);
+  it("cancels a link", async () => {
+    const ok = vi.fn<typeof fetch>().mockResolvedValue(json(200, { link_status: "CANCELLED" }));
+    await checkout(ok).cancel(request.batchId);
+    expect(ok.mock.calls[0][0]).toBe(`${CASHFREE_PG_SANDBOX_URL}/links/${request.batchId}/cancel`);
+    expect(ok.mock.calls[0][1]?.method).toBe("POST");
+    await expect(
+      checkout(vi.fn<typeof fetch>().mockResolvedValue(json(400, { message: "link already paid" }))).cancel("x"),
+    ).rejects.toThrow("already paid");
   });
 
-  it("marks every transfer failed when the batch is refused", async () => {
-    const refused = vi.fn<typeof fetch>().mockResolvedValue(json(400, { message: "Insufficient balance" }));
-    expect(await provider(refused).send("b", transfers.slice(0, 1))).toEqual([
-      { transferId: "fs202610_abc_1", status: "failed", failure: "bank_failed", detail: "Insufficient balance" },
-    ]);
-    const bare = vi.fn<typeof fetch>().mockResolvedValue(new Response("nope", { status: 401 }));
-    expect((await provider(bare).send("b", transfers.slice(0, 1)))[0].detail).toBe("HTTP 401");
-  });
-
-  it("keeps transfers processing when the outcome can't be read yet", async () => {
-    const accepted = () => json(200, { status: "RECEIVED" });
-    const statusDown = vi.fn<typeof fetch>().mockResolvedValueOnce(accepted()).mockResolvedValueOnce(json(500, {}));
-    expect((await provider(statusDown).send("b", transfers)).map((r) => r.status)).toEqual(["pending", "pending"]);
-
-    const partial = vi
-      .fn<typeof fetch>()
-      .mockResolvedValueOnce(accepted())
-      .mockResolvedValueOnce(json(200, { transfers: [{ transfer_id: "fs202610_abc_1", status: "PENDING" }] }));
-    expect((await provider(partial).send("b", transfers)).map((r) => r.status)).toEqual(["pending", "pending"]);
-  });
-
-  it("refuses a status answer it doesn't understand", async () => {
-    const odd = vi.fn<typeof fetch>().mockResolvedValue(json(200, { transfers: "nope" }));
-    await expect(provider(odd).status("b")).rejects.toThrow("unexpected response");
-    const down = vi.fn<typeof fetch>().mockResolvedValue(json(502, {}));
-    await expect(provider(down).status("b")).rejects.toThrow("502");
-    const empty = vi.fn<typeof fetch>().mockResolvedValue(json(200, {}));
-    expect(await provider(empty).status("b")).toEqual([]);
+  it("builds vendor ids Cashfree accepts", () => {
+    expect(vendorIdFor("w1001")).toBe("fairshift_w1001");
+    expect(vendorIdFor("w-10.01")).toBe("fairshift_w1001");
   });
 });

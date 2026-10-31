@@ -5,7 +5,7 @@ import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildPayroll } from "@/server/services/payroll";
 import { payoutOverview } from "@/server/services/payouts";
-import { getPayoutProvider } from "@/server/payouts/provider";
+import { getCheckoutProvider } from "@/server/payouts/provider";
 import { isMonthKey, monthKey, payFocusMonth } from "@/core/period";
 import { formatMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -93,7 +93,7 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
         <p className="text-xs text-ink-2">{t("sentinel.minimumWageNote")}</p>
       </section>
 
-      <PayoutPanel month={month} provider={getPayoutProvider()?.name ?? null} overview={payouts} />
+      <PayoutPanel month={month} provider={getCheckoutProvider()?.name ?? null} overview={payouts} />
 
       <PayrollTable rows={rows} month={month} />
 

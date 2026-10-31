@@ -172,13 +172,13 @@ test("a worker adds a skill, the admin verifies it", async ({ browser }) => {
   ).toBeVisible();
 });
 
-test("bulk payout: add bank details, pay three workers in one batch, then check the processing one", async ({
+test("pay three workers in one checkout: add bank details, pay on the checkout page, back to payroll", async ({
   page,
 }) => {
   await loginAs(page, /Priya/);
   await page.goto("/a/payroll");
   const panel = page.getByRole("region", { name: "Pay workers" });
-  await expect(panel.getByText("Sandbox simulation")).toBeVisible();
+  await expect(panel.getByText("Simulated checkout")).toBeVisible();
 
   // Valli has no bank details yet, so she can't be ticked until they are added.
   const valli = panel.getByRole("checkbox", { name: /Valli Ammal/ });
@@ -201,15 +201,37 @@ test("bulk payout: add bank details, pay three workers in one batch, then check 
   await valli.check();
   await panel.getByRole("button", { name: /^Pay 3 workers · ₹/ }).click();
   await expectNoA11yViolations(page);
-  await page.getByRole("button", { name: /^Send ₹/ }).click();
+  await page.getByRole("button", { name: /^Continue to checkout · ₹/ }).click();
 
-  // Two are paid at once; Ravi's test account is still processing until the next check.
-  const batch = panel.getByRole("article").first();
-  await expect(batch.getByText("2 paid · 0 failed · 1 processing")).toBeVisible();
-  await batch.getByRole("button", { name: "Check status" }).click();
-  await expect(batch.getByText("3 paid · 0 failed · 0 processing")).toBeVisible();
+  // The checkout page: one payment, split to each worker's bank account.
+  await page.waitForURL(/\/a\/payroll\/checkout\/fs\d{6}_[a-f0-9]{12}$/);
+  await expect(page.getByRole("heading", { name: "Simulated checkout" })).toBeVisible();
+  await expect(page.getByRole("listitem").filter({ hasText: "Valli Ammal" })).toContainText("••••3142");
+  await expectNoA11yViolations(page);
+  await page.getByRole("button", { name: /^Pay ₹/ }).click();
 
-  // Each payment is now the worker's pay record, so FairPay Sentinel shows it as matching.
+  // Back on payroll: all three paid, recorded, and FairPay Sentinel shows them as matching.
+  await page.waitForURL(/\/a\/payroll\?m=/);
+  await expect(panel.getByRole("article").first().getByText("3 paid · 0 not paid · 0 waiting")).toBeVisible();
   await expect(page.getByRole("row", { name: /Venkat Rao/ }).getByText("Matches")).toBeVisible();
   await expect(panel.getByRole("checkbox", { name: /Venkat Rao/ })).toHaveCount(0);
+});
+
+test("a checkout left unpaid can be resumed or cancelled, which frees the worker", async ({ page }) => {
+  await loginAs(page, /Priya/);
+  await page.goto("/a/payroll");
+  const panel = page.getByRole("region", { name: "Pay workers" });
+  await panel.getByRole("checkbox", { name: /Selvam Murugan/ }).check();
+  await panel.getByRole("button", { name: /^Pay 1 worker · ₹/ }).click();
+  await page.getByRole("button", { name: /^Continue to checkout · ₹/ }).click();
+  await page.waitForURL(/\/a\/payroll\/checkout\//);
+  await page.getByRole("link", { name: /Back to payroll/ }).click();
+
+  const batch = panel.getByRole("article").filter({ hasText: "Selvam Murugan" }).first();
+  await expect(batch.getByText("0 paid · 0 not paid · 1 waiting")).toBeVisible();
+  await expect(batch.getByRole("link", { name: "Continue payment" })).toBeVisible();
+  await batch.getByRole("button", { name: "Cancel" }).click();
+  await expect(batch.getByText("0 paid · 1 not paid · 0 waiting")).toBeVisible();
+  await expect(batch.getByText(/checkout cancelled/)).toBeVisible();
+  await expect(panel.getByRole("checkbox", { name: /Selvam Murugan/ })).toBeEnabled();
 });

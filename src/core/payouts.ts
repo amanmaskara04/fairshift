@@ -1,15 +1,17 @@
 /**
- * Bulk payouts: what each worker can be paid, bank detail checks, and batch bookkeeping.
- * Pure functions only. Amounts are always in paise and always come from payroll, never from a form.
+ * Paying several workers through one checkout: what each worker can be paid, bank detail checks,
+ * and batch bookkeeping. Pure functions only. Amounts are always in paise and always come from
+ * payroll, never from a form.
  */
 
 export type PayoutKind = "salary" | "gap";
 export type PayoutStatus = "pending" | "paid" | "failed";
-export type PayoutFailure = "invalid_account" | "invalid_ifsc" | "bank_failed" | "not_in_sandbox";
+/** Why a batch was not paid: the payment failed or was abandoned, or the checkout could not be opened. */
+export type PayoutFailure = "payment_failed" | "payment_cancelled" | "checkout_failed";
 
-/** Most workers one batch may pay: enough for a crew, small enough to review before sending. */
+/** Most workers one checkout may pay: enough for a crew, small enough to review before paying. */
 export const MAX_BATCH = 25;
-/** The provider's minimum transfer is ₹1. */
+/** The smallest amount a payment link or split can carry is ₹1. */
 export const MIN_PAYOUT = 100;
 
 /**
@@ -57,20 +59,15 @@ export function batchIdFor(month: string, randomHex: string): string {
 
 export const transferIdFor = (batchId: string, index: number) => `${batchId}_${index + 1}`;
 
-/** Maps a provider's transfer status to ours. Anything not final is still pending. */
-export function mapTransferStatus(status: string): PayoutStatus {
+/**
+ * Maps a payment link's status to ours. Only PAID is paid; a link that expired or was cancelled
+ * will never be paid; anything else (ACTIVE, PARTIALLY_PAID) is still waiting.
+ */
+export function mapLinkStatus(status: string): PayoutStatus {
   const s = status.toUpperCase();
-  if (s === "SUCCESS") return "paid";
-  if (["FAILED", "REJECTED", "REVERSED", "MANUALLY_REJECTED"].includes(s)) return "failed";
+  if (s === "PAID") return "paid";
+  if (["EXPIRED", "CANCELLED", "TERMINATED"].includes(s)) return "failed";
   return "pending";
-}
-
-/** A provider's free-text failure reason, as one of the reasons the dashboard can explain. */
-export function classifyFailure(description: string | undefined): PayoutFailure {
-  const text = (description ?? "").toLowerCase();
-  if (text.includes("ifsc")) return "invalid_ifsc";
-  if (text.includes("account")) return "invalid_account";
-  return "bank_failed";
 }
 
 export function summariseBatch(items: { status: PayoutStatus; amount: number }[]): {
@@ -90,5 +87,5 @@ export function summariseBatch(items: { status: PayoutStatus; amount: number }[]
   );
 }
 
-/** Paise as the rupee number payout APIs expect (two decimals). */
+/** Paise as the rupee number payment APIs expect (two decimals). */
 export const paiseToRupees = (paise: number) => Math.round(paise) / 100;

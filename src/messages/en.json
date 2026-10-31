@@ -770,13 +770,12 @@
       },
       "payouts": {
         "title": "Pay workers",
-        "hint": "Choose workers and pay them in one batch, by bank transfer (IMPS) to their account number and IFSC. No UPI needed. Every amount comes from payroll, never typed: the month's pay if nothing is recorded yet, or exactly the gap FairPay Sentinel found.",
+        "hint": "Choose workers and pay them all at once: you pay the total on a secure checkout page, and each worker's share is sent to their bank account. Every amount comes from payroll, never typed: the month's pay if nothing is recorded yet, or exactly the gap FairPay Sentinel found.",
         "mode": {
-          "cashfree": "Cashfree sandbox",
-          "simulated": "Sandbox simulation",
-          "off": "Payouts are off. Add Cashfree sandbox keys to switch them on."
+          "cashfree": "Cashfree sandbox checkout",
+          "simulated": "Simulated checkout",
+          "off": "Paying from FairShift is off. Add Cashfree payment gateway test keys to switch it on."
         },
-        "sandboxNote": "Test mode: no real money moves.",
         "none": "Nobody is owed anything for this month.",
         "kind": {
           "salary": "Month's pay",
@@ -787,29 +786,28 @@
         "selectAll": "Select all",
         "clear": "Clear",
         "pay": "{count, plural, one {Pay 1 worker} other {Pay # workers}} · {amount}",
-        "confirmTitle": "Send {amount}?",
-        "confirmHint": "{count, plural, one {1 bank transfer} other {# bank transfers}} in one batch. Each payment is added to the worker's pay record as soon as the bank confirms it.",
-        "send": "Send {amount}",
+        "confirmTitle": "Pay {amount} in one checkout?",
+        "confirmHint": "You'll go to the checkout page to pay {amount} once. It is split to {count, plural, one {1 worker's bank account} other {# workers' bank accounts}}, and each payment is added to their pay record when the checkout is paid.",
+        "send": "Continue to checkout · {amount}",
         "recent": "Recent payouts",
-        "batchSummary": "{paid} paid · {failed} failed · {pending} processing",
+        "batchSummary": "{paid} paid · {failed} not paid · {pending} waiting",
         "status": {
           "paid": "Paid",
-          "failed": "Failed",
-          "pending": "Processing"
+          "failed": "Not paid",
+          "pending": "Waiting for payment"
         },
-        "utr": "Ref {utr}",
         "failure": {
-          "invalid_account": "account number not valid",
-          "invalid_ifsc": "IFSC not valid",
-          "bank_failed": "the bank could not complete it",
-          "not_in_sandbox": "not a sandbox test account"
+          "payment_failed": "the payment did not go through",
+          "payment_cancelled": "checkout cancelled",
+          "checkout_failed": "the checkout could not be opened"
         },
         "checkStatus": "Check status",
         "errors": {
           "rejected": "Some of these workers can no longer be paid. The list is updated; please choose again.",
-          "rate_limited": "Too many payouts. Please wait a few minutes.",
-          "unavailable": "Payouts are not available right now. Please try again.",
-          "invalid": "Could not send. Please try again."
+          "rate_limited": "Too many checkouts. Please wait a few minutes.",
+          "unavailable": "Paying is not available right now. Please try again.",
+          "invalid": "Could not open the checkout. Please try again.",
+          "checkout_failed": "The checkout could not be opened. Please try again."
         },
         "account": {
           "edit": "Bank details",
@@ -830,7 +828,21 @@
             "invalid": "Please check the details.",
             "rate_limited": "Too many changes. Please wait a few minutes."
           }
-        }
+        },
+        "continueCheckout": "Continue payment",
+        "cancel": "Cancel",
+        "simulated": {
+          "eyebrow": "Checkout",
+          "title": "Simulated checkout",
+          "intro": "With Cashfree test keys, this step happens on Cashfree's own checkout page, where you pay with test net banking or a test card. Without keys, this page stands in for it.",
+          "notice": "Simulation: no money moves, and nothing here asks for bank or card details.",
+          "total": "Total",
+          "splitTitle": "Split to each worker's bank account",
+          "pay": "Pay {amount}",
+          "fail": "Make the payment fail",
+          "back": "Back to payroll (pay later)"
+        },
+        "sandboxNote": "Test mode: no real money moves."
       }
     },
     "sitesPage": {

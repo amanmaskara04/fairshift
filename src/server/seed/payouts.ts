@@ -1,10 +1,10 @@
 /**
- * Demo bank details: Cashfree's published sandbox test accounts, so a payout batch shows
- * every outcome. These accounts only work with test keys; no real bank is involved.
+ * Demo bank details where each worker's share of a checkout is settled: Cashfree's published
+ * sandbox test accounts. They only work with test keys; no real bank is involved.
  */
 import type { PayoutAccount, Worker } from "../repos/types";
 
-/** Test accounts that always succeed. */
+/** Sandbox test accounts that always succeed. */
 const SUCCESS: [account: string, ifsc: string][] = [
   ["026291800001191", "YESB0000262"],
   ["00011020001772", "HDFC0000001"],
@@ -14,23 +14,13 @@ const SUCCESS: [account: string, ifsc: string][] = [
   ["000100289877623", "SBIN0008752"],
 ];
 
-/** Workers whose payout shows another outcome. */
-export const PAYOUT_STORY: Record<string, [account: string, ifsc: string] | null> = {
-  // Arun: account number rejected by the bank.
-  w1002: ["026291800001190", "YESB0000262"],
-  // Ravi and Pooja: processing at first, paid on the next status check.
-  w1006: ["00224412311300", "YESB0000001"],
-  w2004: ["00224412311300", "YESB0000001"],
-  // Valli and Ramkali: no bank details yet, so the employer adds them first.
-  w1017: null,
-  w2012: null,
-};
+/** Valli and Ramkali have no bank details yet, so the employer adds them before paying. */
+export const WITHOUT_BANK_DETAILS = new Set(["w1017", "w2012"]);
 
 export function buildPayoutAccounts(workers: Worker[], now: Date): PayoutAccount[] {
   return workers.flatMap((worker, index) => {
-    const story = PAYOUT_STORY[worker.id];
-    if (story === null) return [];
-    const [account, ifsc] = story ?? SUCCESS[index % SUCCESS.length];
+    if (WITHOUT_BANK_DETAILS.has(worker.id)) return [];
+    const [account, ifsc] = SUCCESS[index % SUCCESS.length];
     return [
       {
         id: worker.id,

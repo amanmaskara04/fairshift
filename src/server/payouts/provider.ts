@@ -1,42 +1,48 @@
 import "server-only";
-import type { PayoutFailure, PayoutStatus } from "@/core/payouts";
+import type { PayoutStatus } from "@/core/payouts";
 import { isDemoMode } from "@/server/config";
-import { createCashfreeProvider } from "./cashfree";
-import { createSimulatedProvider } from "./simulated";
+import { getRepos } from "@/server/repos";
+import { createCashfreeCheckout } from "./cashfree";
+import { createSimulatedCheckout } from "./simulated";
 
-export interface TransferRequest {
-  transferId: string;
-  /** Paise */
-  amount: number;
+/** One worker's share of the checkout, settled to their bank account. */
+export interface CheckoutSplit {
+  workerId: string;
   holder: string;
   account: string;
   ifsc: string;
-  remarks: string;
+  /** Paise */
+  amount: number;
 }
 
-export interface TransferResult {
-  transferId: string;
-  status: PayoutStatus;
-  failure?: PayoutFailure;
-  detail?: string;
-  utr?: string;
-}
-
-/** Sends a batch of bank transfers (IMPS to account + IFSC) and reports each transfer's status. */
-export interface PayoutProvider {
-  readonly name: "cashfree" | "simulated";
-  send(batchId: string, transfers: TransferRequest[]): Promise<TransferResult[]>;
-  status(batchId: string): Promise<TransferResult[]>;
+export interface CheckoutRequest {
+  batchId: string;
+  /** Paise: always the sum of the splits */
+  amount: number;
+  purpose: string;
+  /** Absolute URL the payer comes back to after paying */
+  returnUrl: string;
+  payer: { id: string; name: string };
+  splits: CheckoutSplit[];
 }
 
 /**
- * Cashfree's sandbox when its test keys are set; otherwise a simulation of the same sandbox
- * in demo mode; otherwise nothing (payouts are switched off).
+ * A hosted checkout where the employer pays the total once and it is split to each worker.
+ * The browser is only ever sent to `url`; amounts and accounts go server to server.
  */
-export function getPayoutProvider(): PayoutProvider | null {
-  const { CASHFREE_CLIENT_ID: clientId, CASHFREE_CLIENT_SECRET: clientSecret } = process.env;
-  if (clientId && clientSecret) {
-    return createCashfreeProvider({ clientId, clientSecret, publicKey: process.env.CASHFREE_PUBLIC_KEY });
-  }
-  return isDemoMode() ? createSimulatedProvider() : null;
+export interface CheckoutProvider {
+  readonly name: "cashfree" | "simulated";
+  create(request: CheckoutRequest): Promise<{ url: string }>;
+  status(batchId: string): Promise<PayoutStatus>;
+  cancel(batchId: string): Promise<void>;
+}
+
+/**
+ * Cashfree's sandbox checkout when its payment gateway test keys are set; otherwise, in demo
+ * mode, a stand-in checkout page; otherwise nothing (paying from FairShift is switched off).
+ */
+export function getCheckoutProvider(): CheckoutProvider | null {
+  const { CASHFREE_APP_ID: appId, CASHFREE_SECRET_KEY: secretKey } = process.env;
+  if (appId && secretKey) return createCashfreeCheckout({ appId, secretKey });
+  return isDemoMode() ? createSimulatedCheckout(getRepos()) : null;
 }

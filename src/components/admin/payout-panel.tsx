@@ -3,18 +3,19 @@
 import { useActionState, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { Banknote, CircleCheck, CircleX, Clock, Landmark, RefreshCw, Send } from "lucide-react";
+import { Banknote, CircleCheck, CircleX, Clock, ExternalLink, Landmark, RefreshCw, Send, X } from "lucide-react";
 import type { PayoutBatchView, PayoutOverview } from "@/server/services/payouts";
 import {
-  payWorkersAction,
-  refreshPayoutAction,
+  cancelCheckoutAction,
+  confirmCheckoutAction,
   savePayoutAccountAction,
+  startCheckoutAction,
   type AccountFormState,
 } from "@/server/actions/payouts";
 import { formatINR, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { Sheet } from "@/components/ui/sheet";
 import { SubmitButton } from "@/components/ui/submit-button";
@@ -22,8 +23,9 @@ import { SubmitButton } from "@/components/ui/submit-button";
 type Provider = "cashfree" | "simulated" | null;
 
 /**
- * Bulk payouts: tick the workers, check the total, send one batch of bank transfers.
- * The browser only says who; every amount is computed on the server from payroll.
+ * Pay several workers in one checkout: tick the workers, check the total, then pay it once on
+ * the checkout page; each worker's share goes to their bank account. The browser only says who;
+ * every amount is computed on the server from payroll.
  */
 export function PayoutPanel({
   month,
@@ -55,14 +57,16 @@ export function PayoutPanel({
     });
   }
 
-  function send() {
+  function checkout() {
     setError(null);
     startTransition(async () => {
-      const result = await payWorkersAction({ month, workerIds: chosen.map((p) => p.workerId) });
+      const result = await startCheckoutAction({ month, workerIds: chosen.map((p) => p.workerId) });
       if (result.ok) {
-        setSelected(new Set());
-        setConfirming(false);
-      } else setError(result.error);
+        // Off to the checkout (Cashfree's page, or the simulated one); it brings the employer back.
+        window.location.assign(result.url);
+        return;
+      }
+      setError(result.error);
       router.refresh();
     });
   }
@@ -175,7 +179,7 @@ export function PayoutPanel({
         onClose={() => setConfirming(false)}
         title={t("confirmTitle", { amount: formatINR(total) })}
       >
-        <p className="text-ink-2">{t("confirmHint", { count: chosen.length })}</p>
+        <p className="text-ink-2">{t("confirmHint", { count: chosen.length, amount: formatINR(total) })}</p>
         <ul className="flex flex-col divide-y divide-line rounded-2xl border border-line">
           {chosen.map((p) => (
             <li key={p.workerId} className="flex items-center justify-between gap-3 px-3 py-2">
@@ -194,8 +198,8 @@ export function PayoutPanel({
             {t(`errors.${error}`)}
           </p>
         )}
-        <Button size="lg" onClick={send} disabled={pending || chosen.length === 0} aria-busy={pending || undefined}>
-          <Send aria-hidden="true" className="size-5" />
+        <Button size="lg" onClick={checkout} disabled={pending || chosen.length === 0} aria-busy={pending || undefined}>
+          <ExternalLink aria-hidden="true" className="size-5" />
           {t("send", { amount: formatINR(total) })}
         </Button>
       </Sheet>
@@ -222,13 +226,13 @@ function BatchList({ batches, canCheck }: { batches: PayoutBatchView[]; canCheck
   const t = useTranslations("admin.payrollPage.payouts");
   const locale = useLocale();
   const router = useRouter();
-  const [checking, startTransition] = useTransition();
+  const [busy, startTransition] = useTransition();
   const [error, setError] = useState(false);
 
-  function check(batchId: string) {
+  function run(action: typeof confirmCheckoutAction, batchId: string) {
     setError(false);
     startTransition(async () => {
-      const result = await refreshPayoutAction({ batchId });
+      const result = await action({ batchId });
       if (!result.ok) setError(true);
       router.refresh();
     });
@@ -250,10 +254,27 @@ function BatchList({ batches, canCheck }: { batches: PayoutBatchView[]; canCheck
               · <span className="figure font-semibold">{formatINR(batch.summary.paidAmount)}</span>
             </p>
             {batch.summary.pending > 0 && canCheck && (
-              <Button size="sm" variant="outline" onClick={() => check(batch.id)} disabled={checking}>
-                <RefreshCw aria-hidden="true" className={cn("size-4", checking && "animate-spin")} />
-                {t("checkStatus")}
-              </Button>
+              <span className="flex flex-wrap gap-2">
+                {batch.checkoutUrl && (
+                  <a href={batch.checkoutUrl} className={buttonVariants({ size: "sm" })}>
+                    <ExternalLink aria-hidden="true" className="size-4" />
+                    {t("continueCheckout")}
+                  </a>
+                )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => run(confirmCheckoutAction, batch.id)}
+                  disabled={busy}
+                >
+                  <RefreshCw aria-hidden="true" className={cn("size-4", busy && "animate-spin")} />
+                  {t("checkStatus")}
+                </Button>
+                <Button size="sm" variant="ghost" onClick={() => run(cancelCheckoutAction, batch.id)} disabled={busy}>
+                  <X aria-hidden="true" className="size-4" />
+                  {t("cancel")}
+                </Button>
+              </span>
             )}
           </header>
           <ul className="flex flex-col gap-1.5">
@@ -283,20 +304,17 @@ function ItemStatus({ item }: { item: PayoutBatchView["items"][number] }) {
   const t = useTranslations("admin.payrollPage.payouts");
   if (item.status === "paid") {
     return (
-      <>
-        <Badge tone="success">
-          <CircleCheck aria-hidden="true" className="size-4" />
-          {t("status.paid")}
-        </Badge>
-        {item.utr && <span className="text-xs text-ink-2">{t("utr", { utr: item.utr })}</span>}
-      </>
+      <Badge tone="success">
+        <CircleCheck aria-hidden="true" className="size-4" />
+        {t("status.paid")}
+      </Badge>
     );
   }
   if (item.status === "failed") {
     return (
       <Badge tone="danger" title={item.detail}>
         <CircleX aria-hidden="true" className="size-4" />
-        {t("status.failed")}: {t(`failure.${item.failure ?? "bank_failed"}`)}
+        {t("status.failed")}: {t(`failure.${item.failure ?? "payment_failed"}`)}
       </Badge>
     );
   }

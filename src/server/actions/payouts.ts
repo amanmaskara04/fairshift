@@ -2,23 +2,27 @@
 
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { z } from "zod";
 import { MAX_BATCH } from "@/core/payouts";
 import { monthKey } from "@/core/period";
 import { requireRole } from "@/server/dal";
-import { getPayoutProvider } from "@/server/payouts/provider";
+import { currentOrigin } from "@/server/origin";
+import { getCheckoutProvider } from "@/server/payouts/provider";
 import { RateLimiter } from "@/server/rate-limit";
 import { getRepos } from "@/server/repos";
 import {
-  payWorkers,
-  refreshPayoutBatch,
+  cancelCheckout,
+  completeSimulatedCheckout,
+  confirmCheckout,
   savePayoutAccount,
+  startCheckout,
   type AccountInputError,
-  type PayWorkersResult,
+  type StartCheckoutResult,
 } from "@/server/services/payouts";
 
-const payLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 60 * 60 * 1000 });
-const refreshLimiter = new RateLimiter({ maxTokens: 60, refillIntervalMs: 60 * 60 * 1000 });
+const checkoutLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 60 * 60 * 1000 });
+const statusLimiter = new RateLimiter({ maxTokens: 60, refillIntervalMs: 60 * 60 * 1000 });
 const accountLimiter = new RateLimiter({ maxTokens: 30, refillIntervalMs: 60 * 60 * 1000 });
 
 function refresh(): void {
@@ -30,49 +34,75 @@ function refresh(): void {
 /** Only the three months the payroll page shows can be paid. */
 const payableMonth = (month: string, now: Date) => [0, -1, -2].some((offset) => monthKey(now, offset) === month);
 
-const PayInput = z.object({
+const BatchId = z.string().regex(/^fs\d{6}_[a-f0-9]{12}$/);
+
+const StartInput = z.object({
   month: z.string().max(7),
   workerIds: z.array(z.string().max(40)).min(1).max(MAX_BATCH),
 });
 
-export async function payWorkersAction(
+/** Opens the checkout and returns where to send the employer; the browser then navigates there. */
+export async function startCheckoutAction(
   input: unknown,
-): Promise<PayWorkersResult | { ok: false; error: "rate_limited" | "unavailable" }> {
+): Promise<StartCheckoutResult | { ok: false; error: "rate_limited" | "unavailable" }> {
   const session = await requireRole("admin");
-  const parsed = PayInput.safeParse(input);
+  const parsed = StartInput.safeParse(input);
   const now = new Date();
   if (!parsed.success || !payableMonth(parsed.data.month, now)) return { ok: false, error: "invalid" };
-  if (!payLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
-  const provider = getPayoutProvider();
+  if (!checkoutLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
+  const provider = getCheckoutProvider();
   if (!provider) return { ok: false, error: "unavailable" };
-  const result = await payWorkers(getRepos(), provider, {
+  const result = await startCheckout(getRepos(), provider, {
     ...parsed.data,
     orgId: session.orgId,
     adminId: session.uid,
     randomHex: randomBytes(6).toString("hex"),
+    origin: await currentOrigin(),
     now,
   });
-  if (result.ok) refresh();
+  refresh();
   return result;
 }
 
-const RefreshInput = z.object({ batchId: z.string().regex(/^fs\d{6}_[a-f0-9]{12}$/) });
-
-export async function refreshPayoutAction(input: unknown): Promise<{ ok: boolean; error?: string }> {
+export async function confirmCheckoutAction(input: unknown): Promise<{ ok: boolean; error?: string }> {
   const session = await requireRole("admin");
-  const parsed = RefreshInput.safeParse(input);
+  const parsed = z.object({ batchId: BatchId }).safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  if (!refreshLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
-  const provider = getPayoutProvider();
+  if (!statusLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
+  const provider = getCheckoutProvider();
   if (!provider) return { ok: false, error: "unavailable" };
-  const result = await refreshPayoutBatch(getRepos(), provider, {
+  const result = await confirmCheckout(getRepos(), provider, { ...parsed.data, orgId: session.orgId, now: new Date() });
+  refresh();
+  return result.ok ? { ok: true } : { ok: false, error: result.error };
+}
+
+export async function cancelCheckoutAction(input: unknown): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("admin");
+  const parsed = z.object({ batchId: BatchId }).safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  if (!statusLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
+  const provider = getCheckoutProvider();
+  if (!provider) return { ok: false, error: "unavailable" };
+  const result = await cancelCheckout(getRepos(), provider, { ...parsed.data, orgId: session.orgId, now: new Date() });
+  refresh();
+  return result;
+}
+
+/** The stand-in checkout page's buttons: record the chosen outcome, then go back to payroll. */
+export async function completeSimulatedCheckoutAction(formData: FormData): Promise<void> {
+  const session = await requireRole("admin");
+  const parsed = z
+    .object({ batchId: BatchId, outcome: z.enum(["paid", "failed"]) })
+    .safeParse({ batchId: formData.get("batchId"), outcome: formData.get("outcome") });
+  const provider = getCheckoutProvider();
+  if (!parsed.success || !provider || !statusLimiter.check(session.uid)) redirect("/a/payroll");
+  const result = await completeSimulatedCheckout(getRepos(), provider, {
+    ...parsed.data,
     orgId: session.orgId,
-    batchId: parsed.data.batchId,
     now: new Date(),
   });
-  if (!result.ok) return { ok: false, error: result.error };
   refresh();
-  return { ok: true };
+  redirect(result.ok ? `/a/payroll?m=${result.month}#payouts-title` : "/a/payroll");
 }
 
 export type AccountFormState = { ok?: boolean; error?: AccountInputError | "invalid" | "rate_limited" };

@@ -11,9 +11,11 @@ import {
   payableFor,
   summariseBatch,
   transferIdFor,
+  type PayoutFailure,
   type PayoutKind,
+  type PayoutStatus,
 } from "@/core/payouts";
-import type { PayoutProvider, TransferResult } from "@/server/payouts/provider";
+import type { CheckoutProvider } from "@/server/payouts/provider";
 import type { PayoutBatch, PayoutItem, Repos } from "@/server/repos/types";
 import { buildPayroll, type PayrollRow } from "./payroll";
 import { recordArrears, savePaidRecord } from "./pay-check";
@@ -33,7 +35,7 @@ export interface PayableWorker {
   /** Paise */
   amount: number;
   account: MaskedAccount | null;
-  /** A payout to this worker for this month is still processing */
+  /** A checkout including this worker for this month is still waiting to be paid */
   busy: boolean;
 }
 
@@ -41,6 +43,8 @@ export interface PayoutBatchView {
   id: string;
   provider: PayoutBatch["provider"];
   createdAt: Date;
+  /** Set while the checkout is waiting, so the employer can go back and pay */
+  checkoutUrl?: string;
   items: Omit<PayoutItem, "payslip" | "recordedAt">[];
   summary: ReturnType<typeof summariseBatch>;
 }
@@ -58,11 +62,14 @@ const mask = (a: { holder: string; account: string; ifsc: string }): MaskedAccou
   ifsc: a.ifsc,
 });
 
+const waiting = (batch: PayoutBatch) => batch.items.some((i) => i.status === "pending");
+
 function batchView(batch: PayoutBatch): PayoutBatchView {
   return {
     id: batch.id,
     provider: batch.provider,
     createdAt: batch.createdAt,
+    ...(waiting(batch) && batch.checkoutUrl ? { checkoutUrl: batch.checkoutUrl } : {}),
     items: batch.items.map(({ payslip, recordedAt, ...item }) => {
       void payslip;
       void recordedAt;
@@ -76,7 +83,7 @@ const busyWorkers = (batches: PayoutBatch[]) =>
   new Set(batches.flatMap((b) => b.items.filter((i) => i.status === "pending").map((i) => i.workerId)));
 
 /**
- * Who can be paid this month and how much, the bank details on file, and recent batches.
+ * Who can be paid this month and how much, the bank details on file, and recent checkouts.
  * Pass the payroll the page already builds so it is computed once.
  */
 export async function payoutOverview(
@@ -123,28 +130,39 @@ export async function payoutOverview(
 
 export type PayRejection = "not_found" | "nothing_owed" | "no_account" | "in_progress";
 
-export type PayWorkersResult =
-  | { ok: true; batch: PayoutBatchView }
+export type StartCheckoutResult =
+  | { ok: true; batchId: string; url: string }
   | { ok: false; error: "invalid" }
-  | { ok: false; error: "rejected"; rejected: { workerId: string; reason: PayRejection }[] };
+  | { ok: false; error: "rejected"; rejected: { workerId: string; reason: PayRejection }[] }
+  | { ok: false; error: "checkout_failed"; detail: string };
 
 /**
- * Pays the chosen workers in one batch. Every amount is this month's payroll as computed here;
- * the browser only says who. The whole batch is refused if any worker can't be paid, so the
- * employer always knows exactly what was sent.
+ * Opens one checkout for the chosen workers: the employer pays the total once and each worker's
+ * share goes to their bank account. Every amount is this month's payroll as computed here; the
+ * browser only says who. The whole batch is refused if any worker can't be paid.
  */
-export async function payWorkers(
+export async function startCheckout(
   repos: Repos,
-  provider: PayoutProvider,
-  input: { orgId: string; adminId: string; month: string; workerIds: string[]; randomHex: string; now: Date },
-): Promise<PayWorkersResult> {
+  provider: CheckoutProvider,
+  input: {
+    orgId: string;
+    adminId: string;
+    month: string;
+    workerIds: string[];
+    randomHex: string;
+    /** This deployment's public origin, for the return link */
+    origin: string;
+    now: Date;
+  },
+): Promise<StartCheckoutResult> {
   const ids = [...new Set(input.workerIds)];
   if (ids.length === 0 || ids.length > MAX_BATCH) return { ok: false, error: "invalid" };
 
-  const [rows, accounts, batches] = await Promise.all([
+  const [rows, accounts, batches, admin] = await Promise.all([
     buildPayroll(repos, input.orgId, input.month),
     repos.payoutAccounts.getByOrg(input.orgId),
     repos.payoutBatches.getByOrgMonth(input.orgId, input.month),
+    repos.admins.getById(input.adminId),
   ]);
   const rowOf = new Map(rows.map((r) => [r.workerId, r]));
   const accountOf = new Map(accounts.map((a) => [a.id, a]));
@@ -192,85 +210,140 @@ export async function payWorkers(
       };
     }),
   };
-  // Saved before sending: if anything fails mid-way, these workers stay "processing" and can't be paid twice.
+  // Saved before the checkout opens: these workers can't be put in a second checkout meanwhile.
   await repos.payoutBatches.create(batch);
 
-  const results = await provider.send(
-    batchId,
-    batch.items.map((item) => {
-      const account = accountOf.get(item.workerId)!;
-      return {
-        transferId: item.transferId,
-        amount: item.amount,
-        holder: account.holder,
-        account: account.account,
-        ifsc: account.ifsc,
-        remarks: `FairShift ${item.kind} ${input.month}`,
-      };
-    }),
-  );
-  return { ok: true, batch: batchView(await applyResults(repos, batch, results, input.now)) };
+  try {
+    const { url } = await provider.create({
+      batchId,
+      amount: batch.items.reduce((sum, i) => sum + i.amount, 0),
+      purpose: `FairShift wages ${input.month} (${batch.items.length} workers)`,
+      returnUrl: `${input.origin}/api/checkout/return?batch=${batchId}`,
+      payer: { id: input.adminId, name: admin?.name ?? "Employer" },
+      splits: batch.items.map((item) => {
+        const account = accountOf.get(item.workerId)!;
+        return {
+          workerId: item.workerId,
+          holder: account.holder,
+          account: account.account,
+          ifsc: account.ifsc,
+          amount: item.amount,
+        };
+      }),
+    });
+    await repos.payoutBatches.update(batchId, { checkoutUrl: url, updatedAt: input.now });
+    return { ok: true, batchId, url };
+  } catch (error) {
+    // The checkout never opened, so nothing can be paid: free these workers again.
+    const detail = error instanceof Error ? error.message.slice(0, 120) : "unknown error";
+    await settle(repos, batch, "failed", input.now, { failure: "checkout_failed", detail });
+    return { ok: false, error: "checkout_failed", detail };
+  }
 }
 
-/** Asks the provider again about a batch's processing transfers. */
-export async function refreshPayoutBatch(
+/** Asks the provider whether a waiting checkout was paid, and records the outcome. */
+export async function confirmCheckout(
   repos: Repos,
-  provider: PayoutProvider,
+  provider: CheckoutProvider,
   input: { orgId: string; batchId: string; now: Date },
-): Promise<{ ok: true; batch: PayoutBatchView } | { ok: false; error: "not_found" | "unavailable" }> {
+): Promise<{ ok: true; batch: PayoutBatchView; month: string } | { ok: false; error: "not_found" | "unavailable" }> {
   const batch = await repos.payoutBatches.getById(input.batchId);
   if (!batch || batch.orgId !== input.orgId) return { ok: false, error: "not_found" };
-  if (!batch.items.some((i) => i.status === "pending")) return { ok: true, batch: batchView(batch) };
-  let results: TransferResult[];
+  if (!waiting(batch)) return { ok: true, batch: batchView(batch), month: batch.month };
+  let status: PayoutStatus;
   try {
-    results = await provider.status(batch.id);
+    status = await provider.status(batch.id);
   } catch {
     return { ok: false, error: "unavailable" };
   }
-  return { ok: true, batch: batchView(await applyResults(repos, batch, results, input.now)) };
+  const next =
+    status === "pending" ? batch : await settle(repos, batch, status, input.now, { failure: "payment_failed" });
+  return { ok: true, batch: batchView(next), month: batch.month };
+}
+
+/** The employer gives up on a waiting checkout: the link is cancelled and the workers are freed. */
+export async function cancelCheckout(
+  repos: Repos,
+  provider: CheckoutProvider,
+  input: { orgId: string; batchId: string; now: Date },
+): Promise<{ ok: true } | { ok: false; error: "not_found" | "unavailable" }> {
+  const batch = await repos.payoutBatches.getById(input.batchId);
+  if (!batch || batch.orgId !== input.orgId) return { ok: false, error: "not_found" };
+  if (!waiting(batch)) return { ok: true };
+  // If it was paid in the meantime, record that instead of cancelling.
+  const confirmed = await confirmCheckout(repos, provider, input);
+  if (!confirmed.ok) return confirmed;
+  if (confirmed.batch.summary.pending === 0) return { ok: true };
+  try {
+    await provider.cancel(batch.id);
+  } catch {
+    return { ok: false, error: "unavailable" };
+  }
+  await settle(repos, batch, "failed", input.now, { failure: "payment_cancelled" });
+  return { ok: true };
+}
+
+/** Simulation only: the employer chose the outcome on the stand-in checkout page. */
+export async function completeSimulatedCheckout(
+  repos: Repos,
+  provider: CheckoutProvider,
+  input: { orgId: string; batchId: string; outcome: "paid" | "failed"; now: Date },
+): Promise<{ ok: true; month: string } | { ok: false; error: "not_found" | "unavailable" }> {
+  const batch = await repos.payoutBatches.getById(input.batchId);
+  if (!batch || batch.orgId !== input.orgId || batch.provider !== "simulated" || provider.name !== "simulated") {
+    return { ok: false, error: "not_found" };
+  }
+  if (waiting(batch)) await repos.payoutBatches.update(batch.id, { simulatedStatus: input.outcome });
+  const confirmed = await confirmCheckout(repos, provider, input);
+  return confirmed.ok ? { ok: true, month: confirmed.month } : confirmed;
+}
+
+/** The checkout page for a waiting batch of this organisation (simulation shows it; Cashfree hosts its own). */
+export async function waitingCheckout(repos: Repos, orgId: string, batchId: string): Promise<PayoutBatchView | null> {
+  const batch = await repos.payoutBatches.getById(batchId);
+  if (!batch || batch.orgId !== orgId || !waiting(batch)) return null;
+  return batchView(batch);
 }
 
 /**
- * Updates each processing transfer with the provider's answer, and writes every newly paid one
- * to the worker's pay record exactly once. A transfer that is already paid or failed never changes.
+ * Gives every waiting share the checkout's outcome, and writes each newly paid one to the
+ * worker's pay record exactly once. A share that is already paid or failed never changes.
  */
-async function applyResults(
+async function settle(
   repos: Repos,
   batch: PayoutBatch,
-  results: TransferResult[],
+  status: Exclude<PayoutStatus, "pending">,
   now: Date,
+  why: { failure: PayoutFailure; detail?: string },
 ): Promise<PayoutBatch> {
-  const resultOf = new Map(results.map((r) => [r.transferId, r]));
   const items: PayoutItem[] = [];
   for (const item of batch.items) {
-    const result = resultOf.get(item.transferId);
-    if (item.status !== "pending" || !result || result.status === "pending") {
+    if (item.status !== "pending") {
       items.push(item);
       continue;
     }
-    const updated: PayoutItem = {
-      ...item,
-      status: result.status,
-      ...(result.failure ? { failure: result.failure, detail: result.detail } : {}),
-      ...(result.utr ? { utr: result.utr } : {}),
-    };
-    if (updated.status === "paid" && !updated.recordedAt) {
-      await recordPayout(repos, batch, updated, now);
-      updated.recordedAt = now;
+    if (status === "failed") {
+      items.push({ ...item, status, failure: why.failure, ...(why.detail ? { detail: why.detail } : {}) });
+      continue;
     }
-    items.push(updated);
+    if (!item.recordedAt) await recordPayment(repos, batch, item, now);
+    items.push({ ...item, status, recordedAt: item.recordedAt ?? now });
   }
-  const next = { ...batch, items, updatedAt: now };
   await repos.payoutBatches.update(batch.id, { items, updatedAt: now });
-  return next;
+  return { ...batch, items, updatedAt: now };
 }
 
-/** A paid salary becomes the month's pay record; a paid gap is added to it as arrears. */
-async function recordPayout(repos: Repos, batch: PayoutBatch, item: PayoutItem, now: Date): Promise<void> {
-  const base = { adminId: batch.createdBy, workerId: item.workerId, month: batch.month, amount: item.amount, now };
+/** A paid month's pay becomes the month's pay record; a paid gap is added to it as arrears. */
+async function recordPayment(repos: Repos, batch: PayoutBatch, item: PayoutItem, now: Date): Promise<void> {
   const existing = await repos.paidRecords.get(item.workerId, batch.month);
   if (item.kind === "gap" && existing) {
-    await recordArrears(repos, existing, base);
+    await recordArrears(repos, existing, {
+      adminId: batch.createdBy,
+      workerId: item.workerId,
+      month: batch.month,
+      amount: item.amount,
+      now,
+    });
     return;
   }
   await savePaidRecord(
@@ -294,7 +367,7 @@ async function recordPayout(repos: Repos, batch: PayoutBatch, item: PayoutItem, 
 
 export type AccountInputError = "holder" | "account" | "ifsc" | "not_found";
 
-/** Saves where a worker's pay goes, after checking the formats and that the worker is the employer's. */
+/** Saves where a worker's share is settled, after checking the formats and that the worker is the employer's. */
 export async function savePayoutAccount(
   repos: Repos,
   input: { orgId: string; adminId: string; workerId: string; holder: string; account: string; ifsc: string; now: Date },

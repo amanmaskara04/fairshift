@@ -8,8 +8,14 @@ import { decideCertificate } from "@/server/services/benefits";
 import { payArrears, savePaidRecord } from "@/server/services/pay-check";
 import { respondToIssue } from "@/server/services/issues";
 import { payFocusMonth } from "@/core/period";
-import { createSimulatedProvider } from "@/server/payouts/simulated";
-import { payWorkers, refreshPayoutBatch, savePayoutAccount } from "@/server/services/payouts";
+import { createSimulatedCheckout } from "@/server/payouts/simulated";
+import {
+  cancelCheckout,
+  completeSimulatedCheckout,
+  confirmCheckout,
+  savePayoutAccount,
+  startCheckout,
+} from "@/server/services/payouts";
 
 beforeEach(() => resetMemoryStore());
 
@@ -84,24 +90,38 @@ describe("one organisation can never act on another's records", () => {
     ).toEqual(NOT_FOUND);
   });
 
-  it("payouts: paying, checking a batch and changing bank details", async () => {
+  it("payouts: opening, confirming, cancelling or completing a checkout, and changing bank details", async () => {
     const month = payFocusMonth(now);
-    const provider = createSimulatedProvider();
+    const provider = createSimulatedCheckout(getRepos());
+    const origin = "https://fairshift.test";
     expect(
-      await payWorkers(getRepos(), provider, { ...outsider, month, workerIds: ["w1003"], randomHex: "a".repeat(12) }),
+      await startCheckout(getRepos(), provider, {
+        ...outsider,
+        month,
+        origin,
+        workerIds: ["w1003"],
+        randomHex: "a".repeat(12),
+      }),
     ).toEqual({ ok: false, error: "rejected", rejected: [{ workerId: "w1003", reason: "not_found" }] });
 
-    const own = await payWorkers(getRepos(), provider, {
+    const own = await startCheckout(getRepos(), provider, {
       orgId: "org1",
       adminId: "admin1",
       now,
       month,
-      workerIds: ["w1006"],
+      origin,
+      workerIds: ["w1003"],
       randomHex: "b".repeat(12),
     });
-    if (!own.ok) throw new Error("expected a batch");
-    expect(await refreshPayoutBatch(getRepos(), provider, { ...outsider, batchId: own.batch.id })).toEqual(NOT_FOUND);
-    expect((await getRepos().payoutBatches.getById(own.batch.id))!.items[0].status).toBe("pending");
+    if (!own.ok) throw new Error("expected a checkout");
+    const batchId = own.batchId;
+    expect(await confirmCheckout(getRepos(), provider, { ...outsider, batchId })).toEqual(NOT_FOUND);
+    expect(await cancelCheckout(getRepos(), provider, { ...outsider, batchId })).toEqual(NOT_FOUND);
+    expect(await completeSimulatedCheckout(getRepos(), provider, { ...outsider, batchId, outcome: "paid" })).toEqual(
+      NOT_FOUND,
+    );
+    expect((await getRepos().payoutBatches.getById(batchId))!.items[0].status).toBe("pending");
+    expect(await getRepos().paidRecords.get("w1003", month)).toBeUndefined();
 
     const before = await getRepos().payoutAccounts.get("w1001");
     expect(

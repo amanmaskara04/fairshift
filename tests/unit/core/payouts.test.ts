@@ -1,11 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   batchIdFor,
-  classifyFailure,
   isValidAccount,
   isValidHolder,
   isValidIfsc,
-  mapTransferStatus,
+  mapLinkStatus,
   maskAccount,
   MIN_PAYOUT,
   normaliseAccount,
@@ -84,20 +83,11 @@ describe("batch bookkeeping", () => {
     expect(transferIdFor(batchId, 24).length).toBeLessThanOrEqual(40);
   });
 
-  it("treats only SUCCESS as paid and only final failures as failed", () => {
-    expect(mapTransferStatus("SUCCESS")).toBe("paid");
-    expect(mapTransferStatus("success")).toBe("paid");
-    for (const s of ["FAILED", "REJECTED", "REVERSED", "MANUALLY_REJECTED"])
-      expect(mapTransferStatus(s)).toBe("failed");
-    for (const s of ["RECEIVED", "PENDING", "QUEUED", "APPROVAL_PENDING", "anything"])
-      expect(mapTransferStatus(s)).toBe("pending");
-  });
-
-  it("explains a failure in one of a few words the dashboard can translate", () => {
-    expect(classifyFailure("Invalid IFSC code")).toBe("invalid_ifsc");
-    expect(classifyFailure("Invalid account number")).toBe("invalid_account");
-    expect(classifyFailure("Beneficiary bank offline")).toBe("bank_failed");
-    expect(classifyFailure(undefined)).toBe("bank_failed");
+  it("treats only a PAID link as paid, and only a dead link as failed", () => {
+    expect(mapLinkStatus("PAID")).toBe("paid");
+    expect(mapLinkStatus("paid")).toBe("paid");
+    for (const s of ["EXPIRED", "CANCELLED", "TERMINATED"]) expect(mapLinkStatus(s)).toBe("failed");
+    for (const s of ["ACTIVE", "PARTIALLY_PAID", "anything"]) expect(mapLinkStatus(s)).toBe("pending");
   });
 
   it("totals a batch by outcome", () => {
@@ -111,7 +101,7 @@ describe("batch bookkeeping", () => {
     ).toEqual({ paid: 2, failed: 1, pending: 1, paidAmount: 150_00 });
   });
 
-  it("converts paise to the rupees payout APIs expect", () => {
+  it("converts paise to the rupees payment APIs expect", () => {
     expect(paiseToRupees(90_750)).toBe(907.5);
     expect(paiseToRupees(1)).toBe(0.01);
   });
