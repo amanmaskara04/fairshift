@@ -4,7 +4,7 @@
 > A voice-first, four-language workplace app for daily-wage and shift workers, and an honest early-warning dashboard for the employers who want to treat them fairly. One codebase, two working interfaces, **construction sites and hospitals**.
 
 [![CI](https://github.com/amanmaskara04/fairshift/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/amanmaskara04/fairshift/actions/workflows/ci.yml)
-![Unit tests](https://img.shields.io/badge/unit%20tests-382%20passing-2e8b57)
+![Unit tests](https://img.shields.io/badge/unit%20tests-401%20passing-2e8b57)
 ![Coverage](https://img.shields.io/badge/coverage-98%25%20lines-2e8b57)
 ![E2E tests](https://img.shields.io/badge/e2e%20tests-36%20passing-2e8b57)
 ![axe](https://img.shields.io/badge/axe-0%20violations-2e8b57)
@@ -61,7 +61,7 @@ The app runs **with no API key and no cloud account**: seeded data (generated re
 | **1. Real-World Impact** | Tangible improvement to worker safety and employer visibility | **Safety:** voice/photo hazard reports with severity deadlines and **auto-escalation** (supervisor → site manager → safety officer); fire and other emergencies are always *critical* with a one-tap **Call 112**; a **Help** tab with 8 verified national helplines and AI next steps; sector fatigue rules. **Visibility:** live *on duty* count, escalated hazards first, explainable quit risk, pay shortfalls flagged before they become disputes | Ramesh → Report / Help · Priya → Overview · [`core/hazard-lifecycle.ts`](src/core/hazard-lifecycle.ts) · [`config/helplines.ts`](src/config/helplines.ts) |
 | **2. Relevance to SDG 8** | Decent Work and Economic Growth | **Target 8.5** (equal pay for work of equal value): every hour recorded, overtime at 2×, minimum-wage check, **FairPay Sentinel** compares hours with what was paid and **“Pay the gap”** settles it. **Target 8.8** (labour rights, safe workplaces): hazards fixed on deadline, *safe in numbers* co-signed issues, anonymous feedback, welfare-board eligibility and a **signed work certificate** | Ramesh → Pay (₹907) · Priya → Payroll · [Pain point table](#pain-point--feature--code) |
 | **3. Inclusivity & Ease of Use** | Regional languages, low literacy, basic phones | **English, हिन्दी, தமிழ், తెలుగు** in native scripts (parity test on every key); **read-aloud on every screen**, voice input, icon-first big buttons (≥48px); **works offline** (check-ins queue in IndexedDB); installable PWA, no app store; SVG-only visuals for a ₹7,000 phone; WCAG AA, **axe: 0 violations** | Landing → *I'm a worker* → தமிழ் · [Accessibility](#accessibility-and-inclusivity) |
-| **4. Technical Implementation** | Clean code, security, working dual interfaces | **Worker app (`/w`) and employer dashboard (`/a`)**, both end-to-end tested. Pure, tested rules in [`src/core`](src/core) (95% coverage gate); *AI decides, code computes*; nonce CSP, role + org check on every mutation, Zod, rate limits, HMAC-signed tokens; **382 unit + 38 Playwright tests, 98% line coverage (CI gate: 95%)**, 34 live security probes | [Architecture](#architecture) · [`SECURITY.md`](SECURITY.md) · [Testing](#testing) |
+| **4. Technical Implementation** | Clean code, security, working dual interfaces | **Worker app (`/w`) and employer dashboard (`/a`)**, both end-to-end tested. Pure, tested rules in [`src/core`](src/core) (95% coverage gate); *AI decides, code computes*; nonce CSP, role + org check on every mutation, Zod, rate limits, HMAC-signed tokens; **401 unit + 39 Playwright tests, 98% line coverage (CI gate: 95%)**, 34 live security probes | [Architecture](#architecture) · [`SECURITY.md`](SECURITY.md) · [Testing](#testing) |
 | **5. Feasibility & Scalability** | Practical adoption across two or more distinct industries | **Construction and hospital** live, with **campus and factory** profiles: every difference (pay basis, roster, fatigue rules, hazard types, escalation chain, welfare schemes) is configuration. Runs without AI or a database; one container, one command to deploy; a site needs only a printed or kiosk QR | [Two sectors, one product](#two-sectors-one-product) · [Feasibility](#feasibility-and-scalability) |
 
 ## At a glance
@@ -116,7 +116,7 @@ Every requirement in the official problem statement (*FairShift: Decent Work Pla
 | Pain point (from the problem statement) | FairShift feature | Where |
 |---|---|---|
 | Unrecorded hours and unpaid overtime | QR check-in (rotating HMAC token, offline queue), payslip with 2× overtime, *“Why this amount?”* | [`core/overtime.ts`](src/core/overtime.ts) · [`core/pay.ts`](src/core/pay.ts) · [`w/checkin`](src/app/w/checkin) |
-| “The payslip says one thing, I was paid another” | **FairPay Sentinel**: compares attendance with what the employer recorded as paid; *Possible shortfall ₹907* with the arithmetic; one-tap review request → dispute workflow. Employers record pay from presets and hour sliders, and **“Pay the gap”** records the top-up (amount computed on the server) so the shortfall disappears for the worker. **One checkout for several workers** (the month's pay, or exactly the gap) is split to each worker's bank account, and each payment is written to their pay record once Cashfree confirms it | [`core/pay-check.ts`](src/core/pay-check.ts) · [`services/pay-check.ts`](src/server/services/pay-check.ts) · [`services/payouts.ts`](src/server/services/payouts.ts) · [`w/pay`](src/app/w/pay/page.tsx) |
+| “The payslip says one thing, I was paid another” | **FairPay Sentinel**: compares attendance with what the employer recorded as paid; *Possible shortfall ₹907* with the arithmetic; one-tap review request → dispute workflow. Employers record pay from presets and hour sliders (exact to the minute, so *Paid in full* always matches); the gap is paid in the checkout, or *marked as paid* if it was settled outside FairShift (amount computed on the server either way) so the shortfall disappears for the worker. **One checkout for several workers** (the month's pay, or exactly the gap) is split to each worker's bank account, and each payment is written to their pay record once Cashfree confirms it | [`core/pay-check.ts`](src/core/pay-check.ts) · [`services/pay-check.ts`](src/server/services/pay-check.ts) · [`services/payouts.ts`](src/server/services/payouts.ts) · [`w/pay`](src/app/w/pay/page.tsx) |
 | Wages below the legal minimum | Minimum-wage check per state/sector/skill (demo table, clearly labelled) | [`config/minimum-wage.ts`](src/config/minimum-wage.ts) |
 | Missed welfare benefits, no proof of days worked | **Benefits Unlocker**: BOCW board, e-Shram, ESIC, PM-SYM eligibility from verified days; progress ring; how-to-apply sheet; **HMAC-signed work certificate** approved by the employer | [`config/schemes.ts`](src/config/schemes.ts) · [`core/eligibility.ts`](src/core/eligibility.ts) · [`certificate/[token]`](src/app/certificate) |
 | Fear of retaliation for speaking up | Anonymous weekly feedback (groups of 5+), and **“Safe in numbers”** co-signed issues: invisible to management until 5 workers sign; signers never stored | [`core/cosign.ts`](src/core/cosign.ts) · [`services/issues.ts`](src/server/services/issues.ts) |
@@ -236,9 +236,9 @@ Server Components by default; client JS only for interactive islands. The animat
 ## Testing
 
 ```bash
-npm test             # 382 unit tests (Vitest): core engine, services, security, AI fallbacks, i18n parity, contrast
+npm test             # 401 unit tests (Vitest): core engine, services, security, AI fallbacks, i18n parity, contrast
 npm run coverage     # with coverage gates: whole codebase (lines 95%) and src/core (95% on every measure)
-npm run e2e          # 38 Playwright tests on a production build, with axe scans
+npm run e2e          # 39 Playwright tests on a production build, with axe scans
 npm run probe        # 34 read-only black-box security probes against a deployment (default: the live demo)
 npm run lint && npm run typecheck && npm run format:check
 ```
@@ -266,7 +266,7 @@ Highlights: overtime underpaid / regular underpaid / below minimum wage / exact 
 | **Code quality** | Pure `core/` with no I/O; one repository interface; config over code; typed end to end; Server Actions hold only guarded mutations; ESLint (React Compiler rules) with zero warnings | [`src/core`](src/core), [`src/config`](src/config), [`src/server/repos/types.ts`](src/server/repos/types.ts) |
 | **Security** | Nonce CSP, role + org checks on every mutation (tested across tenants), Zod everywhere, rate limits, HMAC guards and signed tokens, secrets only from encrypted env vars, 0 production audit findings, live probe script | [`SECURITY.md`](SECURITY.md), [`proxy.ts`](src/proxy.ts), [`server/actions`](src/server/actions) |
 | **Efficiency** | Organisation-wide pages load in two batched round trips (payroll, certificates), open-shift-only headcount, idempotent hazard sweep, cached TTS, server-rendered charts, SVG-only visuals | [`services/workforce.ts`](src/server/services/workforce.ts), [`ai/tts.ts`](src/ai/tts.ts) |
-| **Testing** | 382 unit + 38 e2e + 34 live probes; 98% line coverage (CI gate: 95% of lines, and 95% on every measure for the core); security and tenant-isolation suites; container smoke test | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| **Testing** | 401 unit + 39 e2e + 34 live probes; 98% line coverage (CI gate: 95% of lines, and 95% on every measure for the core); security and tenant-isolation suites; container smoke test | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **Accessibility** | AA contrast test, axe in e2e, keyboard menus and radiogroups, live regions, reduced motion, 4 languages + voice | [`tests/e2e`](tests/e2e), [`globals.css`](src/app/globals.css) |
 | **Problem alignment** | Worker + employer interfaces, construction + hospital, every pain point in the brief mapped above | [Pain point table](#pain-point--feature--code) |
 
@@ -378,7 +378,7 @@ docs/          demo-script.md · screenshots/
 ## Limitations and disclosure
 
 - Minimum-wage figures and scheme rules are **demo values**, labelled as such in the UI and in [`config/`](src/config); verify per state before real use. Helpline numbers were checked against official sources in October 2026.
-- *Pay the gap* records a payment the employer made. The checkout runs only in Cashfree's sandbox (or a simulation of it): no real money moves.
+- *Mark as paid* records a gap the employer settled outside FairShift. The checkout runs only in Cashfree's sandbox (or a simulation of it): no real money moves.
 - Demo mode exposes one-tap logins and re-seeds data daily; turn it off for a real deployment.
 - Built with AI-assisted development (Claude Code); every rule is covered by tests and reviewed against the brief.
 

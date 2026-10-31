@@ -56,6 +56,9 @@ export interface PayoutOverview {
   batches: PayoutBatchView[];
 }
 
+/** Checkouts shown for a month: any still waiting, and the latest finished ones. */
+const RECENT_CHECKOUTS = 10;
+
 const mask = (a: { holder: string; account: string; ifsc: string }): MaskedAccount => ({
   holder: a.holder,
   masked: maskAccount(a.account),
@@ -123,7 +126,7 @@ export async function payoutOverview(
     })),
     batches: batches
       .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-      .slice(0, 5)
+      .slice(0, RECENT_CHECKOUTS)
       .map(batchView),
   };
 }

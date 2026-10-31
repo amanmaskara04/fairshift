@@ -246,9 +246,9 @@ describe("after the checkout", () => {
     expect(await waitingCheckout(getRepos(), "org1", input.batchId)).toBeNull();
   });
 
-  it("shows the newest five checkouts of the month", async () => {
+  it("shows the newest ten checkouts of the month", async () => {
     const { provider } = fakeProvider();
-    const ids = ["w1003", "w1005", "w1007", "w1009", "w1010", "w1011"];
+    const ids = ["w1002", "w1003", "w1005", "w1006", "w1007", "w1009", "w1010", "w1011", "w1012", "w1013", "w1015"];
     for (const [i, workerId] of ids.entries()) {
       await startCheckout(getRepos(), provider, {
         ...admin,

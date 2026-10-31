@@ -670,12 +670,6 @@
       "month": "Month",
       "intro": "Hours and pay are calculated by tested code from check-in records. Overtime is paid at 2×. FairPay Sentinel compares them with what you actually paid.",
       "worker": "Worker",
-      "days": "Days",
-      "regular": "Regular",
-      "overtime": "Overtime",
-      "gross": "Gross",
-      "pf": "PF",
-      "net": "Net",
       "total": "Total",
       "basis": {
         "daily": "daily wage",
@@ -693,8 +687,6 @@
       "sentinel": {
         "title": "FairPay Sentinel",
         "hint": "Enter what you actually paid each worker. FairShift compares it with their check-ins and flags possible shortfalls before workers have to.",
-        "flagged": "{count, plural, one {1 worker has} other {# workers have}} a possible shortfall this month.",
-        "clear": "No possible shortfalls for the records entered.",
         "minimumWageNote": "Minimum wages used in checks are demo values — verify for your state."
       },
       "record": {
@@ -724,7 +716,7 @@
           "columns": "The columns do not match the template."
         },
         "manualHint": "Start from what FairShift calculated, then say what was actually paid.",
-        "calculated": "FairShift recorded {hours} h + {overtime} h overtime. Due: {amount}.",
+        "calculated": "FairShift recorded {hours} + {overtime} overtime. Due: {amount}.",
         "howPaid": "How was this worker paid?",
         "presets": {
           "full": "Paid in full",
@@ -733,7 +725,7 @@
         },
         "regularHours": "Regular hours paid",
         "overtimeHours": "Overtime hours paid",
-        "hoursOf": "{paid} of {total} h",
+        "hoursOf": "{paid} of {total}",
         "amounts": "Amounts",
         "changeAmounts": "Change amounts",
         "useCalculated": "Use calculated",
@@ -762,34 +754,27 @@
         "settled": "Settled: {amount} arrears paid"
       },
       "arrears": {
-        "button": "Pay {amount}",
-        "title": "Pay the {amount} gap?",
-        "hint": "This records an arrears payment of exactly the gap FairPay Sentinel found. The worker sees it as paid, and any review they asked for is closed.",
+        "button": "Mark as paid",
+        "title": "Already paid the {amount} gap?",
+        "hint": "Use this when you paid the gap outside FairShift, in cash or from your bank. It records an arrears payment of exactly the gap FairPay Sentinel found. The worker sees it as paid, and any review they asked for is closed.",
         "confirm": "I have paid {amount}",
         "error": "Could not record it. Please try again."
       },
       "payouts": {
-        "title": "Pay workers",
-        "hint": "Choose workers and pay them all at once: you pay the total on a secure checkout page, and each worker's share is sent to their bank account. Every amount comes from payroll, never typed: the month's pay if nothing is recorded yet, or exactly the gap FairPay Sentinel found.",
         "mode": {
           "cashfree": "Cashfree sandbox checkout",
           "simulated": "Simulated checkout",
           "off": "Paying from FairShift is off. Add Cashfree payment gateway test keys to switch it on."
         },
-        "none": "Nobody is owed anything for this month.",
         "kind": {
           "salary": "Month's pay",
           "gap": "Gap"
         },
-        "noAccount": "No bank details",
         "addAccount": "Add bank details",
-        "selectAll": "Select all",
         "clear": "Clear",
-        "pay": "{count, plural, one {Pay 1 worker} other {Pay # workers}} · {amount}",
         "confirmTitle": "Pay {amount} in one checkout?",
         "confirmHint": "You'll go to the checkout page to pay {amount} once. It is split to {count, plural, one {1 worker's bank account} other {# workers' bank accounts}}, and each payment is added to their pay record when the checkout is paid.",
         "send": "Continue to checkout · {amount}",
-        "recent": "Recent payouts",
         "batchSummary": "{paid} paid · {failed} not paid · {pending} waiting",
         "status": {
           "paid": "Paid",
@@ -843,6 +828,39 @@
           "back": "Back to payroll (pay later)"
         },
         "sandboxNote": "Test mode: no real money moves."
+      },
+      "summary": {
+        "due": "Net pay due",
+        "dueHint": "{count, plural, one {for # worker} other {for # workers}}",
+        "paid": "Recorded as paid",
+        "paidHint": "{recorded} of {total} workers recorded",
+        "shortfalls": "Possible shortfalls",
+        "shortfallsHint": "{amount} still owed",
+        "noShortfalls": "None found",
+        "notEntered": "Not entered yet",
+        "notEnteredHint": "Record what was paid, or pay them here"
+      },
+      "ledger": {
+        "title": "Workers",
+        "workedColumn": "Worked",
+        "worked": "{days, plural, one {# day} other {# days}} · {time}",
+        "overtime": "{time} overtime",
+        "due": "Net due",
+        "bank": "Bank account",
+        "select": "Pay {name}: {amount}",
+        "selectAll": "Select everyone who can be paid",
+        "record": "Record pay",
+        "recordFor": "Record pay for {name}",
+        "markPaidFor": "Mark the gap paid for {name}",
+        "editBank": "Change bank details for {name}",
+        "idle": "Tick the workers who are owed pay to pay them together in one checkout.",
+        "selected": "{count, plural, one {1 worker} other {# workers}} selected · {amount}",
+        "pay": "Pay with checkout"
+      },
+      "checkouts": {
+        "waitingTitle": "Waiting for payment",
+        "stuck": "Checkout page stuck on pending? Close it and press Check status.",
+        "history": "Checkout history ({count})"
       }
     },
     "sitesPage": {
