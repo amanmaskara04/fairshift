@@ -17,8 +17,23 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/core/**/*.ts", "src/server/**/*.ts", "src/lib/**/*.ts"],
-      exclude: ["src/server/actions/**", "src/server/seed/**"],
+      exclude: [
+        // Thin "use server" wrappers (auth + Zod + rate limit → service); covered end to end by Playwright.
+        "src/server/actions/**",
+        // Demo data, not logic.
+        "src/server/seed/**",
+        // Draws on a real <canvas>; exercised in the browser by the photo step of the hazard report.
+        "src/lib/image.ts",
+        // Needs a live MongoDB; it implements the same Repos contract the in-memory store is tested against.
+        "src/server/repos/mongo.ts",
+      ],
       thresholds: {
+        // The whole measured codebase…
+        lines: 95,
+        statements: 93,
+        functions: 93,
+        branches: 85,
+        // …and stricter for the pay, fatigue, risk and token rules everything else relies on.
         "src/core/**": { lines: 95, branches: 95, functions: 95, statements: 95 },
       },
     },
