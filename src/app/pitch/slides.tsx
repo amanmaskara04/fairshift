@@ -417,19 +417,61 @@ export const SLIDES: Slide[] = [
             in danger when i am using voice command to report fire , its marking it low rank issue . the issue severity
             if understood by ai would be better rather than depending on manual terms
           </Prompt>
+          <Prompt>how can someone merge scaffolding and heat issue together . does it make sense??</Prompt>
           <Prompt>
-            everyone has same problem statement and used agents that gave everyone same thing . what different did we do
+            give options or sliders of how much the admin want to pay … and the admin pays the worker , remove the pay
+            gap
           </Prompt>
           <Prompt>
-            do full test and security audit and make it in the best possible form possible . make sure all tests passed
-            . act as proper testing engineer .
+            you can also add emergency helpline numbers for workers and an ai resolution to there issues. brainstorm
+            this feature and do it yourself.
           </Prompt>
         </ul>
         <div className="flex flex-col gap-3">
           <Card icon={<Sparkles className="size-5" />} title="What came out">
-            Live on MongoDB in Mumbai within the hour; a phone-first redesign; AI-judged hazard severity (a fire is
-            always critical); FairPay Sentinel, Safe in numbers and the Benefits Unlocker; security and tenant-isolation
-            tests with a 98% coverage gate.
+            Live on MongoDB in Mumbai within the hour; a phone-first redesign; the AI judges how urgent a hazard is and
+            a fire is always critical, with Call 112; merges only for the same danger at the same site; payroll presets,
+            sliders and <em>Pay the gap</em>; a Help tab with verified helplines and AI next steps.
+          </Card>
+          <Card icon={<Bug className="size-5" />} title="How I found the problems">
+            By using the live app on my own phone as each demo person, then reporting each one as page, action and
+            symptom.
+          </Card>
+        </div>
+      </div>
+    ),
+  },
+  {
+    id: "prompts-3",
+    eyebrow: "My prompts · part 3 — judgement, quality & release",
+    title: "How the build was proved",
+    body: (
+      <div className="grid gap-6 md:grid-cols-2">
+        <ul className="flex flex-col gap-2">
+          <Prompt>
+            everyone has same problem statement and used agents that gave everyone same thing . what different did we do
+          </Prompt>
+          <Prompt>but everyone has done same thing</Prompt>
+          <Prompt>dont compromise security performance for lighthouse . do other changes</Prompt>
+          <Prompt>is it possible to increase code quality even more</Prompt>
+          <Prompt>
+            do full test and security audit and make it in the best possible form possible . make sure all tests passed
+            . act as proper testing engineer .
+          </Prompt>
+          <Prompt gloss="Drafted with the agent, sent by me.">
+            Act as a release engineer before I submit FairShift. Do not change any feature code. Verify against these
+            exact targets and report a pass/fail table …
+          </Prompt>
+        </ul>
+        <div className="flex flex-col gap-3">
+          <Card icon={<Gauge className="size-5" />} title="What came out">
+            Four features beyond the brief. The lowest AI score (code quality, 89) became the next target: formatting,
+            focused components, coverage from 78% to 98%. Tenant-isolation tests, 34 live probes, and a release gate
+            where all six targets passed.
+          </Card>
+          <Card icon={<Lightbulb className="size-5" />} title="What I learned">
+            Define “done” before starting. Describe the user and the device, not just the feature. Test on the real
+            phone.
           </Card>
         </div>
       </div>
@@ -516,8 +558,12 @@ export const SLIDES: Slide[] = [
               "The AI judges severity from what is happening; code can only raise it. Fire is always critical.",
             ],
             [
-              "Use the animations folder",
-              "One text effect rebuilt as pure CSS; a hand-made SVG scene; no WebGL on low-end phones.",
+              "Code quality scored lowest (89)",
+              "Formatted the codebase, split the largest pages, raised coverage from 78% to 98% with a gate in CI.",
+            ],
+            [
+              "October payroll should look like this",
+              "Payday window: pay screens open on last month for the first 7 days, when wages fall due, so the story never vanishes at a month change.",
             ],
             [
               "Don't compromise security for Lighthouse",
