@@ -1,7 +1,7 @@
 import { getSession } from "@/server/session";
 import { getRepos } from "@/server/repos";
 import { buildPayroll } from "@/server/services/payroll";
-import { isMonthKey, monthKey } from "@/core/period";
+import { isMonthKey, payFocusMonth } from "@/core/period";
 import { paiseToRupees, toCsv } from "@/core/csv";
 
 /** Admin-only CSV of computed hours and pay for one IST month. */
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
   if (!session || session.role !== "admin") return new Response("Unauthorized", { status: 401 });
 
   const requested = new URL(request.url).searchParams.get("month") ?? "";
-  const month = isMonthKey(requested) ? requested : monthKey(new Date());
+  const month = isMonthKey(requested) ? requested : payFocusMonth(new Date());
   const rows = await buildPayroll(getRepos(), session.orgId, month);
 
   const csv = toCsv([

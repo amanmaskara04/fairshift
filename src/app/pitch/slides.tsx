@@ -112,7 +112,7 @@ export const SLIDES: Slide[] = [
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <Stat value="4" label="languages, read aloud" />
           <Stat value="2+" label="industries, one codebase" />
-          <Stat value="362" label="automated tests" />
+          <Stat value="376" label="automated tests" />
           <Stat value="0" label="accessibility violations" />
         </div>
       </div>
@@ -546,7 +546,7 @@ export const SLIDES: Slide[] = [
         <div className="flex flex-col gap-3">
           {[
             [
-              "Unit · 326",
+              "Unit · 340",
               "Pay, overtime, fatigue, risk, eligibility, hazard deadlines, signed tokens, AI guard rails, contrast, 4 languages.",
             ],
             ["Coverage · 98%", "Of all measured lines, enforced in CI: the build fails below 95%."],
@@ -626,7 +626,7 @@ export const SLIDES: Slide[] = [
             "Inclusivity",
             "4 languages, voice in and out, offline, big targets, axe 0 violations, every page under 400 ms.",
           ],
-          ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 362 tests, 98% coverage, green CI."],
+          ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 376 tests, 98% coverage, green CI."],
           [
             "Feasibility",
             "Construction and hospital live from one codebase; a new industry is one config file; Cloud Run–ready.",

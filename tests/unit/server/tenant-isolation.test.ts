@@ -7,7 +7,7 @@ import { requestPayReview, updateDispute } from "@/server/services/disputes";
 import { decideCertificate } from "@/server/services/benefits";
 import { payArrears, savePaidRecord } from "@/server/services/pay-check";
 import { respondToIssue } from "@/server/services/issues";
-import { monthKey } from "@/core/period";
+import { payFocusMonth } from "@/core/period";
 
 beforeEach(() => resetMemoryStore());
 
@@ -55,7 +55,7 @@ describe("one organisation can never act on another's records", () => {
   });
 
   it("pay: disputes, recorded payments and arrears", async () => {
-    const month = monthKey(now);
+    const month = payFocusMonth(now);
     const review = await requestPayReview(getRepos(), { workerId: "w1001", orgId: "org1", month, now });
     expect(review.ok).toBe(true);
     if (!review.ok) return;

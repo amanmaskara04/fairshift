@@ -6,7 +6,7 @@ import { getRepos } from "@/server/repos";
 import { payCheckFor } from "@/server/services/pay-check";
 import { findingSentences, payTemplate } from "@/server/pay-explain";
 import { isActiveDispute } from "@/server/services/disputes";
-import { isMonthKey, monthKey } from "@/core/period";
+import { isMonthKey, monthKey, payFocusMonth } from "@/core/period";
 import { formatDuration, formatINR, formatMonth, formatRupees } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -22,7 +22,9 @@ export default async function PayPage({ searchParams }: PageProps<"/w/pay">) {
   const months = [0, -1, -2].map((offset) => monthKey(now, offset));
   const requested = (await searchParams).m;
   const month =
-    typeof requested === "string" && isMonthKey(requested) && months.includes(requested) ? requested : months[0];
+    typeof requested === "string" && isMonthKey(requested) && months.includes(requested)
+      ? requested
+      : payFocusMonth(now);
 
   const repos = getRepos();
   const [check, disputes] = await Promise.all([

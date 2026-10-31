@@ -4,7 +4,7 @@
  * - Ramesh: 72 verified days (BOCW progress 72/90) and 13h 32m of overtime this month.
  * - Sunita: three night shifts in a row and a short rest (hospital fatigue rules).
  */
-import { monthKey } from "@/core/period";
+import { monthKey, payFocusMonth } from "@/core/period";
 import type { Shift } from "@/core/types";
 import type { Worker } from "../repos/types";
 
@@ -54,7 +54,8 @@ export function rameshJoinedAt(now: Date): Date {
 
 function rameshShifts(now: Date): Shift[] {
   const days = rameshDays(now);
-  const thisMonth = monthKey(now);
+  // The month the pay story lives in (see storyMonths in data.ts).
+  const thisMonth = payFocusMonth(now);
   const inMonth = days.filter((d) => monthKey(d) === thisMonth).reverse(); // oldest first
   const overtime = new Map<number, number>();
   const otDays = inMonth.slice(-RAMESH_OVERTIME_THIS_MONTH.length);

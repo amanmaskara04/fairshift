@@ -19,6 +19,18 @@ export function monthRange(key: string): { start: Date; end: Date } {
   };
 }
 
+/**
+ * Wages for a month must be paid within 7 days after it ends (Payment of Wages Act 1936, s. 5),
+ * so for the first 7 days of a month the pay check that matters is last month's.
+ */
+export const PAYDAY_WINDOW_DAYS = 7;
+
+/** The month pay screens open on: last month during the payday window, otherwise this month. */
+export function payFocusMonth(now: Date): string {
+  const istDayOfMonth = new Date(now.getTime() + IST_OFFSET_MS).getUTCDate();
+  return monthKey(now, istDayOfMonth <= PAYDAY_WINDOW_DAYS ? -1 : 0);
+}
+
 export function isMonthKey(value: string): boolean {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
 }

@@ -26,7 +26,7 @@ import {
 } from "@/server/services/skills";
 import { verifiedTotals } from "@/core/work-history";
 import { minutesByDay } from "@/core/overtime";
-import { monthKey } from "@/core/period";
+import { monthKey, payFocusMonth } from "@/core/period";
 import type { ClosedShift } from "@/core/types";
 import { REDACTED } from "@/ai/redact";
 import { RAMESH_UNPAID_OT_MINUTES } from "@/server/seed/data";
@@ -67,8 +67,8 @@ describe("seed stories (relative to today)", () => {
 });
 
 describe("FairPay Sentinel", () => {
-  it("finds Ramesh's unpaid overtime this month (4h 32m at ₹200/h ≈ ₹907)", async () => {
-    const check = await payCheckFor(getRepos(), "w1001", monthKey(now));
+  it("finds Ramesh's unpaid overtime in the month pay screens open on (4h 32m at ₹200/h ≈ ₹907)", async () => {
+    const check = await payCheckFor(getRepos(), "w1001", payFocusMonth(now));
     const finding = check!.result.findings.find((f) => f.code === "OVERTIME_UNDERPAID");
     expect(finding?.explanation.missingMinutes).toBe(RAMESH_UNPAID_OT_MINUTES);
     expect(finding?.difference).toBe(Math.round((RAMESH_UNPAID_OT_MINUTES * 20_000) / 60));
@@ -81,7 +81,7 @@ describe("FairPay Sentinel", () => {
 
   it("lets the worker request a review once, and the employer must explain the resolution", async () => {
     const repos = getRepos();
-    const month = monthKey(now);
+    const month = payFocusMonth(now);
     const first = await requestPayReview(repos, { workerId: "w1001", orgId: "org1", month, now });
     expect(first.ok).toBe(true);
     expect(await requestPayReview(repos, { workerId: "w1001", orgId: "org1", month, now })).toEqual({
@@ -106,7 +106,13 @@ describe("FairPay Sentinel", () => {
 
   it("refuses a review when nothing is short", async () => {
     expect(
-      await requestPayReview(getRepos(), { workerId: "w1005", orgId: "org1", month: monthKey(now, -1), now }),
+      await requestPayReview(getRepos(), {
+        workerId: "w1005",
+        orgId: "org1",
+        // The month before the story month, when everyone but Arun and Lakshmi was paid right.
+        month: monthKey(now, payFocusMonth(now) === monthKey(now) ? -1 : -2),
+        now,
+      }),
     ).toEqual({
       ok: false,
       error: "no_shortfall",
@@ -326,7 +332,7 @@ describe("skill passport work history", () => {
 describe("paying the gap", () => {
   it("clears the worker's shortfall and resolves their review", async () => {
     const repos = getRepos();
-    const month = monthKey(now);
+    const month = payFocusMonth(now);
     const before = await payCheckFor(repos, "w1001", month);
     expect(before!.outstanding).toBeGreaterThan(0);
     expect((await requestPayReview(repos, { workerId: "w1001", orgId: "org1", month, now })).ok).toBe(true);
@@ -353,7 +359,7 @@ describe("paying the gap", () => {
 
   it("keeps arrears when the pay record is corrected, and refuses other organisations", async () => {
     const repos = getRepos();
-    const month = monthKey(now);
+    const month = payFocusMonth(now);
     await payArrears(repos, { orgId: "org1", adminId: "admin1", workerId: "w1001", month, now });
     const record = (await repos.paidRecords.get("w1001", month))!;
     await savePaidRecord(repos, "org1", "admin1", { ...record, workerId: "w1001", month }, now);

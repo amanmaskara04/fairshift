@@ -4,7 +4,7 @@ import { Download } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildPayroll } from "@/server/services/payroll";
-import { isMonthKey, monthKey } from "@/core/period";
+import { isMonthKey, monthKey, payFocusMonth } from "@/core/period";
 import { formatMonth } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
@@ -16,10 +16,13 @@ import { PayrollTable } from "@/components/admin/payroll-table";
 export default async function PayrollPage({ searchParams }: PageProps<"/a/payroll">) {
   const session = await requireRole("admin");
   const [t, locale] = await Promise.all([getTranslations("admin.payrollPage"), getLocale()]);
-  const months = [0, -1, -2].map((offset) => monthKey(new Date(), offset));
+  const now = new Date();
+  const months = [0, -1, -2].map((offset) => monthKey(now, offset));
   const requested = (await searchParams).m;
   const month =
-    typeof requested === "string" && isMonthKey(requested) && months.includes(requested) ? requested : months[0];
+    typeof requested === "string" && isMonthKey(requested) && months.includes(requested)
+      ? requested
+      : payFocusMonth(now);
   const repos = getRepos();
   const [rows, disputes] = await Promise.all([
     buildPayroll(repos, session.orgId, month),

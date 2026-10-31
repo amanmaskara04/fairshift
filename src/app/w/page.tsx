@@ -21,7 +21,7 @@ import { getISTDay, getISTWeekStart } from "@/core/time";
 import { minutesByDay } from "@/core/overtime";
 import { checkFatigue } from "@/core/fatigue";
 import { getSectorProfile } from "@/core/sectors";
-import { monthKey } from "@/core/period";
+import { payFocusMonth } from "@/core/period";
 import type { ClosedShift } from "@/core/types";
 import { getScheme } from "@/config/schemes";
 import type { Locale } from "@/i18n/locales";
@@ -64,7 +64,7 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
     repos.shifts.getByWorker(session.uid),
     repos.orgs.getById(session.orgId),
     earnedFor(repos, session.uid, now),
-    payCheckFor(repos, session.uid, monthKey(now)),
+    payCheckFor(repos, session.uid, payFocusMonth(now)),
     benefitsFor(repos, session.uid, now),
   ]);
 

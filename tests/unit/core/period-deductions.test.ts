@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { isMonthKey, monthKey, monthRange } from "@/core/period";
+import { isMonthKey, monthKey, monthRange, payFocusMonth } from "@/core/period";
 import { computeDeductions, PF_RATE } from "@/core/deductions";
 import { orderOps, settledOpIds, type QueuedOp } from "@/lib/offline-queue";
 
@@ -20,6 +20,20 @@ describe("pay periods (IST months)", () => {
     expect(isMonthKey("2026-10")).toBe(true);
     expect(isMonthKey("2026-13")).toBe(false);
     expect(isMonthKey("../etc")).toBe(false);
+  });
+});
+
+describe("pay focus month (payday window)", () => {
+  // IST midnight is 18:30 UTC the day before.
+  it("opens on last month for the first 7 days of a month, then on this month", () => {
+    expect(payFocusMonth(new Date("2026-10-31T12:00:00Z"))).toBe("2026-10");
+    expect(payFocusMonth(new Date("2026-10-31T18:30:00Z"))).toBe("2026-10"); // 1 Nov, 00:00 IST
+    expect(payFocusMonth(new Date("2026-11-07T18:29:00Z"))).toBe("2026-10"); // 7 Nov, 23:59 IST
+    expect(payFocusMonth(new Date("2026-11-07T18:30:00Z"))).toBe("2026-11"); // 8 Nov, 00:00 IST
+  });
+
+  it("crosses the year boundary", () => {
+    expect(payFocusMonth(new Date("2027-01-03T06:00:00Z"))).toBe("2026-12");
   });
 });
 

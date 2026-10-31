@@ -27,7 +27,7 @@ Each step names the judging criterion it shows: **Impact** · **SDG 8** · **Inc
 
 1. **Priya (construction)**: the menu shows **X of 18 on duty**; *Needs attention* starts with **escalated** hazards (*Open 7h*), Ramesh's pay review, the 5-signer issue and a certificate request. **Impact**
 2. **Hazards**: Ramesh's **electrical danger** (with his photo) was marked fixed, he answered *“No, still a problem”*, so it reopened and has since **escalated to the site manager**; its history shows every step. An anonymous **machine** report with a photo is already *In progress*. Dismiss needs a reason; *Mark fixed* needs a note (and an optional after photo). **Impact**
-3. **Payroll**: FairPay Sentinel flags Ramesh's ₹907 → **Pay ₹907** → the gap is settled and disappears from Ramesh's phone. *Record pay for one worker* uses presets (*Paid in full*, *Overtime not paid*) and hour sliders instead of typing numbers. **SDG 8.5**
+3. **Payroll**: one row for every outcome: Ramesh and Gopal *Possible shortfall* (₹907, ₹832), Babu *Gap paid ₹692*, Dinesh *Matches*, Arun *Not entered*. **Pay ₹907** → the gap is settled and disappears from Ramesh's phone. (For the first 7 days of a month, pay screens open on last month, when wages fall due.) *Record pay for one worker* uses presets (*Paid in full*, *Overtime not paid*) and hour sliders instead of typing numbers. **SDG 8.5**
 4. **People**: only requests wait at the top. Verify Ramesh's skill; **approve Venkat's work certificate** → his row shows *View certificate* → the signed certificate with its QR. Every worker's welfare progress is in the table.
 5. **Dr. Arjun (hospital)**: the same product with ward escalation (ward in-charge → nursing superintendent → HR) and Sunita's co-signed issue. **Scale**
 
