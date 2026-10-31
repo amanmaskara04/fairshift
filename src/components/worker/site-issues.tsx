@@ -51,11 +51,17 @@ function IssueCard({ issue, onSign, pending }: { issue: IssueView; onSign: (id: 
         {gathering ? (
           <>
             <SignatureDots count={issue.signerCount} />
-            <span className="figure font-semibold text-ink-2">{t("needed", { count: issue.signerCount, k: K_ANONYMITY })}</span>
+            <span className="figure font-semibold text-ink-2">
+              {t("needed", { count: issue.signerCount, k: K_ANONYMITY })}
+            </span>
           </>
         ) : (
           <Badge tone={STATUS_TONE[issue.status]}>
-            {issue.status === "resolved" ? <CircleCheck aria-hidden="true" className="size-4" /> : <Megaphone aria-hidden="true" className="size-4" />}
+            {issue.status === "resolved" ? (
+              <CircleCheck aria-hidden="true" className="size-4" />
+            ) : (
+              <Megaphone aria-hidden="true" className="size-4" />
+            )}
             {t(`status.${issue.status}`, { count: issue.signerCount })}
           </Badge>
         )}
@@ -164,7 +170,13 @@ export function SiteIssues({ issues }: { issues: IssueView[] }) {
             {t("newLabel")}
           </label>
           <div className="flex items-start gap-2">
-            <Textarea id="issue-text" value={draft} onChange={(e) => setDraft(e.target.value.slice(0, 300))} rows={3} maxLength={300} />
+            <Textarea
+              id="issue-text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value.slice(0, 300))}
+              rows={3}
+              maxLength={300}
+            />
             <DictateButton onText={(text) => setDraft((d) => (d ? `${d} ${text}` : text).slice(0, 300))} />
           </div>
           <p className="text-sm text-ink-2">{t("newHint")}</p>

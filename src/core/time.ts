@@ -2,7 +2,7 @@
 // All functions operate in Asia/Kolkata (IST, UTC+05:30).
 // No Date.now() — current time is always passed as a parameter.
 
-import { ClosedShift } from './types';
+import { ClosedShift } from "./types";
 
 const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // +05:30 in ms
 
@@ -18,8 +18,8 @@ export function toIST(date: Date): Date {
 export function getISTDay(date: Date): string {
   const ist = toIST(date);
   const y = ist.getUTCFullYear();
-  const m = String(ist.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(ist.getUTCDate()).padStart(2, '0');
+  const m = String(ist.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(ist.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
@@ -33,8 +33,8 @@ export function getISTWeekStart(date: Date): string {
   const mondayOffset = dow === 0 ? 6 : dow - 1; // days since Monday
   const monday = new Date(ist.getTime() - mondayOffset * 24 * 60 * 60 * 1000);
   const y = monday.getUTCFullYear();
-  const m = String(monday.getUTCMonth() + 1).padStart(2, '0');
-  const d = String(monday.getUTCDate()).padStart(2, '0');
+  const m = String(monday.getUTCMonth() + 1).padStart(2, "0");
+  const d = String(monday.getUTCDate()).padStart(2, "0");
   return `${y}-${m}-${d}`;
 }
 
@@ -53,12 +53,10 @@ export function getISTWeekBucket(date: Date): string {
 
   const isoYear = thursday.getUTCFullYear();
   const jan1OfIsoYear = new Date(Date.UTC(isoYear, 0, 1));
-  const daysSinceJan1 = Math.floor(
-    (thursday.getTime() - jan1OfIsoYear.getTime()) / (24 * 60 * 60 * 1000)
-  );
+  const daysSinceJan1 = Math.floor((thursday.getTime() - jan1OfIsoYear.getTime()) / (24 * 60 * 60 * 1000));
   const weekNum = Math.floor(daysSinceJan1 / 7) + 1;
 
-  return `${isoYear}-W${String(weekNum).padStart(2, '0')}`;
+  return `${isoYear}-W${String(weekNum).padStart(2, "0")}`;
 }
 
 /**
@@ -80,7 +78,7 @@ export function splitShiftByDay(shift: ClosedShift): { day: string; minutes: num
 
     // Find start of next IST day: midnight of cursorIST date + 1 day, then convert back to UTC
     const nextDayIST = new Date(
-      Date.UTC(cursorIST.getUTCFullYear(), cursorIST.getUTCMonth(), cursorIST.getUTCDate() + 1)
+      Date.UTC(cursorIST.getUTCFullYear(), cursorIST.getUTCMonth(), cursorIST.getUTCDate() + 1),
     );
     const nextDayUTC = nextDayIST.getTime() - IST_OFFSET_MS; // convert IST midnight back to UTC
 
@@ -115,16 +113,8 @@ export function isNightShift(shift: ClosedShift): boolean {
   // Strategy: iterate over each possible night window that could overlap.
   // Start from the day before the shift start to the day of the shift end.
 
-  const firstDayMs = Date.UTC(
-    startIST.getUTCFullYear(),
-    startIST.getUTCMonth(),
-    startIST.getUTCDate()
-  );
-  const lastDayMs = Date.UTC(
-    endIST.getUTCFullYear(),
-    endIST.getUTCMonth(),
-    endIST.getUTCDate()
-  );
+  const firstDayMs = Date.UTC(startIST.getUTCFullYear(), startIST.getUTCMonth(), startIST.getUTCDate());
+  const lastDayMs = Date.UTC(endIST.getUTCFullYear(), endIST.getUTCMonth(), endIST.getUTCDate());
 
   // Check from day before first to last day
   const oneDayMs = 24 * 60 * 60 * 1000;

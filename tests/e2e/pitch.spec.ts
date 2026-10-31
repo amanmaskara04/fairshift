@@ -32,8 +32,13 @@ test("every pitch slide has no accessibility violations", async ({ page }) => {
   await page.goto("/pitch");
   for (let i = 0; i < 16; i++) {
     await page.waitForTimeout(450); // let the entrance animation finish before measuring contrast
-    const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).exclude("iframe").analyze();
-    expect(results.violations.map((v) => `slide ${i + 1} ${v.id}: ${v.nodes.map((n) => n.target).join(", ")}`)).toEqual([]);
+    const results = await new AxeBuilder({ page })
+      .withTags(["wcag2a", "wcag2aa", "wcag21aa"])
+      .exclude("iframe")
+      .analyze();
+    expect(results.violations.map((v) => `slide ${i + 1} ${v.id}: ${v.nodes.map((n) => n.target).join(", ")}`)).toEqual(
+      [],
+    );
     await page.keyboard.press("ArrowRight");
   }
 });

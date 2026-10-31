@@ -51,7 +51,8 @@ describe("checkEligibility (Benefits Unlocker)", () => {
 
   it("counts the day exactly 12 months ago, but not the day before", () => {
     expect(windowStart(now, 12)).toBe("2025-10-30");
-    const at = (day: string) => checkEligibility(builder, [{ day, sector: "construction" }], bocw, now)[0].progress.done;
+    const at = (day: string) =>
+      checkEligibility(builder, [{ day, sector: "construction" }], bocw, now)[0].progress.done;
     expect(at("2025-10-30")).toBe(1);
     expect(at("2025-10-29")).toBe(0);
   });
@@ -85,7 +86,9 @@ describe("checkEligibility (Benefits Unlocker)", () => {
   it("applies wage ceilings", () => {
     const pension = [getScheme("pmsym")!];
     const answers = { age_18_40: true, not_epf_esic_member: true };
-    expect(checkEligibility({ sector: "hospital", monthlyWage: 1_400_000 }, days(5), pension, now, answers)[0].eligible).toBe(true);
+    expect(
+      checkEligibility({ sector: "hospital", monthlyWage: 1_400_000 }, days(5), pension, now, answers)[0].eligible,
+    ).toBe(true);
     const [high] = checkEligibility({ sector: "hospital", monthlyWage: 1_800_000 }, days(5), pension, now, answers);
     expect(high.failedConditions).toEqual(["max_monthly_wage"]);
   });

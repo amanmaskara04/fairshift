@@ -19,7 +19,12 @@ export interface WorkerIssueView extends SiteIssue {
 }
 
 /** Open issues at the worker's site, with whether this worker signed (computed, never stored). */
-export async function issuesForWorker(repos: Repos, siteId: string, workerId: string, secret: string): Promise<WorkerIssueView[]> {
+export async function issuesForWorker(
+  repos: Repos,
+  siteId: string,
+  workerId: string,
+  secret: string,
+): Promise<WorkerIssueView[]> {
   const issues = await repos.issues.getBySite(siteId);
   const views = await Promise.all(
     issues.map(async (issue) => ({
@@ -43,7 +48,11 @@ export async function signIssue(
   const result = addSignature(issue, await repos.issueSigners.has(key));
   if (!result.ok) return result;
   await repos.issueSigners.add(key);
-  await repos.issues.update(issue.id, { signerCount: result.issue.signerCount, status: result.issue.status, updatedDay: getISTDay(input.now) });
+  await repos.issues.update(issue.id, {
+    signerCount: result.issue.signerCount,
+    status: result.issue.status,
+    updatedDay: getISTDay(input.now),
+  });
   return { ok: true, escalated: result.escalated };
 }
 
@@ -66,7 +75,13 @@ export async function raiseIssue(
     updatedDay: day,
   };
   await repos.issues.create(issue);
-  await signIssue(repos, { workerId: input.workerId, siteId: input.siteId, issueId: issue.id, now: input.now, secret: input.secret });
+  await signIssue(repos, {
+    workerId: input.workerId,
+    siteId: input.siteId,
+    issueId: issue.id,
+    now: input.now,
+    secret: input.secret,
+  });
   return (await repos.issues.getById(issue.id))!;
 }
 

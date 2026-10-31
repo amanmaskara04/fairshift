@@ -44,13 +44,21 @@ test("a worker's report reaches the admin, and the status change reaches the wor
   const card = admin.getByTestId("hazard-card").filter({ has: heat }).filter({ hasText: "Ramesh Kumar" });
   await expect(card).toBeVisible();
   await card.getByRole("button", { name: "Start work" }).click();
-  await expect(admin.getByRole("region", { name: /In progress/ }).getByTestId("hazard-card").filter({ has: heat }).filter({ hasText: "Ramesh Kumar" })).toBeVisible();
+  await expect(
+    admin
+      .getByRole("region", { name: /In progress/ })
+      .getByTestId("hazard-card")
+      .filter({ has: heat })
+      .filter({ hasText: "Ramesh Kumar" }),
+  ).toBeVisible();
 
   await worker.goto(reportUrl);
   await expect(worker.getByText("In progress").first()).toBeVisible();
 });
 
-test("people page separates site conditions from individual risk, and approves a work certificate", async ({ page }) => {
+test("people page separates site conditions from individual risk, and approves a work certificate", async ({
+  page,
+}) => {
   await loginAs(page, /Priya/);
   await page.goto("/a/people");
   await expect(page.getByRole("heading", { name: "Site conditions" })).toBeVisible();
@@ -62,7 +70,11 @@ test("people page separates site conditions from individual risk, and approves a
 
   // Only requests wait up top; once approved, the certificate link sits with the worker's row (or card on phones).
   const approvals = page.locator("#certificates");
-  await approvals.getByRole("listitem").filter({ hasText: "Venkat Rao" }).getByRole("button", { name: "Approve and sign" }).click();
+  await approvals
+    .getByRole("listitem")
+    .filter({ hasText: "Venkat Rao" })
+    .getByRole("button", { name: "Approve and sign" })
+    .click();
   await expect(approvals.getByText("Venkat Rao")).toBeHidden();
   const venkat = page.getByRole("row").or(page.getByRole("listitem")).filter({ hasText: "Venkat Rao" });
   await venkat.getByRole("link", { name: "View certificate" }).click();
@@ -143,7 +155,9 @@ test("a worker adds a skill, the admin verifies it", async ({ browser }) => {
   await worker.getByLabel("Given by").fill("ITI Pune");
   await worker.getByLabel("Completed on").fill("2025-02-01");
   await worker.getByRole("button", { name: "Save skill" }).click();
-  await expect(worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Pending")).toBeVisible();
+  await expect(
+    worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Pending"),
+  ).toBeVisible();
 
   const admin = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
   await loginAs(admin, /Priya/);
@@ -153,5 +167,7 @@ test("a worker adds a skill, the admin verifies it", async ({ browser }) => {
   await expect(card).toHaveCount(0);
 
   await worker.reload();
-  await expect(worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Verified")).toBeVisible();
+  await expect(
+    worker.getByRole("listitem").filter({ hasText: "Bar bending (e2e)" }).getByText("Verified"),
+  ).toBeVisible();
 });

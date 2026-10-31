@@ -1,6 +1,17 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { ArrowUpRight, BatteryLow, Gift, IndianRupee, LogIn, LogOut, MessageCircle, Scale, TriangleAlert, UserRound } from "lucide-react";
+import {
+  ArrowUpRight,
+  BatteryLow,
+  Gift,
+  IndianRupee,
+  LogIn,
+  LogOut,
+  MessageCircle,
+  Scale,
+  TriangleAlert,
+  UserRound,
+} from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { earnedFor } from "@/server/services/earned";
@@ -34,12 +45,18 @@ const ACTIONS = [
 ] as const;
 
 function formatTimeIST(date: Date): string {
-  return new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }).format(date);
+  return new Intl.DateTimeFormat("en-IN", { hour: "numeric", minute: "2-digit", timeZone: "Asia/Kolkata" }).format(
+    date,
+  );
 }
 
 export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
   const session = await requireRole("worker");
-  const [t, locale, params] = await Promise.all([getTranslations("worker"), getLocale() as Promise<Locale>, searchParams]);
+  const [t, locale, params] = await Promise.all([
+    getTranslations("worker"),
+    getLocale() as Promise<Locale>,
+    searchParams,
+  ]);
   const repos = getRepos();
   const now = new Date();
   const [worker, shifts, org, earned, check, benefits] = await Promise.all([
@@ -64,8 +81,12 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
   const overLimit = weekMinutes > weekLimit * 60;
 
   // Only the last 7 days, so the nudge is about recent strain, not old history.
-  const recent = shifts.filter((s): s is ClosedShift => Boolean(s.outAt) && now.getTime() - s.inAt.getTime() <= SEVEN_DAYS_MS);
-  const fatigueKeys = profile ? [...new Set(checkFatigue(recent, profile.fatigueRules, now).map((a) => a.messageKey))] : [];
+  const recent = shifts.filter(
+    (s): s is ClosedShift => Boolean(s.outAt) && now.getTime() - s.inAt.getTime() <= SEVEN_DAYS_MS,
+  );
+  const fatigueKeys = profile
+    ? [...new Set(checkFatigue(recent, profile.fatigueRules, now).map((a) => a.messageKey))]
+    : [];
 
   const firstName = worker?.name.split(" ")[0] ?? "";
   const greeting = t("greeting", { name: firstName });
@@ -73,7 +94,10 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
   const hours = t("todayHours", { hours: Math.floor(todayMinutes / 60), minutes: todayMinutes % 60 });
   const weekText = t("weekOfLimit", { used: formatDuration(weekMinutes), limit: weekLimit });
   const monthGross = earned?.monthGross ?? 0;
-  const earnedText = t("earned.spoken", { amount: formatRupees(monthGross), today: formatRupees(earned?.todayGross ?? 0) });
+  const earnedText = t("earned.spoken", {
+    amount: formatRupees(monthGross),
+    today: formatRupees(earned?.todayGross ?? 0),
+  });
   const shortfall = check?.outstanding ?? 0;
   const closest = benefits?.results
     .filter((r) => r.daysRemaining > 0 && r.progress.done > 0 && r.progress.needed > 1)
@@ -91,7 +115,9 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
         <header className="flex items-start justify-between gap-3 md:col-span-2">
           <div className="flex flex-col gap-1">
             <p className="eyebrow">{todayLabel(locale)}</p>
-            <GreetingTitle className="font-display text-[2.2rem] leading-[1.05] font-extrabold md:text-5xl">{greeting}</GreetingTitle>
+            <GreetingTitle className="font-display text-[2.2rem] leading-[1.05] font-extrabold md:text-5xl">
+              {greeting}
+            </GreetingTitle>
           </div>
           <SpeakButton text={`${greeting}. ${status}. ${hours}. ${earnedText}`} />
         </header>
@@ -104,7 +130,10 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
               </h2>
               <SpeakButton text={earnedText} className="-mt-2 -mr-2 bg-white/70" />
             </div>
-            <p className="figure font-display text-[3.1rem] leading-none font-extrabold text-primary-strong md:text-6xl" data-testid="earned-month">
+            <p
+              className="figure font-display text-[3.1rem] leading-none font-extrabold text-primary-strong md:text-6xl"
+              data-testid="earned-month"
+            >
               <CountUp paise={monthGross} />
             </p>
             <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -128,7 +157,11 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
                   openShift ? "bg-success-soft text-success" : "bg-surface-2 text-ink-2",
                 )}
               >
-                {openShift ? <span className="live-dot" aria-hidden="true" /> : <span aria-hidden="true" className="size-2 rounded-full bg-ink-2/50" />}
+                {openShift ? (
+                  <span className="live-dot" aria-hidden="true" />
+                ) : (
+                  <span aria-hidden="true" className="size-2 rounded-full bg-ink-2/50" />
+                )}
                 {status}
               </span>
             </div>
@@ -153,12 +186,22 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
                 <span className="figure text-ink-2">{weekText}</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-surface-2" aria-hidden="true">
-                <div className={cn("meter-fill h-full rounded-full", overLimit ? "bg-danger" : "bg-primary")} style={{ width: `${Math.max(weekShare * 100, 2)}%` }} />
+                <div
+                  className={cn("meter-fill h-full rounded-full", overLimit ? "bg-danger" : "bg-primary")}
+                  style={{ width: `${Math.max(weekShare * 100, 2)}%` }}
+                />
               </div>
             </div>
 
-            <Link href="/w/checkin" className={cn(buttonVariants({ variant: openShift ? "outline" : "primary", size: "lg" }), "w-full")}>
-              {openShift ? <LogOut aria-hidden="true" className="size-6" /> : <LogIn aria-hidden="true" className="size-6" />}
+            <Link
+              href="/w/checkin"
+              className={cn(buttonVariants({ variant: openShift ? "outline" : "primary", size: "lg" }), "w-full")}
+            >
+              {openShift ? (
+                <LogOut aria-hidden="true" className="size-6" />
+              ) : (
+                <LogIn aria-hidden="true" className="size-6" />
+              )}
               {openShift ? t("tiles.checkout") : t("tiles.checkin")}
             </Link>
           </section>
@@ -188,7 +231,9 @@ export default async function WorkerHome({ searchParams }: PageProps<"/w">) {
                 <Scale aria-hidden="true" className="size-6" />
               </span>
               <span className="flex-1">
-                <span className="block font-extrabold">{t("nudge.shortfall", { amount: formatRupees(shortfall) })}</span>
+                <span className="block font-extrabold">
+                  {t("nudge.shortfall", { amount: formatRupees(shortfall) })}
+                </span>
                 <span className="block text-sm text-ink-2">{t("nudge.shortfallHint")}</span>
               </span>
               <ArrowUpRight aria-hidden="true" className="nudge size-5 text-ink-2" />

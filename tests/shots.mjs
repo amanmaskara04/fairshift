@@ -33,7 +33,10 @@ for (const [label, ctxOpts] of [
   }
   for (const [persona, list] of personas) {
     await page.goto(BASE + "/login");
-    await page.getByRole("button", { name: new RegExp(persona) }).first().click();
+    await page
+      .getByRole("button", { name: new RegExp(persona) })
+      .first()
+      .click();
     await page.waitForURL(/\/(w|a)(\?.*)?$/);
     for (const path of list) {
       await page.goto(BASE + path);

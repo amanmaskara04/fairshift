@@ -16,7 +16,7 @@ export interface PaidRecord {
   netPaid: number;
 }
 
-export type FindingCode = 'OVERTIME_UNDERPAID' | 'REGULAR_UNDERPAID' | 'BELOW_MINIMUM_WAGE' | 'DEDUCTION_MISMATCH';
+export type FindingCode = "OVERTIME_UNDERPAID" | "REGULAR_UNDERPAID" | "BELOW_MINIMUM_WAGE" | "DEDUCTION_MISMATCH";
 
 export interface PayFinding {
   code: FindingCode;
@@ -38,7 +38,7 @@ export interface PayCheckInput {
 }
 
 export interface PayCheckResult {
-  status: 'no_record' | 'checked';
+  status: "no_record" | "checked";
   findings: PayFinding[];
   /** Largest defensible shortfall in paise (see totalShortfall) */
   totalShortfall: number;
@@ -54,7 +54,7 @@ const toMinutes = (hours: number): number => Math.round(hours * 60);
 const payFor = (minutes: number, hourlyRate: number): number => Math.round((minutes * hourlyRate) / 60);
 
 function hoursFinding(
-  code: 'OVERTIME_UNDERPAID' | 'REGULAR_UNDERPAID',
+  code: "OVERTIME_UNDERPAID" | "REGULAR_UNDERPAID",
   recordedMinutes: number,
   paidMinutes: number,
   rate: number,
@@ -76,11 +76,15 @@ function minimumWageFinding(input: PayCheckInput, record: PaidRecord): PayFindin
   const difference = expected - record.grossPaid;
   if (difference <= PAY_TOLERANCE_PAISE) return null;
   return {
-    code: 'BELOW_MINIMUM_WAGE',
+    code: "BELOW_MINIMUM_WAGE",
     expected,
     paid: record.grossPaid,
     difference,
-    explanation: { workedMinutes: regularMinutes + overtimeMinutes, minimumHourly, minimumDaily: input.minimumWage.dailyRate },
+    explanation: {
+      workedMinutes: regularMinutes + overtimeMinutes,
+      minimumHourly,
+      minimumDaily: input.minimumWage.dailyRate,
+    },
   };
 }
 
@@ -91,7 +95,7 @@ function deductionFinding(input: PayCheckInput, record: PaidRecord): PayFinding 
   const difference = withheld - expected;
   if (difference <= PAY_TOLERANCE_PAISE) return null;
   return {
-    code: 'DEDUCTION_MISMATCH',
+    code: "DEDUCTION_MISMATCH",
     expected,
     paid: withheld,
     difference,
@@ -105,24 +109,34 @@ function deductionFinding(input: PayCheckInput, record: PaidRecord): PayFinding 
  * the total is whichever of the two views is larger.
  */
 function totalShortfall(findings: PayFinding[]): number {
-  const itemised = findings.filter((f) => f.code !== 'BELOW_MINIMUM_WAGE').reduce((sum, f) => sum + f.difference, 0);
-  const minimum = findings.find((f) => f.code === 'BELOW_MINIMUM_WAGE')?.difference ?? 0;
+  const itemised = findings.filter((f) => f.code !== "BELOW_MINIMUM_WAGE").reduce((sum, f) => sum + f.difference, 0);
+  const minimum = findings.find((f) => f.code === "BELOW_MINIMUM_WAGE")?.difference ?? 0;
   return Math.max(itemised, minimum);
 }
 
 /** Compare attendance-based pay with the employer's payment record. Pure and deterministic. */
 export function checkPay(input: PayCheckInput): PayCheckResult {
   const record = input.paidRecord;
-  if (!record) return { status: 'no_record', findings: [], totalShortfall: 0 };
+  if (!record) return { status: "no_record", findings: [], totalShortfall: 0 };
 
   const findings = [
-    hoursFinding('OVERTIME_UNDERPAID', input.attendance.overtimeMinutes, toMinutes(record.paidOvertimeHours), input.payRules.overtimeRate),
-    hoursFinding('REGULAR_UNDERPAID', input.attendance.regularMinutes, toMinutes(record.paidRegularHours), input.payRules.hourlyRate),
+    hoursFinding(
+      "OVERTIME_UNDERPAID",
+      input.attendance.overtimeMinutes,
+      toMinutes(record.paidOvertimeHours),
+      input.payRules.overtimeRate,
+    ),
+    hoursFinding(
+      "REGULAR_UNDERPAID",
+      input.attendance.regularMinutes,
+      toMinutes(record.paidRegularHours),
+      input.payRules.hourlyRate,
+    ),
     minimumWageFinding(input, record),
     deductionFinding(input, record),
   ].filter((f): f is PayFinding => f !== null);
 
-  return { status: 'checked', findings, totalShortfall: totalShortfall(findings) };
+  return { status: "checked", findings, totalShortfall: totalShortfall(findings) };
 }
 
 /**

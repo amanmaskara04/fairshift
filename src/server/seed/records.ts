@@ -32,8 +32,13 @@ const HAZARDS: HazardSeed[] = [
     severity: "critical",
     status: "received",
     location: "Floor 2",
-    reports: [[null, 7, "தண்ணீர் தொட்டி அருகே மின் கம்பிகள் திறந்து தொங்குகின்றன", "Bare wires hanging next to the water tank"]],
-    events: [["received", 7], ["escalated", 3, undefined, undefined, 1]],
+    reports: [
+      [null, 7, "தண்ணீர் தொட்டி அருகே மின் கம்பிகள் திறந்து தொங்குகின்றன", "Bare wires hanging next to the water tank"],
+    ],
+    events: [
+      ["received", 7],
+      ["escalated", 3, undefined, undefined, 1],
+    ],
     extra: { escalationLevel: 1 },
   },
   {
@@ -45,10 +50,20 @@ const HAZARDS: HazardSeed[] = [
     status: "in_progress",
     location: "Floor 3",
     reports: [
-      ["w1001", 30, "மூன்றாம் மாடி சாரம் ஆடுகிறது, ஒரு கிளாம்ப் இல்லை", "Floor 3 scaffold is shaking, one clamp is missing"],
+      [
+        "w1001",
+        30,
+        "மூன்றாம் மாடி சாரம் ஆடுகிறது, ஒரு கிளாம்ப் இல்லை",
+        "Floor 3 scaffold is shaking, one clamp is missing",
+      ],
       [null, 20, "Floor 3 scaffold moves when we climb", "Floor 3 scaffold moves when we climb"],
     ],
-    events: [["received", 30], ["report_added", 20], ["in_progress", 18, "admin1"], ["escalated", 6, undefined, undefined, 1]],
+    events: [
+      ["received", 30],
+      ["report_added", 20],
+      ["in_progress", 18, "admin1"],
+      ["escalated", 6, undefined, undefined, 1],
+    ],
     extra: { escalationLevel: 1, assigneeUid: "admin1" },
   },
   {
@@ -60,7 +75,11 @@ const HAZARDS: HazardSeed[] = [
     status: "fixed",
     location: "Gate store",
     reports: [["w1001", 4 * 24, "புதிய உதவியாளர்களுக்கு ஹெல்மெட் இல்லை", "No helmets in the store for new helpers"]],
-    events: [["received", 96], ["in_progress", 94, "admin1"], ["fixed", 26, "admin1", "40 new helmets issued at the gate store; the guard keeps a register."]],
+    events: [
+      ["received", 96],
+      ["in_progress", 94, "admin1"],
+      ["fixed", 26, "admin1", "40 new helmets issued at the gate store; the guard keeps a register."],
+    ],
     extra: { confirmation: "pending", fixNote: "40 new helmets issued at the gate store; the guard keeps a register." },
   },
   {
@@ -82,8 +101,20 @@ const HAZARDS: HazardSeed[] = [
     severity: "high",
     status: "fixed",
     location: "Floor 6",
-    reports: [["w1005", 12 * 24, "Open lift shaft edge on floor 6 has no railing", "Open lift shaft edge on floor 6 has no railing"]],
-    events: [["received", 288], ["in_progress", 285, "admin1"], ["fixed", 270, "admin1", "Temporary railing and toe-board installed around the shaft."], ["confirmed", 250]],
+    reports: [
+      [
+        "w1005",
+        12 * 24,
+        "Open lift shaft edge on floor 6 has no railing",
+        "Open lift shaft edge on floor 6 has no railing",
+      ],
+    ],
+    events: [
+      ["received", 288],
+      ["in_progress", 285, "admin1"],
+      ["fixed", 270, "admin1", "Temporary railing and toe-board installed around the shaft."],
+      ["confirmed", 250],
+    ],
     extra: { confirmation: "confirmed", fixNote: "Temporary railing and toe-board installed around the shaft." },
   },
   {
@@ -95,7 +126,10 @@ const HAZARDS: HazardSeed[] = [
     status: "dismissed",
     location: "Batching plant",
     reports: [[null, 6 * 24, "Mixer drum makes a grinding noise", "Mixer drum makes a grinding noise"]],
-    events: [["received", 144], ["dismissed", 120, "admin1", "Serviced by the vendor the same morning (job card 4471)."]],
+    events: [
+      ["received", 144],
+      ["dismissed", 120, "admin1", "Serviced by the vendor the same morning (job card 4471)."],
+    ],
     extra: { dismissReason: "already_fixed", dismissNote: "Serviced by the vendor the same morning (job card 4471)." },
   },
   {
@@ -106,7 +140,14 @@ const HAZARDS: HazardSeed[] = [
     severity: "high",
     status: "received",
     location: "Bed 12",
-    reports: [["w2001", 10, "बेड 12 के पास सामान्य कूड़ेदान में इस्तेमाल की गई सुइयाँ", "Used needles thrown in the general bin near bed 12"]],
+    reports: [
+      [
+        "w2001",
+        10,
+        "बेड 12 के पास सामान्य कूड़ेदान में इस्तेमाल की गई सुइयाँ",
+        "Used needles thrown in the general bin near bed 12",
+      ],
+    ],
     events: [["received", 10]],
   },
   {
@@ -117,8 +158,19 @@ const HAZARDS: HazardSeed[] = [
     severity: "high",
     status: "in_progress",
     location: "Corridor",
-    reports: [[null, 29, "कॉरिडोर में खून गिरा है, सुबह से साफ़ नहीं हुआ", "Blood spill in the corridor, not cleaned since morning"]],
-    events: [["received", 29], ["in_progress", 27, "admin2"], ["escalated", 5, undefined, undefined, 1]],
+    reports: [
+      [
+        null,
+        29,
+        "कॉरिडोर में खून गिरा है, सुबह से साफ़ नहीं हुआ",
+        "Blood spill in the corridor, not cleaned since morning",
+      ],
+    ],
+    events: [
+      ["received", 29],
+      ["in_progress", 27, "admin2"],
+      ["escalated", 5, undefined, undefined, 1],
+    ],
     extra: { escalationLevel: 1, assigneeUid: "admin2" },
   },
   {
@@ -129,8 +181,13 @@ const HAZARDS: HazardSeed[] = [
     severity: "low",
     status: "fixed",
     location: "Washroom",
-    reports: [["w2001", 72, "बाथरूम के पास फ़र्श गीला है, कोई बोर्ड नहीं", "Wet floor near the washroom, no sign board"]],
-    events: [["received", 72], ["fixed", 20, "admin2", "Caution boards placed; housekeeping now mops every 2 hours."]],
+    reports: [
+      ["w2001", 72, "बाथरूम के पास फ़र्श गीला है, कोई बोर्ड नहीं", "Wet floor near the washroom, no sign board"],
+    ],
+    events: [
+      ["received", 72],
+      ["fixed", 20, "admin2", "Caution boards placed; housekeeping now mops every 2 hours."],
+    ],
     extra: { confirmation: "pending", fixNote: "Caution boards placed; housekeeping now mops every 2 hours." },
   },
   {
@@ -141,7 +198,9 @@ const HAZARDS: HazardSeed[] = [
     severity: "medium",
     status: "received",
     location: "Night desk",
-    reports: [[null, 22, "रात में मरीज़ के रिश्तेदार ने धक्का दिया", "A patient's relative pushed an attendant at night"]],
+    reports: [
+      [null, 22, "रात में मरीज़ के रिश्तेदार ने धक्का दिया", "A patient's relative pushed an attendant at night"],
+    ],
     events: [["received", 22]],
   },
   {
@@ -152,8 +211,20 @@ const HAZARDS: HazardSeed[] = [
     severity: "low",
     status: "fixed",
     location: "Post-op",
-    reports: [["w2006", 9 * 24, "Patient hoist is broken, we lift patients by hand", "Patient hoist is broken, we lift patients by hand"]],
-    events: [["received", 216], ["in_progress", 210, "admin2"], ["fixed", 190, "admin2", "Hoist motor replaced by the vendor."], ["confirmed", 170]],
+    reports: [
+      [
+        "w2006",
+        9 * 24,
+        "Patient hoist is broken, we lift patients by hand",
+        "Patient hoist is broken, we lift patients by hand",
+      ],
+    ],
+    events: [
+      ["received", 216],
+      ["in_progress", 210, "admin2"],
+      ["fixed", 190, "admin2", "Hoist motor replaced by the vendor."],
+      ["confirmed", 170],
+    ],
     extra: { confirmation: "confirmed", fixNote: "Hoist motor replaced by the vendor." },
   },
 ];
@@ -164,7 +235,12 @@ export function buildHazards(now: Date): Hazard[] {
     ...seed,
     baseSeverity: severity,
     severity,
-    reports: reports.map(([reporterId, hours, transcript, transcriptEn]): HazardReport => ({ reporterId, at: ago(hours), transcript, transcriptEn })),
+    reports: reports.map(([reporterId, hours, transcript, transcriptEn]): HazardReport => ({
+      reporterId,
+      at: ago(hours),
+      transcript,
+      transcriptEn,
+    })),
     timeline: events.map(([status, hours, by, note, level]) => ({ status, at: ago(hours), by, note, level })),
     createdAt: ago(reports[0][1]),
     escalationLevel: 0,
@@ -216,7 +292,11 @@ const COMMENTS: Record<string, string[]> = {
 };
 
 /** Typical mood per site (pay, safety, respect), nudged by the random draw. */
-const SITE_MOOD: Record<string, [number, number, number]> = { site1: [1.9, 2.0, 2.4], site2: [2.3, 1.9, 2.5], site3: [2.2, 2.1, 2.2] };
+const SITE_MOOD: Record<string, [number, number, number]> = {
+  site1: [1.9, 2.0, 2.4],
+  site2: [2.3, 1.9, 2.5],
+  site3: [2.2, 2.1, 2.2],
+};
 const ORG_OF_SITE: Record<string, string> = { site1: "org1", site2: "org2", site3: "org2" };
 
 export function buildFeedback(now: Date, rand: () => number): FeedbackEntry[] {
@@ -250,17 +330,44 @@ export function buildFeedback(now: Date, rand: () => number): FeedbackEntry[] {
 
 // ── Co-signed issues ───────────────────────────────────────────────
 
-type IssueSeed = [id: string, siteId: string, text: string, signers: number, status: SiteIssue["status"], daysAgo: number, updatedDaysAgo: number, response?: string];
+type IssueSeed = [
+  id: string,
+  siteId: string,
+  text: string,
+  signers: number,
+  status: SiteIssue["status"],
+  daysAgo: number,
+  updatedDaysAgo: number,
+  response?: string,
+];
 
 const ISSUES: IssueSeed[] = [
-  ["iss-1", "site1", "Drinking water runs out on the upper floors by afternoon", 7, "acknowledged", 9, 6, "Two extra 20-litre cans per floor from Monday. The store keeper refills them at 1 pm."],
+  [
+    "iss-1",
+    "site1",
+    "Drinking water runs out on the upper floors by afternoon",
+    7,
+    "acknowledged",
+    9,
+    6,
+    "Two extra 20-litre cans per floor from Monday. The store keeper refills them at 1 pm.",
+  ],
   ["iss-2", "site1", "Overtime list is announced at 6 pm with no notice, we miss the last bus", 5, "escalated", 4, 1],
   ["iss-3", "site1", "No shade or rest area during the lunch break", 3, "gathering", 3, 1],
   ["iss-4", "site1", "முதலுதவிப் பெட்டி காலியாக உள்ளது", 2, "gathering", 1, 1],
   ["iss-5", "site2", "No escort to the bus stop after night shift", 6, "escalated", 6, 2],
   ["iss-6", "site2", "Small-size gloves out of stock for two weeks", 4, "gathering", 5, 2],
   ["iss-7", "site3", "ब्रेक का समय राउंड लंबा होने पर कट जाता है", 1, "gathering", 2, 2],
-  ["iss-8", "site3", "PPE gowns are reused across patients", 8, "resolved", 20, 12, "500 new gowns received. Single-use rule repeated in every shift huddle."],
+  [
+    "iss-8",
+    "site3",
+    "PPE gowns are reused across patients",
+    8,
+    "resolved",
+    20,
+    12,
+    "500 new gowns received. Single-use rule repeated in every shift huddle.",
+  ],
 ];
 
 export function buildIssues(now: Date): SiteIssue[] {
@@ -281,15 +388,78 @@ export function buildIssues(now: Date): SiteIssue[] {
 // ── Skills ─────────────────────────────────────────────────────────
 
 export const SKILLS: Skill[] = [
-  { id: "sk1", workerId: "w1001", title: "Scaffolding Safety", issuer: "NSDC", date: new Date("2025-03-15"), verifiedBy: "admin1" },
+  {
+    id: "sk1",
+    workerId: "w1001",
+    title: "Scaffolding Safety",
+    issuer: "NSDC",
+    date: new Date("2025-03-15"),
+    verifiedBy: "admin1",
+  },
   { id: "sk2", workerId: "w1001", title: "First Aid Basic", issuer: "Red Cross", date: new Date("2025-06-20") },
-  { id: "sk3", workerId: "w1001", title: "Brick & Block Masonry (Level 4)", issuer: "CSDCI", date: new Date("2024-08-02"), verifiedBy: "admin1" },
-  { id: "sk4", workerId: "w1002", title: "Electrical Safety", issuer: "NSDC", date: new Date("2025-01-10"), verifiedBy: "admin1" },
-  { id: "sk5", workerId: "w1003", title: "Height Work Certificate", issuer: "State Labour Dept", date: new Date("2024-11-01"), verifiedBy: "admin1" },
-  { id: "sk6", workerId: "w1007", title: "Wireman Licence", issuer: "TN Electrical Licensing Board", date: new Date("2023-05-12"), verifiedBy: "admin1" },
-  { id: "sk7", workerId: "w2001", title: "Patient Care", issuer: "City Care Hospital", date: new Date("2025-02-15"), verifiedBy: "admin2" },
+  {
+    id: "sk3",
+    workerId: "w1001",
+    title: "Brick & Block Masonry (Level 4)",
+    issuer: "CSDCI",
+    date: new Date("2024-08-02"),
+    verifiedBy: "admin1",
+  },
+  {
+    id: "sk4",
+    workerId: "w1002",
+    title: "Electrical Safety",
+    issuer: "NSDC",
+    date: new Date("2025-01-10"),
+    verifiedBy: "admin1",
+  },
+  {
+    id: "sk5",
+    workerId: "w1003",
+    title: "Height Work Certificate",
+    issuer: "State Labour Dept",
+    date: new Date("2024-11-01"),
+    verifiedBy: "admin1",
+  },
+  {
+    id: "sk6",
+    workerId: "w1007",
+    title: "Wireman Licence",
+    issuer: "TN Electrical Licensing Board",
+    date: new Date("2023-05-12"),
+    verifiedBy: "admin1",
+  },
+  {
+    id: "sk7",
+    workerId: "w2001",
+    title: "Patient Care",
+    issuer: "City Care Hospital",
+    date: new Date("2025-02-15"),
+    verifiedBy: "admin2",
+  },
   { id: "sk8", workerId: "w2001", title: "Infection Control", issuer: "ICMR", date: new Date("2025-08-01") },
-  { id: "sk9", workerId: "w2002", title: "Basic Life Support", issuer: "AHA", date: new Date("2025-05-10"), verifiedBy: "admin2" },
-  { id: "sk10", workerId: "w2004", title: "Phlebotomy", issuer: "City Care Hospital", date: new Date("2025-04-20"), verifiedBy: "admin2" },
-  { id: "sk11", workerId: "w2003", title: "Biomedical Waste Handling", issuer: "UP Pollution Control Board", date: new Date("2025-07-08"), verifiedBy: "admin2" },
+  {
+    id: "sk9",
+    workerId: "w2002",
+    title: "Basic Life Support",
+    issuer: "AHA",
+    date: new Date("2025-05-10"),
+    verifiedBy: "admin2",
+  },
+  {
+    id: "sk10",
+    workerId: "w2004",
+    title: "Phlebotomy",
+    issuer: "City Care Hospital",
+    date: new Date("2025-04-20"),
+    verifiedBy: "admin2",
+  },
+  {
+    id: "sk11",
+    workerId: "w2003",
+    title: "Biomedical Waste Handling",
+    issuer: "UP Pollution Control Board",
+    date: new Date("2025-07-08"),
+    verifiedBy: "admin2",
+  },
 ];

@@ -14,11 +14,25 @@ import "./globals.css";
  * Only Latin is preloaded; an Indic face downloads only when that script is on screen.
  */
 const anekLatin = Anek_Latin({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-anek-latin" });
-const anekDevanagari = Anek_Devanagari({ subsets: ["devanagari"], display: "swap", preload: false, variable: "--font-anek-devanagari" });
+const anekDevanagari = Anek_Devanagari({
+  subsets: ["devanagari"],
+  display: "swap",
+  preload: false,
+  variable: "--font-anek-devanagari",
+});
 const anekTamil = Anek_Tamil({ subsets: ["tamil"], display: "swap", preload: false, variable: "--font-anek-tamil" });
-const anekTelugu = Anek_Telugu({ subsets: ["telugu"], display: "swap", preload: false, variable: "--font-anek-telugu" });
+const anekTelugu = Anek_Telugu({
+  subsets: ["telugu"],
+  display: "swap",
+  preload: false,
+  variable: "--font-anek-telugu",
+});
 // Display face for headings and the wordmark (latin-ext carries the dotless ı of "Faır").
-const bricolage = Bricolage_Grotesque({ subsets: ["latin", "latin-ext"], display: "swap", variable: "--font-bricolage" });
+const bricolage = Bricolage_Grotesque({
+  subsets: ["latin", "latin-ext"],
+  display: "swap",
+  variable: "--font-bricolage",
+});
 
 const SCRIPT_FONT: Record<string, { className: string; cssVar: string }> = {
   en: { className: "", cssVar: "--font-anek-latin" },
@@ -29,7 +43,11 @@ const SCRIPT_FONT: Record<string, { className: string; cssVar: string }> = {
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations("landing");
-  return { title: { default: "FairShift", template: "%s · FairShift" }, description: t("subtitle"), applicationName: "FairShift" };
+  return {
+    title: { default: "FairShift", template: "%s · FairShift" },
+    description: t("subtitle"),
+    applicationName: "FairShift",
+  };
 }
 
 export const viewport: Viewport = {
@@ -48,7 +66,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html lang={locale} className={`${anekLatin.variable} ${font.className} ${bricolage.variable} h-full`}>
-      <body className="flex min-h-full flex-col font-sans" style={{ ["--font-active" as string]: `var(${font.cssVar}), var(--font-anek-latin)` }}>
+      <body
+        className="flex min-h-full flex-col font-sans"
+        style={{ ["--font-active" as string]: `var(${font.cssVar}), var(--font-anek-latin)` }}
+      >
         <a href="#main" className="skip-link">
           {t("skipToContent")}
         </a>

@@ -93,7 +93,11 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
 
   const finished = phase === "done" || phase === "queued";
   const title = finished ? message : mode === "checkout" ? t("checkoutTitle") : t("title");
-  const hint = finished ? t(mode === "checkout" ? "checkoutDoneHint" : "checkinDoneHint") : mode === "checkout" ? t("checkoutHint") : t("hint");
+  const hint = finished
+    ? t(mode === "checkout" ? "checkoutDoneHint" : "checkinDoneHint")
+    : mode === "checkout"
+      ? t("checkoutHint")
+      : t("hint");
 
   return (
     <div className="flex flex-col gap-6">
@@ -108,7 +112,11 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
       )}
 
       {finished ? (
-        <div role="status" aria-live="polite" className="card rise-in flex flex-col items-center gap-4 px-5 py-10 text-center">
+        <div
+          role="status"
+          aria-live="polite"
+          className="card rise-in flex flex-col items-center gap-4 px-5 py-10 text-center"
+        >
           {phase === "done" ? <SuccessCheck /> : <CloudUpload aria-hidden="true" className="size-20 text-primary" />}
           <p className="font-display text-3xl font-extrabold">{message}</p>
           <Button size="lg" variant="outline" onClick={goBack}>
@@ -117,7 +125,13 @@ export function CheckinPanel({ checkedIn, demo }: { checkedIn: boolean; demo: bo
         </div>
       ) : mode === "checkout" ? (
         <div className="hero-card flex flex-col gap-4 p-5 md:p-7">
-          <Button size="lg" className="min-h-20 text-xl" onClick={submitCheckOut} disabled={pending} aria-busy={pending || undefined}>
+          <Button
+            size="lg"
+            className="min-h-20 text-xl"
+            onClick={submitCheckOut}
+            disabled={pending}
+            aria-busy={pending || undefined}
+          >
             <LogOut aria-hidden="true" className="size-8" />
             {t("checkoutButton")}
           </Button>

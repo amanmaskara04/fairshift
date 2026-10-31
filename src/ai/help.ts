@@ -1,7 +1,16 @@
 import "server-only";
 import { z } from "zod";
 import { HELPLINE_IDS, type HelplineId } from "@/config/helplines";
-import { HELP_ACTIONS, HELP_TOPICS, HELP_URGENCIES, stripNumbers, triageHelp, type HelpAction, type HelpTopic, type HelpUrgency } from "@/core/help-triage";
+import {
+  HELP_ACTIONS,
+  HELP_TOPICS,
+  HELP_URGENCIES,
+  stripNumbers,
+  triageHelp,
+  type HelpAction,
+  type HelpTopic,
+  type HelpUrgency,
+} from "@/core/help-triage";
 import { getAiClient, MODELS, type AiClient } from "./client";
 import { LANGUAGE_NAME, untrusted } from "./prompts";
 import { describeAiError, logAiCall } from "./log";
@@ -44,17 +53,34 @@ function helpSystemPrompt(locale: string): string {
  * in model text are removed, and an emergency in the words always puts 112 first.
  * The text is PII-scrubbed by the caller and never stored.
  */
-export async function adviseHelp(text: string, locale: string, client: AiClient | null = getAiClient()): Promise<HelpResult> {
+export async function adviseHelp(
+  text: string,
+  locale: string,
+  client: AiClient | null = getAiClient(),
+): Promise<HelpResult> {
   const floor = triageHelp(text);
   if (client) {
     const started = Date.now();
     try {
-      const raw = await client.generateText({ model: MODELS.fast, system: helpSystemPrompt(locale), parts: [{ text: untrusted(text) }], jsonSchema: helpJsonSchema });
+      const raw = await client.generateText({
+        model: MODELS.fast,
+        system: helpSystemPrompt(locale),
+        parts: [{ text: untrusted(text) }],
+        jsonSchema: helpJsonSchema,
+      });
       const parsed = HelpAnswer.safeParse(JSON.parse(raw));
-      await logAiCall({ feature: "help", model: MODELS.fast, latencyMs: Date.now() - started, fallbackUsed: false, error: parsed.success ? undefined : "rejected: invalid JSON shape" });
+      await logAiCall({
+        feature: "help",
+        model: MODELS.fast,
+        latencyMs: Date.now() - started,
+        fallbackUsed: false,
+        error: parsed.success ? undefined : "rejected: invalid JSON shape",
+      });
       if (parsed.success) {
         const emergency = floor.urgency === "emergency" || parsed.data.urgency === "emergency";
-        const helplines = [...new Set<HelplineId>([...(emergency ? (["emergency"] as const) : []), ...parsed.data.helplines])].slice(0, 3);
+        const helplines = [
+          ...new Set<HelplineId>([...(emergency ? (["emergency"] as const) : []), ...parsed.data.helplines]),
+        ].slice(0, 3);
         return {
           urgency: emergency ? "emergency" : parsed.data.urgency,
           topic: emergency && floor.topic === "emergency" ? "emergency" : parsed.data.topic,
@@ -65,7 +91,13 @@ export async function adviseHelp(text: string, locale: string, client: AiClient 
         };
       }
     } catch (error) {
-      await logAiCall({ feature: "help", model: MODELS.fast, latencyMs: Date.now() - started, fallbackUsed: true, error: describeAiError(error) });
+      await logAiCall({
+        feature: "help",
+        model: MODELS.fast,
+        latencyMs: Date.now() - started,
+        fallbackUsed: true,
+        error: describeAiError(error),
+      });
     }
   }
   return { ...floor, steps: [], source: "keywords" };

@@ -9,7 +9,13 @@ import { recognitionLang, transcriptFrom } from "@/lib/speech-recognition";
 import type { AiClient } from "@/ai/client";
 
 const construction = ["fall_from_height", "scaffolding", "electrical", "heat_stress", "ppe_missing", "machinery"];
-const ok = { transcript: "wires", transcriptEn: "wires", category: "electrical", severityHint: "high", locationHint: "" };
+const ok = {
+  transcript: "wires",
+  transcriptEn: "wires",
+  category: "electrical",
+  severityHint: "high",
+  locationHint: "",
+};
 
 function fakeClient(...responses: (string | Error)[]): AiClient & { calls: string[] } {
   const calls: string[] = [];
@@ -108,7 +114,10 @@ describe("explainPay", () => {
 
 describe("redactPII and untrusted fences", () => {
   it("removes emails, phone numbers, codes and names (including Indic names)", () => {
-    const out = redactPII("Mail a@b.co or +91 98765 43210, code 1001. Ramesh Kumar and सुनीता", ["Ramesh Kumar", "सुनीता"]);
+    const out = redactPII("Mail a@b.co or +91 98765 43210, code 1001. Ramesh Kumar and सुनीता", [
+      "Ramesh Kumar",
+      "सुनीता",
+    ]);
     expect(out).not.toMatch(/a@b\.co|98765|1001|Ramesh|Kumar|सुनीता/);
     expect(out).toContain(REDACTED);
   });
@@ -138,7 +147,13 @@ describe("phone speech recognition helpers", () => {
 });
 
 describe("adviseHelp", () => {
-  const answer = { urgency: "normal", topic: "pay", steps: ["Open your pay page.", "Call 1800 999 1234 for help."], helplines: ["eshram"], action: "check_pay" };
+  const answer = {
+    urgency: "normal",
+    topic: "pay",
+    steps: ["Open your pay page.", "Call 1800 999 1234 for help."],
+    helplines: ["eshram"],
+    action: "check_pay",
+  };
 
   it("keeps Gemini's steps but never a phone number it wrote", async () => {
     const result = await adviseHelp("overtime not paid", "en", fakeClient(JSON.stringify(answer)));
@@ -154,14 +169,24 @@ describe("adviseHelp", () => {
 
   it("rejects helplines that are not on the official list, then falls back to rules", async () => {
     const bad = fakeClient(JSON.stringify({ ...answer, helplines: ["my_scam_line"] }));
-    expect(await adviseHelp("overtime not paid", "en", bad)).toMatchObject({ source: "keywords", topic: "pay", steps: [] });
-    expect(await adviseHelp("supervisor threatens me", "en", null)).toMatchObject({ source: "keywords", topic: "harassment" });
+    expect(await adviseHelp("overtime not paid", "en", bad)).toMatchObject({
+      source: "keywords",
+      topic: "pay",
+      steps: [],
+    });
+    expect(await adviseHelp("supervisor threatens me", "en", null)).toMatchObject({
+      source: "keywords",
+      topic: "harassment",
+    });
   });
 });
 
 describe("fire reports without Gemini", () => {
   it("classifies a fire as fire (not the fire exit) and as critical", async () => {
-    const result = await extractHazard({ text: "आग लगी है, धुआं भर गया", sector: "construction", categories: ["fire", ...construction] }, null);
+    const result = await extractHazard(
+      { text: "आग लगी है, धुआं भर गया", sector: "construction", categories: ["fire", ...construction] },
+      null,
+    );
     expect(result).toMatchObject({ category: "fire", severityHint: "critical", source: "keywords" });
     expect(classifyByKeywords("the fire exit is blocked", ["fire", "fire_exit"])).toBe("fire_exit");
   });

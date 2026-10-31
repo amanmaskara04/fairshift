@@ -3,11 +3,11 @@
 // 30-second window default. Accepts current window ±1.
 // Offline: accepts window matching offlineScannedAt, up to 12h old.
 
-import { createHmac, timingSafeEqual as cryptoTimingSafeEqual } from 'node:crypto';
+import { createHmac, timingSafeEqual as cryptoTimingSafeEqual } from "node:crypto";
 
 const DEFAULT_WINDOW_SIZE = 30; // seconds
 const OFFLINE_MAX_AGE_MS = 12 * 60 * 60 * 1000; // 12 hours in ms
-const SEPARATOR = '|';
+const SEPARATOR = "|";
 
 /**
  * Get the time window number for a given timestamp.
@@ -22,12 +22,7 @@ export function getWindow(now: Date, windowSizeSeconds?: number): number {
  * Sign a QR token for a site at the given time.
  * Returns a base64url-encoded string containing siteId, window, and HMAC.
  */
-export function signQRToken(
-  siteId: string,
-  now: Date,
-  secret: string,
-  windowSizeSeconds?: number
-): string {
+export function signQRToken(siteId: string, now: Date, secret: string, windowSizeSeconds?: number): string {
   const w = getWindow(now, windowSizeSeconds);
   const payload = `${siteId}${SEPARATOR}${w}`;
   const mac = hmac(secret, payload);
@@ -46,7 +41,7 @@ export function verifyQRToken(
   token: string,
   now: Date,
   secret: string,
-  opts?: { offlineScannedAt?: Date; windowSizeSeconds?: number }
+  opts?: { offlineScannedAt?: Date; windowSizeSeconds?: number },
 ): { valid: boolean; siteId: string | null; reason?: string } {
   const windowSize = opts?.windowSizeSeconds ?? DEFAULT_WINDOW_SIZE;
 
@@ -54,12 +49,12 @@ export function verifyQRToken(
   try {
     raw = fromBase64Url(token);
   } catch {
-    return { valid: false, siteId: null, reason: 'invalid_encoding' };
+    return { valid: false, siteId: null, reason: "invalid_encoding" };
   }
 
   const parts = raw.split(SEPARATOR);
   if (parts.length < 3) {
-    return { valid: false, siteId: null, reason: 'malformed_token' };
+    return { valid: false, siteId: null, reason: "malformed_token" };
   }
 
   // The HMAC is the last part, window is second-to-last, everything else is siteId
@@ -70,25 +65,21 @@ export function verifyQRToken(
 
   const tokenWindow = parseInt(windowStr, 10);
   if (isNaN(tokenWindow)) {
-    return { valid: false, siteId: null, reason: 'invalid_window' };
+    return { valid: false, siteId: null, reason: "invalid_window" };
   }
 
   // Verify HMAC
   const payload = `${siteId}${SEPARATOR}${tokenWindow}`;
   const expectedMac = hmac(secret, payload);
   if (!timingSafeEqual(mac, expectedMac)) {
-    return { valid: false, siteId, reason: 'tampered' };
+    return { valid: false, siteId, reason: "tampered" };
   }
 
   // Check window validity
   const currentWindow = getWindow(now, windowSize);
 
   // Standard: accept ±1 window
-  if (
-    tokenWindow === currentWindow ||
-    tokenWindow === currentWindow - 1 ||
-    tokenWindow === currentWindow + 1
-  ) {
+  if (tokenWindow === currentWindow || tokenWindow === currentWindow - 1 || tokenWindow === currentWindow + 1) {
     return { valid: true, siteId };
   }
 
@@ -97,23 +88,19 @@ export function verifyQRToken(
   if (opts?.offlineScannedAt) {
     const age = now.getTime() - opts.offlineScannedAt.getTime();
     if (age < -windowSize * 1000) {
-      return { valid: false, siteId, reason: 'scanned_in_future' };
+      return { valid: false, siteId, reason: "scanned_in_future" };
     }
     if (age > OFFLINE_MAX_AGE_MS) {
-      return { valid: false, siteId, reason: 'offline_too_old' };
+      return { valid: false, siteId, reason: "offline_too_old" };
     }
 
     const offlineWindow = getWindow(opts.offlineScannedAt, windowSize);
-    if (
-      tokenWindow === offlineWindow ||
-      tokenWindow === offlineWindow - 1 ||
-      tokenWindow === offlineWindow + 1
-    ) {
+    if (tokenWindow === offlineWindow || tokenWindow === offlineWindow - 1 || tokenWindow === offlineWindow + 1) {
       return { valid: true, siteId };
     }
   }
 
-  return { valid: false, siteId, reason: 'expired' };
+  return { valid: false, siteId, reason: "expired" };
 }
 
 /**
@@ -132,24 +119,20 @@ export function peekQRSiteId(token: string): string | null {
 // ─── Helpers ────────────────────────────────────────────────────────
 
 function hmac(secret: string, data: string): string {
-  return createHmac('sha256', secret).update(data).digest('hex');
+  return createHmac("sha256", secret).update(data).digest("hex");
 }
 
 function toBase64Url(str: string): string {
-  return Buffer.from(str, 'utf-8')
-    .toString('base64')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
+  return Buffer.from(str, "utf-8").toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 function fromBase64Url(b64: string): string {
-  let s = b64.replace(/-/g, '+').replace(/_/g, '/');
+  let s = b64.replace(/-/g, "+").replace(/_/g, "/");
   // Add padding
   while (s.length % 4 !== 0) {
-    s += '=';
+    s += "=";
   }
-  return Buffer.from(s, 'base64').toString('utf-8');
+  return Buffer.from(s, "base64").toString("utf-8");
 }
 
 /**

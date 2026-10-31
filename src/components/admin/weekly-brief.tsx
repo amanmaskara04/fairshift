@@ -22,7 +22,11 @@ export function WeeklyBrief() {
           </span>
           {t("title")}
         </h2>
-        <Button size="sm" onClick={() => startTransition(async () => setBrief(await weeklyBriefAction()))} disabled={pending}>
+        <Button
+          size="sm"
+          onClick={() => startTransition(async () => setBrief(await weeklyBriefAction()))}
+          disabled={pending}
+        >
           {pending ? t("working") : brief ? t("refresh") : t("generate")}
         </Button>
       </div>

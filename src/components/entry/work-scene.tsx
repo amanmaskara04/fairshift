@@ -38,8 +38,24 @@ interface PersonProps {
 function Person({ shirt, skin, head = "hardhat", legs = "still", arm }: PersonProps) {
   return (
     <g>
-      <rect className={legs === "walk" ? "scene-leg scene-leg-a" : undefined} x="-10" y="-36" width="9" height="36" rx="4" fill="#8a7f70" />
-      <rect className={legs === "walk" ? "scene-leg scene-leg-b" : undefined} x="1" y="-36" width="9" height="36" rx="4" fill="#9a8f80" />
+      <rect
+        className={legs === "walk" ? "scene-leg scene-leg-a" : undefined}
+        x="-10"
+        y="-36"
+        width="9"
+        height="36"
+        rx="4"
+        fill="#8a7f70"
+      />
+      <rect
+        className={legs === "walk" ? "scene-leg scene-leg-b" : undefined}
+        x="1"
+        y="-36"
+        width="9"
+        height="36"
+        rx="4"
+        fill="#9a8f80"
+      />
       <rect x="-15" y="-82" width="30" height="50" rx="12" fill={shirt} />
       <circle cx="0" cy="-94" r="12" fill={skin} />
       {head === "hardhat" && (
@@ -48,7 +64,9 @@ function Person({ shirt, skin, head = "hardhat", legs = "still", arm }: PersonPr
           <rect x="-16" y="-98" width="32" height="4" rx="2" />
         </g>
       )}
-      {head === "cap" && <rect x="-9" y="-108" width="18" height="7" rx="3" fill="#ffffff" stroke={C.cross} strokeWidth="1.5" />}
+      {head === "cap" && (
+        <rect x="-9" y="-108" width="18" height="7" rx="3" fill="#ffffff" stroke={C.cross} strokeWidth="1.5" />
+      )}
       {head === "hair" && <circle cx="-9" cy="-100" r="7" fill="#5b4636" />}
       {arm ?? <rect x="-4" y="-78" width="8" height="34" rx="4" fill={shirt} opacity="0.85" />}
     </g>
@@ -57,7 +75,10 @@ function Person({ shirt, skin, head = "hardhat", legs = "still", arm }: PersonPr
 
 export function WorkScene() {
   return (
-    <div aria-hidden="true" className="work-scene pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-[52vh] min-h-[320px] overflow-hidden opacity-60">
+    <div
+      aria-hidden="true"
+      className="work-scene pointer-events-none fixed inset-x-0 bottom-0 -z-10 h-[52vh] min-h-[320px] overflow-hidden opacity-60"
+    >
       <SceneParallax>
         <svg viewBox="0 0 1440 520" preserveAspectRatio="xMidYMax slice" className="h-full w-full">
           {/* Far layer: sun, clouds, skyline */}
@@ -77,7 +98,15 @@ export function WorkScene() {
               </g>
             ))}
             {[60, 140, 330, 520, 700, 860, 1080, 1300].map((x, i) => (
-              <rect key={x} x={x} y={300 - (i % 3) * 40} width={90 + (i % 2) * 30} height={200 + (i % 3) * 40} rx="6" fill={C.far} />
+              <rect
+                key={x}
+                x={x}
+                y={300 - (i % 3) * 40}
+                width={90 + (i % 2) * 30}
+                height={200 + (i % 3) * 40}
+                rx="6"
+                fill={C.far}
+              />
             ))}
           </g>
 
@@ -109,14 +138,27 @@ export function WorkScene() {
               <rect width="250" height="240" rx="8" fill="#e6f0ee" />
               <rect x="100" y="-36" width="50" height="40" rx="6" fill="#e6f0ee" />
               <path d="M118 -28h14v10h10v14h-10v10h-14v-10h-10v-14h10z" fill={C.cross} />
-              {[30, 90, 150].map((y) => [30, 100, 170].map((x) => <rect key={`${x}-${y}`} x={x} y={y} width="44" height="32" rx="4" fill="#ffffff" opacity="0.8" />))}
+              {[30, 90, 150].map((y) =>
+                [30, 100, 170].map((x) => (
+                  <rect key={`${x}-${y}`} x={x} y={y} width="44" height="32" rx="4" fill="#ffffff" opacity="0.8" />
+                )),
+              )}
             </g>
             <g transform="translate(1180 300)">
               <rect width="200" height="170" rx="6" fill="#ece6f2" />
               <path d="M0 0 l50 -40 v40 l50 -40 v40 l50 -40 v40" fill="#ece6f2" />
               <rect x="160" y="-110" width="22" height="110" fill={C.steel} />
               {[0, 1, 2].map((i) => (
-                <circle key={i} className="scene-smoke" style={{ animationDelay: `${i * 1.3}s` }} cx="171" cy="-122" r="14" fill="#ffffff" opacity="0.7" />
+                <circle
+                  key={i}
+                  className="scene-smoke"
+                  style={{ animationDelay: `${i * 1.3}s` }}
+                  cx="171"
+                  cy="-122"
+                  r="14"
+                  fill="#ffffff"
+                  opacity="0.7"
+                />
               ))}
             </g>
           </g>
@@ -129,7 +171,15 @@ export function WorkScene() {
             <g transform="translate(250 470)">
               {[0, 1, 2].map((row) =>
                 [0, 1, 2, 3].map((col) => (
-                  <rect key={`${row}-${col}`} x={40 + col * 26 + (row % 2) * 13} y={-14 - row * 14} width="24" height="12" rx="2" fill={C.brick} />
+                  <rect
+                    key={`${row}-${col}`}
+                    x={40 + col * 26 + (row % 2) * 13}
+                    y={-14 - row * 14}
+                    width="24"
+                    height="12"
+                    rx="2"
+                    fill={C.brick}
+                  />
                 )),
               )}
               <rect className="scene-brick" x="92" y="-56" width="24" height="12" rx="2" fill={C.brick} />

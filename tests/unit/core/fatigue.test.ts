@@ -18,7 +18,10 @@ describe("checkFatigue", () => {
   it("flags days longer than the daily limit", () => {
     const alerts = checkFatigue(dayShifts("2026-10-05", 1, 11), rule("maxDailyHours", 10), NOW);
     expect(alerts).toHaveLength(1);
-    expect(alerts[0]).toMatchObject({ messageKey: "fatigue.maxDailyHours", evidence: { day: "2026-10-05", minutes: 660 } });
+    expect(alerts[0]).toMatchObject({
+      messageKey: "fatigue.maxDailyHours",
+      evidence: { day: "2026-10-05", minutes: 660 },
+    });
   });
 
   it("flags rest gaps shorter than 11h", () => {

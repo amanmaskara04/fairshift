@@ -40,6 +40,11 @@ describe("offline queue helpers", () => {
   });
 
   it("removes every op the server answered, success or permanent rejection", () => {
-    expect(settledOpIds([{ clientOpId: "a", ok: true }, { clientOpId: "b", ok: false, error: "expired_qr" }])).toEqual(["a", "b"]);
+    expect(
+      settledOpIds([
+        { clientOpId: "a", ok: true },
+        { clientOpId: "b", ok: false, error: "expired_qr" },
+      ]),
+    ).toEqual(["a", "b"]);
   });
 });

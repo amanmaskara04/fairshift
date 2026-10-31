@@ -35,14 +35,22 @@ export async function buildPayroll(repos: Repos, orgId: string, month: string): 
   ]);
   if (!org) return [];
   const { start, end } = monthRange(month);
-  const shifts = await repos.shifts.getByWorkersInRange(workers.map((w) => w.id), start, new Date(end.getTime() - 1));
+  const shifts = await repos.shifts.getByWorkersInRange(
+    workers.map((w) => w.id),
+    start,
+    new Date(end.getTime() - 1),
+  );
   const shiftsOf = Map.groupBy(shifts, (s) => s.workerId);
   const stateOf = new Map(sites.map((s) => [s.id, s.state]));
   const recordOf = new Map(records.map((r) => [r.workerId, r]));
 
   const rows: PayrollRow[] = [];
   for (const worker of workers) {
-    const check = payCheckFrom(payslipFrom(worker, org, month, shiftsOf.get(worker.id) ?? []), recordOf.get(worker.id), stateOf.get(worker.siteId));
+    const check = payCheckFrom(
+      payslipFrom(worker, org, month, shiftsOf.get(worker.id) ?? []),
+      recordOf.get(worker.id),
+      stateOf.get(worker.siteId),
+    );
     const { payslip, daysWorked } = check.view;
     rows.push({
       workerId: worker.id,

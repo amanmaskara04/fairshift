@@ -51,10 +51,19 @@ export function LanguagePicker() {
               <span className="font-display text-3xl font-extrabold md:text-4xl">{native}</span>
               <span className="flex items-center gap-2 text-sm font-bold text-ink-2" lang="en">
                 {english}
-                {current === locale ? <Check aria-hidden="true" className="size-4 text-primary" /> : <ArrowRight aria-hidden="true" className="nudge size-4" />}
+                {current === locale ? (
+                  <Check aria-hidden="true" className="size-4 text-primary" />
+                ) : (
+                  <ArrowRight aria-hidden="true" className="nudge size-4" />
+                )}
               </span>
             </button>
-            <SpeakButton text={native} lang={locale} label={t("hearLanguage", { language: english })} className="absolute top-3 right-3" />
+            <SpeakButton
+              text={native}
+              lang={locale}
+              label={t("hearLanguage", { language: english })}
+              className="absolute top-3 right-3"
+            />
           </div>
         );
         return (

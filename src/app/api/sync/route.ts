@@ -59,7 +59,11 @@ export async function POST(request: Request) {
             secretFor: secretForSiteId,
           })
         : await checkOut(repos, { workerId: session.uid, clientOpId: op.clientOpId, at, now });
-    results.push({ clientOpId: op.clientOpId, ok: result.ok, ...(result.ok ? { status: result.status } : { error: result.error }) });
+    results.push({
+      clientOpId: op.clientOpId,
+      ok: result.ok,
+      ...(result.ok ? { status: result.status } : { error: result.error }),
+    });
   }
   return Response.json({ results });
 }

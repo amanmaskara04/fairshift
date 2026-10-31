@@ -70,7 +70,10 @@ export function Deck() {
     >
       <div className="hazard-tape" aria-hidden="true" />
       <div className="h-1 bg-surface-2" aria-hidden="true">
-        <div className="h-full bg-primary transition-[width] duration-300" style={{ width: `${((index + 1) / total) * 100}%` }} />
+        <div
+          className="h-full bg-primary transition-[width] duration-300"
+          style={{ width: `${((index + 1) / total) * 100}%` }}
+        />
       </div>
 
       <main id="main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col px-5 py-8 md:px-10 md:py-12">
@@ -82,7 +85,9 @@ export function Deck() {
         >
           <header className="flex flex-col gap-2">
             <p className="eyebrow">{slide.eyebrow}</p>
-            <h1 className="font-display max-w-5xl text-3xl leading-[1.05] font-extrabold tracking-tight md:text-5xl">{slide.title}</h1>
+            <h1 className="font-display max-w-5xl text-3xl leading-[1.05] font-extrabold tracking-tight md:text-5xl">
+              {slide.title}
+            </h1>
           </header>
           <div className="flex-1">{slide.body}</div>
         </section>
@@ -90,7 +95,13 @@ export function Deck() {
 
       <nav aria-label="Slides" className="sticky bottom-0 border-t border-line bg-paper/95 backdrop-blur-sm">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-5 py-3 md:px-10">
-          <Button variant="outline" size="sm" onClick={() => go(index - 1)} disabled={index === 0} aria-label="Previous slide">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => go(index - 1)}
+            disabled={index === 0}
+            aria-label="Previous slide"
+          >
             <ChevronLeft aria-hidden="true" className="size-4" />
             Prev
           </Button>
@@ -98,7 +109,12 @@ export function Deck() {
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </p>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" onClick={() => document.documentElement.requestFullscreen?.()} aria-label="Full screen">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => document.documentElement.requestFullscreen?.()}
+              aria-label="Full screen"
+            >
               <Expand aria-hidden="true" className="size-4" />
             </Button>
             <Button size="sm" onClick={() => go(index + 1)} disabled={index === total - 1} aria-label="Next slide">

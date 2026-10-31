@@ -24,7 +24,9 @@ export function ShiftTimer({ since }: { since: string }) {
   // Before hydration render a stable placeholder so server and client markup match.
   const seconds = now === null ? 0 : Math.max(0, Math.floor((now - start) / 1000));
   const text =
-    now === null ? "--:--:--" : `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor((seconds % 3600) / 60))}:${pad(seconds % 60)}`;
+    now === null
+      ? "--:--:--"
+      : `${pad(Math.floor(seconds / 3600))}:${pad(Math.floor((seconds % 3600) / 60))}:${pad(seconds % 60)}`;
   return (
     <span aria-hidden="true" className="figure tabular-nums">
       {text}

@@ -25,8 +25,18 @@ export const DEMO_PIN = "1234";
 export const DEMO_ADMIN_PASSWORD = "demo1234";
 
 export const ORGS: Org[] = [
-  { id: "org1", name: "BuildRight Constructions", sector: "construction", labourRules: { dailyHrs: 8, weeklyHrs: 48, otMultiplier: 2 } },
-  { id: "org2", name: "City Care Hospital", sector: "hospital", labourRules: { dailyHrs: 8, weeklyHrs: 48, otMultiplier: 2 } },
+  {
+    id: "org1",
+    name: "BuildRight Constructions",
+    sector: "construction",
+    labourRules: { dailyHrs: 8, weeklyHrs: 48, otMultiplier: 2 },
+  },
+  {
+    id: "org2",
+    name: "City Care Hospital",
+    sector: "hospital",
+    labourRules: { dailyHrs: 8, weeklyHrs: 48, otMultiplier: 2 },
+  },
 ];
 
 export const SITES: Site[] = [
@@ -39,11 +49,33 @@ export const SITES: Site[] = [
     geofence: { lat: 12.9815, lng: 80.2176, radiusM: 200 },
     qrSecret: "qr-secret-site1-abcdef1234567890",
   },
-  { id: "site2", orgId: "org2", name: "Ward A — General Medicine", sector: "hospital", state: "UP", qrSecret: "qr-secret-site2-abcdef1234567890" },
-  { id: "site3", orgId: "org2", name: "Ward B — Surgery", sector: "hospital", state: "UP", qrSecret: "qr-secret-site3-abcdef1234567890" },
+  {
+    id: "site2",
+    orgId: "org2",
+    name: "Ward A — General Medicine",
+    sector: "hospital",
+    state: "UP",
+    qrSecret: "qr-secret-site2-abcdef1234567890",
+  },
+  {
+    id: "site3",
+    orgId: "org2",
+    name: "Ward B — Surgery",
+    sector: "hospital",
+    state: "UP",
+    qrSecret: "qr-secret-site3-abcdef1234567890",
+  },
 ];
 
-type RosterRow = [code: string, name: string, jobTitle: string, skill: SkillLevel, lang: string, siteId: string, rate: number];
+type RosterRow = [
+  code: string,
+  name: string,
+  jobTitle: string,
+  skill: SkillLevel,
+  lang: string,
+  siteId: string,
+  rate: number,
+];
 
 // Construction: daily wages in paise. Hospital: monthly salaries in paise.
 const CONSTRUCTION: RosterRow[] = [
@@ -114,12 +146,21 @@ export function buildWorkers(now: Date, rameshJoined: Date): Worker[] {
     jobTitle,
     skillLevel,
     pay: { basis, rate },
-    joinedAt: code === "1001" ? rameshJoined : new Date(now.getTime() - (TENURE_DAYS[code] ?? DEFAULT_TENURE_DAYS) * DAY_MS),
+    joinedAt:
+      code === "1001" ? rameshJoined : new Date(now.getTime() - (TENURE_DAYS[code] ?? DEFAULT_TENURE_DAYS) * DAY_MS),
     pastWork:
       code === "1001"
         ? [{ employer: "Shakti Infra Projects", role: "Mason", sector: "construction", from: "2023-03", to: "2025-11" }]
         : code === "2001"
-          ? [{ employer: "Sahara Nursing Home", role: "Ward helper", sector: "hospital", from: "2021-06", to: "2024-02" }]
+          ? [
+              {
+                employer: "Sahara Nursing Home",
+                role: "Ward helper",
+                sector: "hospital",
+                from: "2021-06",
+                to: "2024-02",
+              },
+            ]
           : undefined,
   }));
 }

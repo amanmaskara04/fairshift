@@ -21,14 +21,21 @@ export interface PayCheckView {
 
 /** Compare one worker's attendance-based payslip with what the employer recorded as paid. */
 export async function payCheckFor(repos: Repos, workerId: string, month: string): Promise<PayCheckView | null> {
-  const [view, record] = await Promise.all([buildPayslip(repos, workerId, month), repos.paidRecords.get(workerId, month)]);
+  const [view, record] = await Promise.all([
+    buildPayslip(repos, workerId, month),
+    repos.paidRecords.get(workerId, month),
+  ]);
   if (!view) return null;
   const site = await repos.sites.getById(view.worker.siteId);
   return payCheckFrom(view, record, site?.state);
 }
 
 /** The pay check from already-loaded data (the payslip, the paid record and the site's state). */
-export function payCheckFrom(view: PayslipView, record: PaidRecordEntry | undefined, siteState: string | undefined): PayCheckView {
+export function payCheckFrom(
+  view: PayslipView,
+  record: PaidRecordEntry | undefined,
+  siteState: string | undefined,
+): PayCheckView {
   const minimumWage = findMinimumWage(siteState ?? "IN", view.org.sector, view.worker.skillLevel);
   const regular = view.payslip.lines.find((l) => l.kind === "regular");
   const overtime = view.payslip.lines.find((l) => l.kind === "overtime");
@@ -46,7 +53,15 @@ export function payCheckFrom(view: PayslipView, record: PaidRecordEntry | undefi
     minimumWage,
   });
   const arrearsPaid = (record?.arrears ?? []).reduce((sum, a) => sum + a.amount, 0);
-  return { view, record, result, minimumWage, arrearsPaid, outstanding: outstandingShortfall(result, arrearsPaid), rates: { regular: hourlyRate, overtime: overtimeRate } };
+  return {
+    view,
+    record,
+    result,
+    minimumWage,
+    arrearsPaid,
+    outstanding: outstandingShortfall(result, arrearsPaid),
+    rates: { regular: hourlyRate, overtime: overtimeRate },
+  };
 }
 
 // ── Recording what was paid (manual form or CSV) ──────────────────
@@ -65,12 +80,25 @@ export const PaidRecordInput = z
   .refine((r) => r.netPaid <= r.grossPaid, { message: "net_above_gross" });
 export type PaidRecordInput = z.infer<typeof PaidRecordInput>;
 
-export async function savePaidRecord(repos: Repos, orgId: string, adminId: string, input: PaidRecordInput, now: Date): Promise<boolean> {
+export async function savePaidRecord(
+  repos: Repos,
+  orgId: string,
+  adminId: string,
+  input: PaidRecordInput,
+  now: Date,
+): Promise<boolean> {
   const worker = await repos.workers.getById(input.workerId);
   if (!worker || worker.orgId !== orgId) return false;
   // Arrears are separate payments: a corrected record keeps them.
   const existing = await repos.paidRecords.get(input.workerId, input.month);
-  await repos.paidRecords.upsert({ ...input, id: `${input.workerId}:${input.month}`, orgId, recordedAt: now, recordedBy: adminId, arrears: existing?.arrears });
+  await repos.paidRecords.upsert({
+    ...input,
+    id: `${input.workerId}:${input.month}`,
+    orgId,
+    recordedAt: now,
+    recordedBy: adminId,
+    arrears: existing?.arrears,
+  });
   return true;
 }
 
@@ -87,7 +115,10 @@ export async function payArrears(
   const check = await payCheckFor(repos, input.workerId, input.month);
   if (!check?.record || check.outstanding === 0) return { ok: false, error: "nothing_owed" };
   const amount = check.outstanding;
-  await repos.paidRecords.upsert({ ...check.record, arrears: [...(check.record.arrears ?? []), { amount, at: input.now, by: input.adminId }] });
+  await repos.paidRecords.upsert({
+    ...check.record,
+    arrears: [...(check.record.arrears ?? []), { amount, at: input.now, by: input.adminId }],
+  });
   const disputes = await repos.payDisputes.getByWorker(input.workerId);
   await Promise.all(
     disputes
@@ -97,7 +128,15 @@ export async function payArrears(
   return { ok: true, amount };
 }
 
-export const PAID_CSV_HEADER = ["code", "month", "paidRegularHours", "paidOvertimeHours", "grossPaidINR", "deductionsINR", "netPaidINR"] as const;
+export const PAID_CSV_HEADER = [
+  "code",
+  "month",
+  "paidRegularHours",
+  "paidOvertimeHours",
+  "grossPaidINR",
+  "deductionsINR",
+  "netPaidINR",
+] as const;
 export const MAX_CSV_ROWS = 500;
 
 export interface CsvImportResult {
@@ -107,7 +146,13 @@ export interface CsvImportResult {
 }
 
 /** Import a paid-records sheet. Every row is validated on its own; bad rows are reported, never guessed. */
-export async function importPaidCsv(repos: Repos, orgId: string, adminId: string, csv: string, now: Date): Promise<CsvImportResult> {
+export async function importPaidCsv(
+  repos: Repos,
+  orgId: string,
+  adminId: string,
+  csv: string,
+  now: Date,
+): Promise<CsvImportResult> {
   const [header, ...rows] = parseCsv(csv);
   const result: CsvImportResult = { saved: 0, errors: [] };
   if (!header || header.map((h) => h.trim()).join(",") !== PAID_CSV_HEADER.join(",")) {

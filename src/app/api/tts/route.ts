@@ -30,8 +30,10 @@ export async function POST(request: Request) {
   if (!parsed.success) return Response.json({ error: "invalid" }, { status: 400 });
 
   const session = await getSession();
-  if (!session && !PUBLIC_PHRASES.has(parsed.data.text)) return Response.json({ error: "unauthorized" }, { status: 401 });
-  if (!limiter.check(session?.uid ?? `ip:${clientIp(request)}`)) return Response.json({ error: "rate_limited" }, { status: 429 });
+  if (!session && !PUBLIC_PHRASES.has(parsed.data.text))
+    return Response.json({ error: "unauthorized" }, { status: 401 });
+  if (!limiter.check(session?.uid ?? `ip:${clientIp(request)}`))
+    return Response.json({ error: "rate_limited" }, { status: 429 });
 
   const wav = await speechFor(getRepos(), parsed.data.locale, parsed.data.text);
   if (!wav) return new Response(null, { status: 204 });

@@ -14,7 +14,6 @@ import type { HazardCategory } from "@/core/types";
 import { HAZARD_CATEGORIES, SEVERITIES } from "@/ai/schemas";
 import { rememberReport, trackedReports } from "@/server/hazard-tracking";
 
-
 /** Ten reports an hour is plenty for one person; more is a stuck button or abuse. */
 const reportLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 60 * 60 * 1000 });
 const confirmLimiter = new RateLimiter({ maxTokens: 20, refillIntervalMs: 60 * 60 * 1000 });
@@ -48,7 +47,13 @@ export async function checkDuplicateAction(input: unknown): Promise<{ reportCoun
   if (!parsed.success || !session.siteId) return null;
   const category = await allowedCategory(session.orgId, parsed.data.category);
   if (!category) return null;
-  return duplicateFor(getRepos(), { orgId: session.orgId, siteId: session.siteId, category, location: parsed.data.location, now: new Date() });
+  return duplicateFor(getRepos(), {
+    orgId: session.orgId,
+    siteId: session.siteId,
+    category,
+    location: parsed.data.location,
+    now: new Date(),
+  });
 }
 
 export async function submitHazardAction(input: unknown): Promise<{ error: string } | void> {
@@ -105,7 +110,11 @@ export async function confirmFixAction(input: unknown): Promise<{ ok: boolean }>
   return { ok: result.ok };
 }
 
-const TrackingRef = z.string().trim().toUpperCase().regex(/^FS-[A-Z0-9]{6}$/);
+const TrackingRef = z
+  .string()
+  .trim()
+  .toUpperCase()
+  .regex(/^FS-[A-Z0-9]{6}$/);
 
 /** Follow an anonymous report from another phone by typing its private reference. */
 export async function trackByRefAction(ref: unknown): Promise<{ hazardId: string } | { error: "not_found" }> {

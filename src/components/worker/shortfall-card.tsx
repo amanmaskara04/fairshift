@@ -74,7 +74,10 @@ export function ShortfallCard({ month, total, lines, dispute, minimumWageNote }:
                 <li
                   key={step}
                   aria-current={dispute.status === step ? "step" : undefined}
-                  className={cn("flex flex-col items-center gap-1 rounded-xl px-1 py-2 font-bold", reached ? "bg-primary-soft text-primary-strong" : "bg-surface-2 text-ink-2")}
+                  className={cn(
+                    "flex flex-col items-center gap-1 rounded-xl px-1 py-2 font-bold",
+                    reached ? "bg-primary-soft text-primary-strong" : "bg-surface-2 text-ink-2",
+                  )}
                 >
                   <Icon aria-hidden="true" className="size-5" />
                   {t(`status.${step}`)}
@@ -82,7 +85,9 @@ export function ShortfallCard({ month, total, lines, dispute, minimumWageNote }:
               );
             })}
           </ol>
-          {dispute.note && <p className="rounded-xl bg-surface-2 px-3 py-2">{t("employerReply", { note: dispute.note })}</p>}
+          {dispute.note && (
+            <p className="rounded-xl bg-surface-2 px-3 py-2">{t("employerReply", { note: dispute.note })}</p>
+          )}
         </div>
       ) : (
         <>

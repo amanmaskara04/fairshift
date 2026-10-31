@@ -2,8 +2,8 @@
 // Pure computation — no I/O, no Date.now().
 // `now` is passed in to determine "current" day/week context.
 
-import { ClosedShift, FatigueAlert, FatigueRuleConfig } from './types';
-import { splitShiftByDay, isNightShift, getISTDay, getISTWeekBucket, getShiftMinutes } from './time';
+import { ClosedShift, FatigueAlert, FatigueRuleConfig } from "./types";
+import { splitShiftByDay, isNightShift, getISTDay, getISTWeekBucket, getShiftMinutes } from "./time";
 
 /**
  * Check a set of closed shifts against fatigue rules and return alerts.
@@ -12,11 +12,7 @@ import { splitShiftByDay, isNightShift, getISTDay, getISTWeekBucket, getShiftMin
  * @param rules - Fatigue rules to check against.
  * @param now - Current time (used to determine "today" and "this week").
  */
-export function checkFatigue(
-  shifts: ClosedShift[],
-  rules: FatigueRuleConfig[],
-  now: Date
-): FatigueAlert[] {
+export function checkFatigue(shifts: ClosedShift[], rules: FatigueRuleConfig[], now: Date): FatigueAlert[] {
   const alerts: FatigueAlert[] = [];
 
   // Sort shifts by inAt ascending
@@ -24,19 +20,19 @@ export function checkFatigue(
 
   for (const rule of rules) {
     switch (rule.check) {
-      case 'maxDailyHours':
+      case "maxDailyHours":
         alerts.push(...checkMaxDailyHours(sorted, rule));
         break;
-      case 'minRestHours':
+      case "minRestHours":
         alerts.push(...checkMinRestHours(sorted, rule));
         break;
-      case 'maxConsecutiveDays':
+      case "maxConsecutiveDays":
         alerts.push(...checkMaxConsecutiveDays(sorted, rule));
         break;
-      case 'maxConsecutiveNights':
+      case "maxConsecutiveNights":
         alerts.push(...checkMaxConsecutiveNights(sorted, rule));
         break;
-      case 'maxWeeklyHours':
+      case "maxWeeklyHours":
         alerts.push(...checkMaxWeeklyHours(sorted, rule, now));
         break;
     }
@@ -47,10 +43,7 @@ export function checkFatigue(
 
 // ─── Rule Implementations ───────────────────────────────────────────
 
-function checkMaxDailyHours(
-  shifts: ClosedShift[],
-  rule: FatigueRuleConfig
-): FatigueAlert[] {
+function checkMaxDailyHours(shifts: ClosedShift[], rule: FatigueRuleConfig): FatigueAlert[] {
   const alerts: FatigueAlert[] = [];
   const dayMinutes = new Map<string, number>();
 
@@ -65,7 +58,7 @@ function checkMaxDailyHours(
     if (mins > thresholdMin) {
       alerts.push({
         ruleId: rule.ruleId,
-        messageKey: 'fatigue.maxDailyHours',
+        messageKey: "fatigue.maxDailyHours",
         evidence: { day, minutes: mins, threshold: rule.threshold },
       });
     }
@@ -74,10 +67,7 @@ function checkMaxDailyHours(
   return alerts;
 }
 
-function checkMinRestHours(
-  shifts: ClosedShift[],
-  rule: FatigueRuleConfig
-): FatigueAlert[] {
+function checkMinRestHours(shifts: ClosedShift[], rule: FatigueRuleConfig): FatigueAlert[] {
   const alerts: FatigueAlert[] = [];
   const thresholdMs = rule.threshold * 60 * 60 * 1000;
 
@@ -87,7 +77,7 @@ function checkMinRestHours(
       const gapHours = Math.round((gap / (60 * 60 * 1000)) * 10) / 10;
       alerts.push({
         ruleId: rule.ruleId,
-        messageKey: 'fatigue.minRestHours',
+        messageKey: "fatigue.minRestHours",
         evidence: {
           gapHours,
           threshold: rule.threshold,
@@ -100,10 +90,7 @@ function checkMinRestHours(
   return alerts;
 }
 
-function checkMaxConsecutiveDays(
-  shifts: ClosedShift[],
-  rule: FatigueRuleConfig
-): FatigueAlert[] {
+function checkMaxConsecutiveDays(shifts: ClosedShift[], rule: FatigueRuleConfig): FatigueAlert[] {
   // Collect unique IST days with shifts
   const daysSet = new Set<string>();
   for (const shift of shifts) {
@@ -119,11 +106,9 @@ function checkMaxConsecutiveDays(
   let runEndDay = days[0];
 
   for (let i = 1; i < days.length; i++) {
-    const prevDate = new Date(days[i - 1] + 'T00:00:00Z');
-    const currDate = new Date(days[i] + 'T00:00:00Z');
-    const diffDays = Math.round(
-      (currDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000)
-    );
+    const prevDate = new Date(days[i - 1] + "T00:00:00Z");
+    const currDate = new Date(days[i] + "T00:00:00Z");
+    const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000));
 
     if (diffDays === 1) {
       currentRun++;
@@ -140,7 +125,7 @@ function checkMaxConsecutiveDays(
     return [
       {
         ruleId: rule.ruleId,
-        messageKey: 'fatigue.maxConsecutiveDays',
+        messageKey: "fatigue.maxConsecutiveDays",
         evidence: { consecutiveDays: maxRun, threshold: rule.threshold, lastDay: runEndDay },
       },
     ];
@@ -149,10 +134,7 @@ function checkMaxConsecutiveDays(
   return [];
 }
 
-function checkMaxConsecutiveNights(
-  shifts: ClosedShift[],
-  rule: FatigueRuleConfig
-): FatigueAlert[] {
+function checkMaxConsecutiveNights(shifts: ClosedShift[], rule: FatigueRuleConfig): FatigueAlert[] {
   // Get IST days for night shifts only
   const nightDays: string[] = [];
   for (const shift of shifts) {
@@ -171,11 +153,9 @@ function checkMaxConsecutiveNights(
   let currentRun = 1;
 
   for (let i = 1; i < nightDays.length; i++) {
-    const prevDate = new Date(nightDays[i - 1] + 'T00:00:00Z');
-    const currDate = new Date(nightDays[i] + 'T00:00:00Z');
-    const diffDays = Math.round(
-      (currDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000)
-    );
+    const prevDate = new Date(nightDays[i - 1] + "T00:00:00Z");
+    const currDate = new Date(nightDays[i] + "T00:00:00Z");
+    const diffDays = Math.round((currDate.getTime() - prevDate.getTime()) / (24 * 60 * 60 * 1000));
 
     if (diffDays === 1) {
       currentRun++;
@@ -191,7 +171,7 @@ function checkMaxConsecutiveNights(
     return [
       {
         ruleId: rule.ruleId,
-        messageKey: 'fatigue.maxConsecutiveNights',
+        messageKey: "fatigue.maxConsecutiveNights",
         evidence: { consecutiveNights: maxRun, threshold: rule.threshold },
       },
     ];
@@ -200,11 +180,7 @@ function checkMaxConsecutiveNights(
   return [];
 }
 
-function checkMaxWeeklyHours(
-  shifts: ClosedShift[],
-  rule: FatigueRuleConfig,
-  now: Date
-): FatigueAlert[] {
+function checkMaxWeeklyHours(shifts: ClosedShift[], rule: FatigueRuleConfig, now: Date): FatigueAlert[] {
   const currentWeek = getISTWeekBucket(now);
   let weekMinutes = 0;
 
@@ -219,7 +195,7 @@ function checkMaxWeeklyHours(
     return [
       {
         ruleId: rule.ruleId,
-        messageKey: 'fatigue.maxWeeklyHours',
+        messageKey: "fatigue.maxWeeklyHours",
         evidence: {
           weekMinutes,
           weekHours: Math.round((weekMinutes / 60) * 10) / 10,

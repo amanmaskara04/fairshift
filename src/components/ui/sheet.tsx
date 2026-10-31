@@ -10,7 +10,17 @@ import { Button } from "./button";
  * It slides up from the bottom on phones and sits centred on laptops. Opening it is local
  * state, never a navigation, so the browser Back button is not affected.
  */
-export function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: ReactNode }) {
+export function Sheet({
+  open,
+  onClose,
+  title,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  title: string;
+  children: ReactNode;
+}) {
   const t = useTranslations("common");
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
@@ -35,7 +45,13 @@ export function Sheet({ open, onClose, title, children }: { open: boolean; onClo
           <h2 id={titleId} className="font-display text-2xl leading-tight font-extrabold">
             {title}
           </h2>
-          <Button variant="ghost" size="icon" aria-label={t("close")} onClick={onClose} className="-mt-1 -mr-2 shrink-0">
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label={t("close")}
+            onClick={onClose}
+            className="-mt-1 -mr-2 shrink-0"
+          >
             <X aria-hidden="true" className="size-6" />
           </Button>
         </div>

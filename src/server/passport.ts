@@ -27,7 +27,13 @@ export interface PassportClaims {
 export function passportToken(workerId: string, share: PassportShare, now: Date): string {
   const iat = toUnixSeconds(now);
   return signToken(
-    { kind: "passport", sub: workerId, iat, exp: iat + PASSPORT_TTL_DAYS * DAY_S, data: { skills: share.skills, history: share.history, hours: share.hours } },
+    {
+      kind: "passport",
+      sub: workerId,
+      iat,
+      exp: iat + PASSPORT_TTL_DAYS * DAY_S,
+      data: { skills: share.skills, history: share.history, hours: share.hours },
+    },
     secret(),
   );
 }

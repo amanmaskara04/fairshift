@@ -28,7 +28,10 @@ export async function similarIssuesAction(text: unknown): Promise<string[]> {
   const parsed = IssueText.safeParse(text);
   if (!parsed.success || !session.siteId || !similarLimiter.check(session.uid)) return [];
   const open = (await getRepos().issues.getBySite(session.siteId)).filter((i) => i.status !== "resolved");
-  const { ids } = await findSimilarIssues(parsed.data, open.map((i) => ({ id: i.id, text: i.text })));
+  const { ids } = await findSimilarIssues(
+    parsed.data,
+    open.map((i) => ({ id: i.id, text: i.text })),
+  );
   return ids;
 }
 
@@ -65,7 +68,11 @@ export async function signIssueAction(issueId: unknown): Promise<{ ok: boolean; 
   return result.ok ? { ok: true, escalated: result.escalated } : { ok: false, error: result.error };
 }
 
-const Response = z.object({ issueId: z.string().max(80), status: z.enum(["acknowledged", "resolved"]), response: Note });
+const Response = z.object({
+  issueId: z.string().max(80),
+  status: z.enum(["acknowledged", "resolved"]),
+  response: Note,
+});
 
 /** Management's answer is shown to every worker at the site. */
 export async function respondIssueAction(input: unknown): Promise<{ ok: boolean; error?: string }> {

@@ -3,7 +3,15 @@ import { ArrowDown, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /** A labelled box in a diagram. `tone` marks the role of the step. */
-export function Node({ children, tone = "plain", className }: { children: ReactNode; tone?: "plain" | "accent" | "brand" | "ink"; className?: string }) {
+export function Node({
+  children,
+  tone = "plain",
+  className,
+}: {
+  children: ReactNode;
+  tone?: "plain" | "accent" | "brand" | "ink";
+  className?: string;
+}) {
   return (
     <div
       className={cn(
@@ -23,7 +31,13 @@ export function Node({ children, tone = "plain", className }: { children: ReactN
 /** Arrow between nodes; vertical on phones, horizontal from md up unless `vertical`. */
 export function Arrow({ vertical = false, label }: { vertical?: boolean; label?: string }) {
   return (
-    <div aria-hidden="true" className={cn("flex shrink-0 items-center justify-center text-ink-2", vertical ? "flex-col" : "flex-col md:flex-row")}>
+    <div
+      aria-hidden="true"
+      className={cn(
+        "flex shrink-0 items-center justify-center text-ink-2",
+        vertical ? "flex-col" : "flex-col md:flex-row",
+      )}
+    >
       {vertical ? (
         <ArrowDown className="size-5" />
       ) : (

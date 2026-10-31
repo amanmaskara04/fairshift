@@ -1,6 +1,15 @@
 "use client";
 
-import { createContext, startTransition, useCallback, useContext, useEffect, useState, ViewTransition, type ReactNode } from "react";
+import {
+  createContext,
+  startTransition,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  ViewTransition,
+  type ReactNode,
+} from "react";
 import { useTranslations } from "next-intl";
 import { LogoMark } from "@/components/brand-mark";
 import type { DayPart } from "@/lib/day-part";
@@ -79,10 +88,22 @@ export function WelcomeMoment({ active, variant, part, greeting, line, children 
           role="status"
           aria-live="polite"
           onClick={finish}
-          className={cn("welcome-overlay fixed inset-0 z-[60] flex cursor-pointer items-center justify-center p-6", `welcome-${part}`)}
+          className={cn(
+            "welcome-overlay fixed inset-0 z-[60] flex cursor-pointer items-center justify-center p-6",
+            `welcome-${part}`,
+          )}
         >
-          <ViewTransition name={variant === "worker" ? "welcome-greeting" : undefined} share="greeting-morph" default="none">
-            <div className={cn("welcome-card flex flex-col items-center gap-4 text-center", variant === "admin" && "welcome-card-small")}>
+          <ViewTransition
+            name={variant === "worker" ? "welcome-greeting" : undefined}
+            share="greeting-morph"
+            default="none"
+          >
+            <div
+              className={cn(
+                "welcome-card flex flex-col items-center gap-4 text-center",
+                variant === "admin" && "welcome-card-small",
+              )}
+            >
               <LogoMark className="size-14" animated />
               <p className="font-display text-[2.6rem] leading-tight font-extrabold md:text-6xl">
                 {pieces(greeting).map((word, w) => (
@@ -100,7 +121,11 @@ export function WelcomeMoment({ active, variant, part, greeting, line, children 
               <span className="sr-only">{t("skip")}</span>
             </div>
           </ViewTransition>
-          <button type="button" onClick={finish} className="absolute right-5 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-12 rounded-full px-4 font-bold text-ink-2">
+          <button
+            type="button"
+            onClick={finish}
+            className="absolute right-5 bottom-[calc(1.5rem+env(safe-area-inset-bottom))] min-h-12 rounded-full px-4 font-bold text-ink-2"
+          >
             {t("skip")}
           </button>
         </div>

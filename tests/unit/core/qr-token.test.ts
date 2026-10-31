@@ -27,7 +27,9 @@ describe("QR tokens", () => {
 
   it("rejects malformed tokens", () => {
     expect(verifyQRToken(Buffer.from("just-text").toString("base64url"), T0, SECRET).reason).toBe("malformed_token");
-    expect(verifyQRToken(Buffer.from("site1|abc|deadbeef").toString("base64url"), T0, SECRET).reason).toBe("invalid_window");
+    expect(verifyQRToken(Buffer.from("site1|abc|deadbeef").toString("base64url"), T0, SECRET).reason).toBe(
+      "invalid_window",
+    );
   });
 
   it("accepts an offline scan up to 12h later using the scan time", () => {

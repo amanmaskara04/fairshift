@@ -21,11 +21,17 @@ export default async function FeedbackAdminPage() {
   const session = await requireRole("admin");
   const t = await getTranslations("admin.feedbackPage");
   const repos = getRepos();
-  const [feedback, sites, issues] = await Promise.all([repos.feedback.getByOrg(session.orgId), repos.sites.getByOrg(session.orgId), issuesForAdmin(repos, session.orgId)]);
+  const [feedback, sites, issues] = await Promise.all([
+    repos.feedback.getByOrg(session.orgId),
+    repos.sites.getByOrg(session.orgId),
+    issuesForAdmin(repos, session.orgId),
+  ]);
   const siteOf = new Map(sites.map((s) => [s.id, s.name]));
 
   // One group per site and week; groups below k are summarised as a count only.
-  const groups = [...gateByCohort(feedback, (f) => `${f.siteId}|${f.weekBucket}`).entries()].sort(([a], [b]) => b.localeCompare(a));
+  const groups = [...gateByCohort(feedback, (f) => `${f.siteId}|${f.weekBucket}`).entries()].sort(([a], [b]) =>
+    b.localeCompare(a),
+  );
 
   return (
     <div className="flex flex-col gap-4">
@@ -59,7 +65,13 @@ export default async function FeedbackAdminPage() {
                       {siteOf.get(issue.siteId)} · {t("issues.signers", { count: issue.signerCount })}
                     </p>
                   </div>
-                  <Badge tone={issue.status === "resolved" ? "success" : issue.status === "acknowledged" ? "info" : "warning"}>{t(`issues.status.${issue.status}`)}</Badge>
+                  <Badge
+                    tone={
+                      issue.status === "resolved" ? "success" : issue.status === "acknowledged" ? "info" : "warning"
+                    }
+                  >
+                    {t(`issues.status.${issue.status}`)}
+                  </Badge>
                 </div>
                 {issue.response && <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">{issue.response}</p>}
                 <IssueResponse issueId={issue.id} status={issue.status} response={issue.response} />
@@ -98,7 +110,11 @@ export default async function FeedbackAdminPage() {
                       })}
                     </dl>
                     <p className="text-sm text-ink-2">{t("responses", { count: gate.count })}</p>
-                    <Themes comments={gate.items.flatMap((f) => (f.comment ? [f.comment] : []))} label={t("themes")} themeLabel={(theme) => t(`theme.${theme}`)} />
+                    <Themes
+                      comments={gate.items.flatMap((f) => (f.comment ? [f.comment] : []))}
+                      label={t("themes")}
+                      themeLabel={(theme) => t(`theme.${theme}`)}
+                    />
                     <ul className="flex flex-col gap-1 text-sm">
                       {gate.items
                         .filter((f) => f.comment)
@@ -119,7 +135,15 @@ export default async function FeedbackAdminPage() {
   );
 }
 
-function Themes({ comments, label, themeLabel }: { comments: string[]; label: string; themeLabel: (theme: string) => string }) {
+function Themes({
+  comments,
+  label,
+  themeLabel,
+}: {
+  comments: string[];
+  label: string;
+  themeLabel: (theme: string) => string;
+}) {
   const counts = countThemes(comments);
   const present = THEMES.filter((theme) => counts[theme] > 0);
   if (present.length === 0) return null;

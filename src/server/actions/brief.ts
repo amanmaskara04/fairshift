@@ -28,6 +28,8 @@ export async function weeklyBriefAction(): Promise<{ points: string[]; source: "
     fatigueBreaches: snapshot.workers.filter((w) => w.fatigue.length > 0).length,
     highRiskWorkers: snapshot.workers.filter((w) => w.risk.score >= 40).length,
     moodAverage: snapshot.moodAverage,
-    topThemes: THEMES.filter((t) => themes[t] > 0).sort((a, b) => themes[b] - themes[a]).slice(0, 3),
+    topThemes: THEMES.filter((t) => themes[t] > 0)
+      .sort((a, b) => themes[b] - themes[a])
+      .slice(0, 3),
   });
 }

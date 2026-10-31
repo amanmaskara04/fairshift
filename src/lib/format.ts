@@ -16,7 +16,9 @@ export function formatINR(paise: number, locale: string = "en-IN"): string {
 
 /** Whole rupees for headline figures, e.g. "₹11,240" (rounded to the nearest rupee). */
 export function formatRupees(paise: number): string {
-  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(Math.round(paise / 100));
+  return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", maximumFractionDigits: 0 }).format(
+    Math.round(paise / 100),
+  );
 }
 
 /** Format minutes as "Xh Ym". */

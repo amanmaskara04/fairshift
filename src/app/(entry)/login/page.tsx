@@ -21,7 +21,8 @@ export async function generateMetadata(): Promise<Metadata> {
 /** Who an old session belongs to, so the page can offer "continue" or "switch" instead of jumping there. */
 async function signedInName(session: SessionPayload): Promise<string | undefined> {
   const repos = getRepos();
-  const person = session.role === "worker" ? await repos.workers.getById(session.uid) : await repos.admins.getById(session.uid);
+  const person =
+    session.role === "worker" ? await repos.workers.getById(session.uid) : await repos.admins.getById(session.uid);
   return person?.name;
 }
 
@@ -35,7 +36,10 @@ export default async function LoginPage({ searchParams }: PageProps<"/login">) {
   return (
     <>
       <EntryBar />
-      <main id="main" className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 pt-8 pb-[28vh] md:grid-cols-[1fr_1.05fr] md:items-start md:gap-14 md:px-8 md:pt-14">
+      <main
+        id="main"
+        className="mx-auto grid w-full max-w-6xl flex-1 gap-8 px-4 pt-8 pb-[28vh] md:grid-cols-[1fr_1.05fr] md:items-start md:gap-14 md:px-8 md:pt-14"
+      >
         <section className="flex flex-col gap-6">
           <h1 className="font-display text-4xl leading-[1.02] font-extrabold md:text-6xl">
             <RevealText text={t("title")} />

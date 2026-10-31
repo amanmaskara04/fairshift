@@ -53,7 +53,15 @@ const quarterHours = (minutes: number) => Math.round(minutes / 15) / 4;
  * rates. The admin says how many of those hours were paid (a preset or two sliders) and the
  * amounts follow; "Change amounts" allows typing the exact figures from the pay sheet.
  */
-function PayEntryForm({ month, workers, action }: { month: string; workers: PayEntryWorker[]; action: (formData: FormData) => void }) {
+function PayEntryForm({
+  month,
+  workers,
+  action,
+}: {
+  month: string;
+  workers: PayEntryWorker[];
+  action: (formData: FormData) => void;
+}) {
   const t = useTranslations("admin.payrollPage.record");
   const [workerId, setWorkerId] = useState(workers[0]?.id ?? "");
   const [preset, setPreset] = useState<Preset>("full");
@@ -72,9 +80,16 @@ function PayEntryForm({ month, workers, action }: { month: string; workers: PayE
   }
 
   // Paid in full uses the payslip's own figures; anything else is hours × rate.
-  const gross = preset === "full" ? worker.gross : paiseFor(hours.regular, worker.rates.regular) + paiseFor(hours.overtime, worker.rates.overtime);
+  const gross =
+    preset === "full"
+      ? worker.gross
+      : paiseFor(hours.regular, worker.rates.regular) + paiseFor(hours.overtime, worker.rates.overtime);
   const deductions = Math.min(worker.deductions, gross);
-  const amounts: Amounts = override ?? { gross: toRupees(gross), deductions: toRupees(deductions), net: toRupees(gross - deductions) };
+  const amounts: Amounts = override ?? {
+    gross: toRupees(gross),
+    deductions: toRupees(deductions),
+    net: toRupees(gross - deductions),
+  };
   const due = worker.gross - worker.deductions;
   const shortBy = due - Math.round(Number(amounts.net) * 100);
 
@@ -101,7 +116,9 @@ function PayEntryForm({ month, workers, action }: { month: string; workers: PayE
             </option>
           ))}
         </select>
-        <p className="mt-1.5 text-sm text-ink-2">{t("calculated", { hours: full.regular, overtime: full.overtime, amount: formatINR(due) })}</p>
+        <p className="mt-1.5 text-sm text-ink-2">
+          {t("calculated", { hours: full.regular, overtime: full.overtime, amount: formatINR(due) })}
+        </p>
       </div>
 
       <fieldset>
@@ -114,11 +131,21 @@ function PayEntryForm({ month, workers, action }: { month: string; workers: PayE
                 key={p}
                 className={cn(
                   "flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border px-2 text-center text-sm font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary",
-                  preset === p ? "border-primary bg-primary-soft text-primary-strong" : "border-line bg-surface text-ink-2",
+                  preset === p
+                    ? "border-primary bg-primary-soft text-primary-strong"
+                    : "border-line bg-surface text-ink-2",
                   disabled && "cursor-not-allowed opacity-50",
                 )}
               >
-                <input type="radio" name="preset" value={p} checked={preset === p} disabled={disabled} onChange={() => reset(p)} className="sr-only" />
+                <input
+                  type="radio"
+                  name="preset"
+                  value={p}
+                  checked={preset === p}
+                  disabled={disabled}
+                  onChange={() => reset(p)}
+                  className="sr-only"
+                />
                 {t(`presets.${p}`)}
               </label>
             );
@@ -232,7 +259,14 @@ export function PaidRecordTools({ month, workers }: { month: string; workers: Pa
         <p className="text-ink-2">{t("uploadHint")}</p>
         <form action={csvAction} className="flex flex-col gap-3">
           <Label htmlFor="paid-csv">{t("file")}</Label>
-          <input id="paid-csv" name="file" type="file" accept=".csv,text/csv" required className="min-h-12 rounded-2xl border border-line bg-surface p-2" />
+          <input
+            id="paid-csv"
+            name="file"
+            type="file"
+            accept=".csv,text/csv"
+            required
+            className="min-h-12 rounded-2xl border border-line bg-surface p-2"
+          />
           <div aria-live="polite" className="text-sm">
             {csvState.error && <p className="font-semibold text-danger">{t(`errors.${csvState.error}`)}</p>}
             {csvState.result && (

@@ -4,7 +4,8 @@ import { locales } from "@/i18n/locales";
 
 type Messages = { [key: string]: string | Messages };
 
-const load = (locale: string): Messages => JSON.parse(readFileSync(new URL(`../../../src/messages/${locale}.json`, import.meta.url), "utf8"));
+const load = (locale: string): Messages =>
+  JSON.parse(readFileSync(new URL(`../../../src/messages/${locale}.json`, import.meta.url), "utf8"));
 
 function flatten(messages: Messages, prefix = ""): Record<string, string> {
   return Object.fromEntries(

@@ -62,7 +62,10 @@ describe("eligibility, pay check and similarity edge cases", () => {
   const now = new Date("2026-10-30T10:00:00+05:30");
 
   it("lets a worker request a certificate once the days are met, even before answering questions", () => {
-    const days = Array.from({ length: 90 }, (_, i) => ({ day: new Date(now.getTime() - (i + 1) * 86_400_000).toISOString().slice(0, 10), sector: "construction" as const }));
+    const days = Array.from({ length: 90 }, (_, i) => ({
+      day: new Date(now.getTime() - (i + 1) * 86_400_000).toISOString().slice(0, 10),
+      sector: "construction" as const,
+    }));
     const [result] = checkEligibility({ sector: "construction", monthlyWage: 1 }, days, [getScheme("bocw")!], now);
     expect(result.eligible).toBe(false); // age not answered yet
     expect(attendanceRuleMet(result)).toBe(true);

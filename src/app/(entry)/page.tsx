@@ -1,6 +1,27 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
-import { Activity, BadgeCheck, BarChart3, Building2, Clock, HardHat, Hourglass, IndianRupee, Landmark, LifeBuoy, Mic, QrCode, ShieldCheck, Siren, Target, UserCheck, Users, Wallet, WifiOff, type LucideIcon } from "lucide-react";
+import {
+  Activity,
+  BadgeCheck,
+  BarChart3,
+  Building2,
+  Clock,
+  HardHat,
+  Hourglass,
+  IndianRupee,
+  Landmark,
+  LifeBuoy,
+  Mic,
+  QrCode,
+  ShieldCheck,
+  Siren,
+  Target,
+  UserCheck,
+  Users,
+  Wallet,
+  WifiOff,
+  type LucideIcon,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { RevealText } from "@/components/reveal-text";
@@ -42,10 +63,15 @@ export default async function LandingPage() {
   return (
     <>
       <EntryBar animatedLogo />
-      <main id="main" className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-12 px-4 pt-8 pb-[30vh] md:px-8 md:pt-14">
+      <main
+        id="main"
+        className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-12 px-4 pt-8 pb-[30vh] md:px-8 md:pt-14"
+      >
         <div className="grid gap-10 md:grid-cols-[1.15fr_1fr] md:items-start md:gap-14">
           <section className="flex flex-col gap-6">
-            <span className="w-fit rounded-full border border-line bg-surface px-3 py-1 text-xs font-bold tracking-wide uppercase">{t("sdg")}</span>
+            <span className="w-fit rounded-full border border-line bg-surface px-3 py-1 text-xs font-bold tracking-wide uppercase">
+              {t("sdg")}
+            </span>
             <h1 className="font-display text-[2.8rem] leading-[0.98] font-extrabold md:text-[4.6rem]">
               <RevealText text={t("subtitle")} markLast />
             </h1>
@@ -64,14 +90,20 @@ export default async function LandingPage() {
                 <HardHat aria-hidden="true" className="size-6" />
                 {t("imWorker")}
               </Link>
-              <Link href="/login?role=admin" className={cn(buttonVariants({ size: "lg", variant: "outline" }), "min-h-16")}>
+              <Link
+                href="/login?role=admin"
+                className={cn(buttonVariants({ size: "lg", variant: "outline" }), "min-h-16")}
+              >
                 <Building2 aria-hidden="true" className="size-6" />
                 {t("imEmployer")}
               </Link>
             </div>
             <ul className="flex flex-wrap gap-2">
               {chips.map(({ Icon, text }) => (
-                <li key={text} className="flex items-center gap-1.5 rounded-full bg-surface/80 px-3 py-1.5 text-sm font-bold">
+                <li
+                  key={text}
+                  className="flex items-center gap-1.5 rounded-full bg-surface/80 px-3 py-1.5 text-sm font-bold"
+                >
                   <Icon aria-hidden="true" className="size-4 text-primary" />
                   {text}
                 </li>
@@ -122,7 +154,10 @@ export default async function LandingPage() {
           </div>
         </section>
 
-        <section aria-labelledby="sdg-title" className="card flex flex-col gap-4 p-5 md:flex-row md:items-center md:gap-8 md:p-6">
+        <section
+          aria-labelledby="sdg-title"
+          className="card flex flex-col gap-4 p-5 md:flex-row md:items-center md:gap-8 md:p-6"
+        >
           <div className="flex items-center gap-3 md:w-64 md:shrink-0">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-primary text-on-primary">
               <Target aria-hidden="true" className="size-6" />
@@ -134,7 +169,9 @@ export default async function LandingPage() {
           <ul className="grid flex-1 gap-3 sm:grid-cols-2">
             {(["t85", "t88"] as const).map((key) => (
               <li key={key} className="flex flex-col gap-0.5">
-                <span className="figure text-sm font-extrabold text-primary-strong">{t(`sdgTargets.${key}.label`)}</span>
+                <span className="figure text-sm font-extrabold text-primary-strong">
+                  {t(`sdgTargets.${key}.label`)}
+                </span>
                 <span className="leading-snug">{t(`sdgTargets.${key}.text`)}</span>
               </li>
             ))}
@@ -146,7 +183,19 @@ export default async function LandingPage() {
   );
 }
 
-function FeatureCard({ Icon, tone, title, text, children }: { Icon: LucideIcon; tone: string; title: string; text: string; children: React.ReactNode }) {
+function FeatureCard({
+  Icon,
+  tone,
+  title,
+  text,
+  children,
+}: {
+  Icon: LucideIcon;
+  tone: string;
+  title: string;
+  text: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="card flex flex-col gap-4 p-5 md:p-6">
       <div className="flex flex-col gap-2">

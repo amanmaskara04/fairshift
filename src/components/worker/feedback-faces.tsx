@@ -81,7 +81,12 @@ export function FacePicker({ label, value, onChange, faceLabel }: FacePickerProp
   }
 
   function onKeyDown(event: KeyboardEvent, index: number) {
-    const step = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
+    const step =
+      event.key === "ArrowRight" || event.key === "ArrowDown"
+        ? 1
+        : event.key === "ArrowLeft" || event.key === "ArrowUp"
+          ? -1
+          : 0;
     if (!step) return;
     event.preventDefault();
     const next = (index + step + VALUES.length) % VALUES.length;

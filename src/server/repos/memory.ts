@@ -34,7 +34,9 @@ export function resetMemoryStore(): void {
   globalStore.__fairshiftStore = undefined;
 }
 
-type Collection = { [K in keyof SeedData]: SeedData[K] extends (infer T)[] ? (T extends { id: string } ? K : never) : never }[keyof SeedData];
+type Collection = {
+  [K in keyof SeedData]: SeedData[K] extends (infer T)[] ? (T extends { id: string } ? K : never) : never;
+}[keyof SeedData];
 type Item<K extends Collection> = SeedData[K][number];
 
 /** CRUD over one array in the store. Records are replaced, never mutated in place. */
@@ -103,7 +105,8 @@ export function createMemoryRepos(): Repos {
         const ids = new Set(workerIds);
         return shifts.where((s) => ids.has(s.workerId) && !s.outAt);
       },
-      getByWorkerInRange: (workerId, from, to) => shifts.where((s) => s.workerId === workerId && s.inAt >= from && s.inAt <= to),
+      getByWorkerInRange: (workerId, from, to) =>
+        shifts.where((s) => s.workerId === workerId && s.inAt >= from && s.inAt <= to),
       getByWorkersInRange: (workerIds, from, to) => {
         const ids = new Set(workerIds);
         return shifts.where((s) => ids.has(s.workerId) && s.inAt >= from && s.inAt <= to);
@@ -122,7 +125,8 @@ export function createMemoryRepos(): Repos {
     feedback: {
       getAll: feedback.all,
       getByOrg: (orgId) => feedback.where((f) => f.orgId === orgId),
-      getByCohortAndWeek: (cohort, weekBucket) => feedback.where((f) => f.cohort === cohort && f.weekBucket === weekBucket),
+      getByCohortAndWeek: (cohort, weekBucket) =>
+        feedback.where((f) => f.cohort === cohort && f.weekBucket === weekBucket),
       create: feedback.create,
     },
     skills: {

@@ -27,7 +27,10 @@ export async function DemoLogins({ compact = false }: { compact?: boolean }) {
           <li key={persona}>
             <form action={demoLogin}>
               <input type="hidden" name="persona" value={persona} />
-              <SubmitButton unstyled className="tile group flex min-h-16 w-full items-center gap-3 px-3 py-2.5 text-left font-bold">
+              <SubmitButton
+                unstyled
+                className="tile group flex min-h-16 w-full items-center gap-3 px-3 py-2.5 text-left font-bold"
+              >
                 <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl", tone)}>
                   <Icon aria-hidden="true" className="size-6" />
                 </span>

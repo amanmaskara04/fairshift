@@ -8,7 +8,13 @@ import type { Hazard } from "@/core/types";
 
 describe("urgency words", () => {
   it("treats fire, smoke and people trapped as danger now, in all four languages", () => {
-    for (const text of ["There is a fire near the store", "smoke from the panel", "आग लगी है", "ஒருவர் சிக்கி இருக்கிறார்", "పొగ వస్తోంది"]) {
+    for (const text of [
+      "There is a fire near the store",
+      "smoke from the panel",
+      "आग लगी है",
+      "ஒருவர் சிக்கி இருக்கிறார்",
+      "పొగ వస్తోంది",
+    ]) {
       expect(urgencyFromText(text), text).toBe("critical");
     }
   });
@@ -65,8 +71,16 @@ describe("help triage", () => {
   });
 
   it("routes pay, harassment, health and benefits to the right place", () => {
-    expect(triageHelp("overtime not paid for 3 weeks")).toMatchObject({ topic: "pay", action: "check_pay", helplines: ["eshram"] });
-    expect(triageHelp("supervisor threatens me")).toMatchObject({ topic: "harassment", urgency: "urgent", helplines: ["women", "emergency"] });
+    expect(triageHelp("overtime not paid for 3 weeks")).toMatchObject({
+      topic: "pay",
+      action: "check_pay",
+      helplines: ["eshram"],
+    });
+    expect(triageHelp("supervisor threatens me")).toMatchObject({
+      topic: "harassment",
+      urgency: "urgent",
+      helplines: ["women", "emergency"],
+    });
     expect(triageHelp("बहुत तनाव है")).toMatchObject({ topic: "health", helplines: ["mental_health"] });
     expect(triageHelp("how do I get my PF")).toMatchObject({ topic: "benefits", action: "benefits" });
     expect(triageHelp("something else")).toMatchObject({ topic: "other", urgency: "normal" });

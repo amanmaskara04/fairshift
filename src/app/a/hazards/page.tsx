@@ -22,12 +22,18 @@ const CONFIRMATION_TONE = { pending: "info", confirmed: "success", auto_closed: 
 /** Escalated first, then most severe, then oldest. */
 function byUrgency(now: Date) {
   return (a: Hazard, b: Hazard) =>
-    b.escalationLevel - a.escalationLevel || SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] || getHazardAge(b, now) - getHazardAge(a, now);
+    b.escalationLevel - a.escalationLevel ||
+    SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+    getHazardAge(b, now) - getHazardAge(a, now);
 }
 
 export default async function HazardsPage() {
   const session = await requireRole("admin");
-  const [t, tr, locale] = await Promise.all([getTranslations("admin.hazardsPage"), getTranslations("report"), getLocale()]);
+  const [t, tr, locale] = await Promise.all([
+    getTranslations("admin.hazardsPage"),
+    getTranslations("report"),
+    getLocale(),
+  ]);
   const repos = getRepos();
   const now = new Date();
   const [hazards, workers, sites, org] = await Promise.all([
@@ -40,7 +46,8 @@ export default async function HazardsPage() {
   const nameOf = new Map(workers.map((w) => [w.id, w.name]));
   const siteOf = new Map(sites.map((s) => [s.id, s.name]));
   const chain = ESCALATION_CHAINS[org.sector];
-  const label = (h: Hazard) => [tr(`categories.${h.category}`), h.location, siteOf.get(h.siteId)].filter(Boolean).join(" · ");
+  const label = (h: Hazard) =>
+    [tr(`categories.${h.category}`), h.location, siteOf.get(h.siteId)].filter(Boolean).join(" · ");
   const visible = hazards.filter((h) => !h.mergedInto).sort(byUrgency(now));
   const openHazards = visible.filter(isOpen);
 
@@ -51,10 +58,16 @@ export default async function HazardsPage() {
         {COLUMNS.map((column) => {
           const items = visible.filter((h) => h.status === column);
           return (
-            <section key={column} aria-labelledby={`col-${column}`} className="flex flex-col gap-3 rounded-card border border-line bg-surface-2/50 p-3">
+            <section
+              key={column}
+              aria-labelledby={`col-${column}`}
+              className="flex flex-col gap-3 rounded-card border border-line bg-surface-2/50 p-3"
+            >
               <h2 id={`col-${column}`} className="flex items-center justify-between font-bold">
                 <HazardStatusBadge status={column} />
-                <span className="figure flex size-8 items-center justify-center rounded-full bg-surface text-sm">{items.length}</span>
+                <span className="figure flex size-8 items-center justify-center rounded-full bg-surface text-sm">
+                  {items.length}
+                </span>
               </h2>
               {items.length === 0 && <p className="text-sm text-ink-2">{t("empty")}</p>}
               <ul className="flex flex-col gap-3">
@@ -74,7 +87,9 @@ export default async function HazardsPage() {
                           {h.escalationLevel > 0 && isOpen(h) && (
                             <Badge tone="solidDanger">
                               <Siren aria-hidden="true" className="size-4" />
-                              {t("escalatedTo", { role: tr(`roles.${chain[Math.min(h.escalationLevel, chain.length) - 1]}`) })}
+                              {t("escalatedTo", {
+                                role: tr(`roles.${chain[Math.min(h.escalationLevel, chain.length) - 1]}`),
+                              })}
                             </Badge>
                           )}
                           <HazardAge hazard={h} now={now} />
@@ -97,7 +112,11 @@ export default async function HazardsPage() {
                               {(r.transcriptEn || r.transcript) && <p>“{r.transcriptEn || r.transcript}”</p>}
                               {r.photoDataUrl && (
                                 // eslint-disable-next-line @next/next/no-img-element -- data URL from the worker's phone
-                                <img src={r.photoDataUrl} alt={t("photoAlt")} className="max-h-40 rounded-lg object-cover" />
+                                <img
+                                  src={r.photoDataUrl}
+                                  alt={t("photoAlt")}
+                                  className="max-h-40 rounded-lg object-cover"
+                                />
                               )}
                               <p className="flex flex-wrap items-center gap-x-2 text-xs text-ink-2">
                                 {r.reporterId ? (
@@ -119,7 +138,8 @@ export default async function HazardsPage() {
                         </p>
                         {h.status === "dismissed" && h.dismissReason && (
                           <p className="text-sm">
-                            <span className="font-bold">{t("dismissedBecause")}</span> {tr(`dismissReasons.${h.dismissReason}`)}
+                            <span className="font-bold">{t("dismissedBecause")}</span>{" "}
+                            {tr(`dismissReasons.${h.dismissReason}`)}
                             {h.dismissNote && ` — ${h.dismissNote}`}
                           </p>
                         )}
@@ -131,7 +151,9 @@ export default async function HazardsPage() {
                         <HazardActions
                           hazardId={h.id}
                           status={h.status}
-                          mergeTargets={openHazards.filter((o) => canMerge(h, o)).map((o) => ({ id: o.id, label: label(o) }))}
+                          mergeTargets={openHazards
+                            .filter((o) => canMerge(h, o))
+                            .map((o) => ({ id: o.id, label: label(o) }))}
                           merged={mergedHere.map((m) => ({ id: m.id, label: label(m) }))}
                         />
                       </article>

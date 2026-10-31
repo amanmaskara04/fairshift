@@ -8,5 +8,7 @@ export function dayPart(hour: number): DayPart {
 
 /** The hour (0–23) in India, where FairShift's workplaces are. */
 export function istHour(now: Date): number {
-  return Number(new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: "Asia/Kolkata" }).format(now));
+  return Number(
+    new Intl.DateTimeFormat("en-GB", { hour: "numeric", hourCycle: "h23", timeZone: "Asia/Kolkata" }).format(now),
+  );
 }

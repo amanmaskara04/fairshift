@@ -142,7 +142,11 @@ export function HazardReporter({ categories }: { categories: string[] }) {
       const text = data.transcript || (body.get("text") as string | null) || "";
       setHeard(text);
       // Keep Gemini's reading of how serious it is, even when the worker has to pick the type.
-      setSuggestion(text ? { category: "", transcript: text, transcriptEn: data.transcriptEn, severityHint: data.severityHint } : null);
+      setSuggestion(
+        text
+          ? { category: "", transcript: text, transcriptEn: data.transcriptEn, severityHint: data.severityHint }
+          : null,
+      );
       setError(text ? t("errors.pickForHeard") : t("errors.notUnderstood"));
       setPhase("pick");
     } catch {
@@ -173,7 +177,15 @@ export function HazardReporter({ categories }: { categories: string[] }) {
       const result = await submitHazardAction({ ...suggestion, hideName, photo, attach });
       if (result?.error) {
         setPhase("confirm");
-        setError(t(result.error === "pick_category" ? "errors.pickCategory" : result.error === "rate_limited" ? "errors.rateLimited" : "errors.general"));
+        setError(
+          t(
+            result.error === "pick_category"
+              ? "errors.pickCategory"
+              : result.error === "rate_limited"
+                ? "errors.rateLimited"
+                : "errors.general",
+          ),
+        );
       }
     });
   }
@@ -182,7 +194,10 @@ export function HazardReporter({ categories }: { categories: string[] }) {
   function submit() {
     if (!suggestion) return;
     startTransition(async () => {
-      const duplicate = await checkDuplicateAction({ category: suggestion.category, location: suggestion.locationHint });
+      const duplicate = await checkDuplicateAction({
+        category: suggestion.category,
+        location: suggestion.locationHint,
+      });
       if (duplicate) {
         setDuplicateCount(duplicate.reportCount);
         setPhase("duplicate");
@@ -249,7 +264,10 @@ export function HazardReporter({ categories }: { categories: string[] }) {
           </p>
           {severity === "critical" && (
             // Danger to life: calling comes before finishing the report.
-            <a href="tel:112" className="press flex min-h-14 items-center justify-center gap-2 rounded-[18px] bg-danger px-5 text-lg font-bold text-white">
+            <a
+              href="tel:112"
+              className="press flex min-h-14 items-center justify-center gap-2 rounded-[18px] bg-danger px-5 text-lg font-bold text-white"
+            >
               <Phone aria-hidden="true" className="size-5" />
               {t("callNow")}
             </a>
@@ -274,11 +292,22 @@ export function HazardReporter({ categories }: { categories: string[] }) {
             <Camera aria-hidden="true" className="size-5" />
           </span>
           {photo ? t("photoAdded") : t("addPhoto")}
-          <input type="file" accept="image/*" capture="environment" className="sr-only" onChange={(e) => onPhoto(e.target.files?.[0])} />
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            className="sr-only"
+            onChange={(e) => onPhoto(e.target.files?.[0])}
+          />
         </label>
 
         <label className="tile flex min-h-14 cursor-pointer items-center gap-3 p-3 font-bold">
-          <input type="checkbox" checked={hideName} onChange={(e) => setHideName(e.target.checked)} className="ml-2 size-6 accent-primary" />
+          <input
+            type="checkbox"
+            checked={hideName}
+            onChange={(e) => setHideName(e.target.checked)}
+            className="ml-2 size-6 accent-primary"
+          />
           <Lock aria-hidden="true" className="size-5" />
           {t("hideMyName")}
         </label>
@@ -312,13 +341,21 @@ export function HazardReporter({ categories }: { categories: string[] }) {
             phase === "recording" ? "mic-pulse bg-danger text-white" : "bg-primary text-on-primary",
           )}
         >
-          {phase === "recording" ? <Square aria-hidden="true" className="size-10" /> : <Mic aria-hidden="true" className="size-12" />}
+          {phase === "recording" ? (
+            <Square aria-hidden="true" className="size-10" />
+          ) : (
+            <Mic aria-hidden="true" className="size-12" />
+          )}
         </button>
         <p className="text-lg font-bold" aria-live="assertive">
           {phase === "recording" ? t("recording") : phase === "analyzing" ? t("analyzing") : t("tapToSpeak")}
         </p>
         {heard && (
-          <p lang={locale} className="max-w-full rounded-2xl bg-white/80 px-4 py-2 text-center italic" aria-live="polite">
+          <p
+            lang={locale}
+            className="max-w-full rounded-2xl bg-white/80 px-4 py-2 text-center italic"
+            aria-live="polite"
+          >
             “{heard}”
           </p>
         )}

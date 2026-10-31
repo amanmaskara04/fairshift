@@ -14,7 +14,10 @@ export function OfflineSync() {
 
   useEffect(() => {
     let active = true;
-    const refresh = () => pendingCount().then((n) => active && setPending(n)).catch(() => {});
+    const refresh = () =>
+      pendingCount()
+        .then((n) => active && setPending(n))
+        .catch(() => {});
     const flush = async () => {
       if ((await flushQueue()) > 0) router.refresh();
       refresh();

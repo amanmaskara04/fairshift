@@ -31,7 +31,11 @@ export async function requestPayReview(
   return { ok: true, dispute };
 }
 
-const NEXT: Record<DisputeStatus, DisputeStatus[]> = { open: ["reviewing", "resolved"], reviewing: ["resolved"], resolved: [] };
+const NEXT: Record<DisputeStatus, DisputeStatus[]> = {
+  open: ["reviewing", "resolved"],
+  reviewing: ["resolved"],
+  resolved: [],
+};
 
 /** Management moves a dispute open → reviewing → resolved. Resolving always needs a note for the worker. */
 export async function updateDispute(
@@ -43,6 +47,10 @@ export async function updateDispute(
   if (!NEXT[dispute.status].includes(input.status)) return { ok: false, error: "invalid_transition" };
   const note = input.note?.trim();
   if (input.status === "resolved" && !note) return { ok: false, error: "note_required" };
-  await repos.payDisputes.update(dispute.id, { status: input.status, resolutionNote: note || dispute.resolutionNote, updatedAt: input.now });
+  await repos.payDisputes.update(dispute.id, {
+    status: input.status,
+    resolutionNote: note || dispute.resolutionNote,
+    updatedAt: input.now,
+  });
   return { ok: true };
 }

@@ -28,7 +28,9 @@ export default async function CheckinPage() {
           <ol className="stagger grid gap-3 md:grid-cols-3">
             {STEPS.map(({ key, Icon }, i) => (
               <li key={key} className="card flex items-start gap-4 p-4 md:flex-col">
-                <span className="figure flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent font-bold text-on-accent">{i + 1}</span>
+                <span className="figure flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent font-bold text-on-accent">
+                  {i + 1}
+                </span>
                 <span className="flex-1 leading-snug">{t(key)}</span>
                 <Icon aria-hidden="true" className="mt-1 size-6 shrink-0 text-ink-2 md:hidden" />
               </li>

@@ -9,7 +9,17 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
 /** Reads `text` aloud in `lang` (default: the app language), and says so when this device cannot. */
-export function SpeakButton({ text, lang, className, label }: { text: string; lang?: string; className?: string; label?: string }) {
+export function SpeakButton({
+  text,
+  lang,
+  className,
+  label,
+}: {
+  text: string;
+  lang?: string;
+  className?: string;
+  label?: string;
+}) {
   const t = useTranslations("a11y");
   const appLocale = useLocale();
   const [loading, setLoading] = useState(false);
@@ -30,7 +40,11 @@ export function SpeakButton({ text, lang, className, label }: { text: string; la
       aria-busy={loading || undefined}
       onClick={onClick}
     >
-      {loading ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : <Volume2 aria-hidden="true" className="size-6" />}
+      {loading ? (
+        <Loader2 aria-hidden="true" className="size-5 animate-spin" />
+      ) : (
+        <Volume2 aria-hidden="true" className="size-6" />
+      )}
     </Button>
   );
 }

@@ -25,7 +25,12 @@ export function SpeakUpTabs({ feel, issues, issueCount }: { feel: ReactNode; iss
 
   return (
     <div className="flex flex-col gap-4">
-      <div role="tablist" aria-label={t("label")} onKeyDown={onKeyDown} className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface p-1">
+      <div
+        role="tablist"
+        aria-label={t("label")}
+        onKeyDown={onKeyDown}
+        className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface p-1"
+      >
         {TABS.map((value, i) => (
           <button
             key={value}
@@ -46,7 +51,9 @@ export function SpeakUpTabs({ feel, issues, issueCount }: { feel: ReactNode; iss
           >
             {t(value)}
             {value === "issues" && issueCount > 0 && (
-              <span className={cn("figure rounded-full px-2 text-xs", tab === value ? "bg-white/25" : "bg-surface-2")}>{issueCount}</span>
+              <span className={cn("figure rounded-full px-2 text-xs", tab === value ? "bg-white/25" : "bg-surface-2")}>
+                {issueCount}
+              </span>
             )}
           </button>
         ))}

@@ -2,7 +2,17 @@ import type { ReactNode } from "react";
 import { RevealText } from "@/components/reveal-text";
 
 /** Masthead used on every inner page: small label, big title, optional action (e.g. read-aloud). */
-export function PageHeader({ eyebrow, title, action, children }: { eyebrow?: string; title: string; action?: ReactNode; children?: ReactNode }) {
+export function PageHeader({
+  eyebrow,
+  title,
+  action,
+  children,
+}: {
+  eyebrow?: string;
+  title: string;
+  action?: ReactNode;
+  children?: ReactNode;
+}) {
   return (
     <header className="flex flex-col gap-2">
       {eyebrow && <p className="eyebrow">{eyebrow}</p>}
@@ -20,5 +30,10 @@ export function PageHeader({ eyebrow, title, action, children }: { eyebrow?: str
 /** Today's date in IST, e.g. "Tue, 27 Oct". */
 export function todayLabel(locale: string): string {
   const tag = { en: "en-IN", hi: "hi-IN", ta: "ta-IN", te: "te-IN" }[locale] ?? "en-IN";
-  return new Intl.DateTimeFormat(tag, { weekday: "short", day: "numeric", month: "short", timeZone: "Asia/Kolkata" }).format(new Date());
+  return new Intl.DateTimeFormat(tag, {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    timeZone: "Asia/Kolkata",
+  }).format(new Date());
 }

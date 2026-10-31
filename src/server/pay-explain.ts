@@ -49,9 +49,17 @@ export async function findingSentences(findings: PayFinding[]): Promise<string[]
           amount: formatRupees(difference),
         });
       case "BELOW_MINIMUM_WAGE":
-        return t("minimum", { hours: formatDuration(e.workedMinutes), minimum: formatRupees(expected), paid: formatRupees(paid) });
+        return t("minimum", {
+          hours: formatDuration(e.workedMinutes),
+          minimum: formatRupees(expected),
+          paid: formatRupees(paid),
+        });
       case "DEDUCTION_MISMATCH":
-        return t("deduction", { withheld: formatRupees(e.withheld), expected: formatRupees(e.expectedDeductions), amount: formatRupees(difference) });
+        return t("deduction", {
+          withheld: formatRupees(e.withheld),
+          expected: formatRupees(e.expectedDeductions),
+          amount: formatRupees(difference),
+        });
     }
   });
 }

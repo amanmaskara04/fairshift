@@ -5,7 +5,10 @@ import { checkPay, PAY_TOLERANCE_PAISE, type PaidRecord, type PayCheckInput } fr
 const HOURLY = 10_000;
 const OT_RATE = 20_000;
 
-function input(paid: Partial<PaidRecord> | null, attendance = { regularMinutes: 160 * 60, overtimeMinutes: 13 * 60 + 32 }): PayCheckInput {
+function input(
+  paid: Partial<PaidRecord> | null,
+  attendance = { regularMinutes: 160 * 60, overtimeMinutes: 13 * 60 + 32 },
+): PayCheckInput {
   const regularPay = (attendance.regularMinutes * HOURLY) / 60;
   const otPay = Math.round((attendance.overtimeMinutes * OT_RATE) / 60);
   const pf = Math.round(regularPay * 0.12);
@@ -38,7 +41,12 @@ describe("checkPay (FairPay Sentinel)", () => {
     const result = checkPay(input({ paidOvertimeHours: 9 }));
     const finding = result.findings.find((f) => f.code === "OVERTIME_UNDERPAID");
     expect(finding).toBeDefined();
-    expect(finding!.explanation).toEqual({ recordedMinutes: 812, paidMinutes: 540, missingMinutes: 272, rate: OT_RATE });
+    expect(finding!.explanation).toEqual({
+      recordedMinutes: 812,
+      paidMinutes: 540,
+      missingMinutes: 272,
+      rate: OT_RATE,
+    });
     expect(finding!.difference).toBe(90_667); // ₹906.67 ≈ ₹907
     expect(finding!.expected - finding!.paid).toBe(finding!.difference);
     expect(result.totalShortfall).toBe(90_667);
@@ -74,7 +82,10 @@ describe("checkPay (FairPay Sentinel)", () => {
     const record = base.paidRecord!;
     const atTolerance = checkPay({ ...base, paidRecord: { ...record, netPaid: record.netPaid - PAY_TOLERANCE_PAISE } });
     expect(atTolerance.findings).toEqual([]);
-    const justOver = checkPay({ ...base, paidRecord: { ...record, netPaid: record.netPaid - PAY_TOLERANCE_PAISE - 1 } });
+    const justOver = checkPay({
+      ...base,
+      paidRecord: { ...record, netPaid: record.netPaid - PAY_TOLERANCE_PAISE - 1 },
+    });
     expect(justOver.findings.map((f) => f.code)).toEqual(["DEDUCTION_MISMATCH"]);
   });
 
@@ -84,8 +95,12 @@ describe("checkPay (FairPay Sentinel)", () => {
   });
 
   it("never double-counts a minimum-wage breach on top of the itemised shortfall", () => {
-    const result = checkPay(input({ paidOvertimeHours: 0, paidRegularHours: 80, grossPaid: 800_000, netPaid: 800_000 - 192_000 }));
-    const itemised = result.findings.filter((f) => f.code !== "BELOW_MINIMUM_WAGE").reduce((s, f) => s + f.difference, 0);
+    const result = checkPay(
+      input({ paidOvertimeHours: 0, paidRegularHours: 80, grossPaid: 800_000, netPaid: 800_000 - 192_000 }),
+    );
+    const itemised = result.findings
+      .filter((f) => f.code !== "BELOW_MINIMUM_WAGE")
+      .reduce((s, f) => s + f.difference, 0);
     const minimum = result.findings.find((f) => f.code === "BELOW_MINIMUM_WAGE")?.difference ?? 0;
     expect(result.totalShortfall).toBe(Math.max(itemised, minimum));
   });

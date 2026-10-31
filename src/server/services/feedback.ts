@@ -46,7 +46,14 @@ export async function submitFeedback(repos: Repos, input: FeedbackInput): Promis
   return { ok: true };
 }
 
-export async function hasAnsweredThisWeek(repos: Repos, workerId: string, now: Date, hmacSecret: string): Promise<boolean> {
-  const guard = createHmac("sha256", hmacSecret).update(`${workerId}|${feedbackWeek(now)}`).digest("hex");
+export async function hasAnsweredThisWeek(
+  repos: Repos,
+  workerId: string,
+  now: Date,
+  hmacSecret: string,
+): Promise<boolean> {
+  const guard = createHmac("sha256", hmacSecret)
+    .update(`${workerId}|${feedbackWeek(now)}`)
+    .digest("hex");
   return repos.feedbackGuards.has(guard);
 }

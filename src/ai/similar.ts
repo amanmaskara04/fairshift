@@ -44,7 +44,13 @@ export async function findSimilarIssues(
       await logAiCall({ feature: "similar", model: MODELS.fast, latencyMs: Date.now() - started, fallbackUsed: false });
       if (parsed.success) return { ids: parsed.data.ids.filter((id) => known.has(id)), source: "gemini" };
     } catch (error) {
-      await logAiCall({ feature: "similar", model: MODELS.fast, latencyMs: Date.now() - started, fallbackUsed: true, error: describeAiError(error) });
+      await logAiCall({
+        feature: "similar",
+        model: MODELS.fast,
+        latencyMs: Date.now() - started,
+        fallbackUsed: true,
+        error: describeAiError(error),
+      });
     }
   }
   return { ids: rankBySimilarity(text, candidates, (c) => c.text, MAX_MATCHES).map((c) => c.id), source: "keywords" };

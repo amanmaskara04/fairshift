@@ -20,7 +20,11 @@ export default async function ReportPage() {
   const t = await getTranslations("report");
   const repos = getRepos();
   const now = new Date();
-  const [org, hazards, tracked] = await Promise.all([repos.orgs.getById(session.orgId), sweepHazards(repos, session.orgId, now), trackedReports()]);
+  const [org, hazards, tracked] = await Promise.all([
+    repos.orgs.getById(session.orgId),
+    sweepHazards(repos, session.orgId, now),
+    trackedReports(),
+  ]);
   if (!org) return null;
 
   // My reports: named ones, plus anonymous ones this phone holds a private reference for.
@@ -37,7 +41,10 @@ export default async function ReportPage() {
 
   return (
     <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-3xl">
-      <PageHeader title={t("title")} action={<SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />} />
+      <PageHeader
+        title={t("title")}
+        action={<SpeakButton text={`${t("title")}. ${t("tapToSpeak")}. ${t("orTapIcon")}.`} />}
+      />
 
       <HazardReporter categories={[...getSectorProfile(org.sector).hazardCategories]} />
 

@@ -15,7 +15,15 @@ declare global {
 const SCAN_INTERVAL_MS = 250;
 
 /** Camera QR reader: native BarcodeDetector when available, jsQR on canvas frames otherwise. */
-export function QrScanner({ onResult, onError, label }: { onResult: (text: string) => void; onError: () => void; label: string }) {
+export function QrScanner({
+  onResult,
+  onError,
+  label,
+}: {
+  onResult: (text: string) => void;
+  onError: () => void;
+  label: string;
+}) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {

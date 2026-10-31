@@ -4,7 +4,16 @@
 // esic.gov.in contact page, EPFO, Tele-MANAS) in October 2026. 108 is the emergency ambulance
 // in most states; 112 reaches police, fire and ambulance everywhere.
 
-export const HELPLINE_IDS = ["emergency", "fire", "ambulance", "women", "mental_health", "eshram", "esic", "epfo"] as const;
+export const HELPLINE_IDS = [
+  "emergency",
+  "fire",
+  "ambulance",
+  "women",
+  "mental_health",
+  "eshram",
+  "esic",
+  "epfo",
+] as const;
 export type HelplineId = (typeof HELPLINE_IDS)[number];
 
 export interface Helpline {

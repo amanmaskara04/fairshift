@@ -79,8 +79,14 @@ describe("escalation", () => {
 
 describe("hazard actions", () => {
   it("rejects a dismiss without a reason", () => {
-    expect(applyHazardAction(hazard(), { type: "dismiss", reason: "" }, at(1), "admin1")).toEqual({ ok: false, error: "reason_required" });
-    expect(applyHazardAction(hazard(), { type: "dismiss", reason: "other" }, at(1), "admin1")).toEqual({ ok: false, error: "note_required" });
+    expect(applyHazardAction(hazard(), { type: "dismiss", reason: "" }, at(1), "admin1")).toEqual({
+      ok: false,
+      error: "reason_required",
+    });
+    expect(applyHazardAction(hazard(), { type: "dismiss", reason: "other" }, at(1), "admin1")).toEqual({
+      ok: false,
+      error: "note_required",
+    });
   });
 
   it("records the dismiss reason for the worker to see", () => {
@@ -89,9 +95,15 @@ describe("hazard actions", () => {
   });
 
   it("needs a note of what was done to mark it fixed, then asks the reporter", () => {
-    expect(applyHazardAction(hazard(), { type: "fix", note: " " }, at(1), "admin1")).toEqual({ ok: false, error: "note_required" });
+    expect(applyHazardAction(hazard(), { type: "fix", note: " " }, at(1), "admin1")).toEqual({
+      ok: false,
+      error: "note_required",
+    });
     const fixed = applyHazardAction(hazard(), { type: "fix", note: "Re-tied the scaffold" }, at(2), "admin1");
-    expect(fixed).toMatchObject({ ok: true, hazard: { status: "fixed", confirmation: "pending", fixNote: "Re-tied the scaffold" } });
+    expect(fixed).toMatchObject({
+      ok: true,
+      hazard: { status: "fixed", confirmation: "pending", fixNote: "Re-tied the scaffold" },
+    });
   });
 
   it("reopens on 'No, still a problem' and restarts the timer and escalation", () => {
@@ -126,14 +138,26 @@ describe("hazard actions", () => {
   });
 
   it("refuses moves the workflow does not allow", () => {
-    expect(applyHazardAction(hazard({ status: "fixed" }), { type: "start" }, at(1), "a")).toEqual({ ok: false, error: "invalid_transition" });
-    expect(applyHazardAction(hazard(), { type: "reopen" }, at(1), "a")).toEqual({ ok: false, error: "invalid_transition" });
+    expect(applyHazardAction(hazard({ status: "fixed" }), { type: "start" }, at(1), "a")).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
+    expect(applyHazardAction(hazard(), { type: "reopen" }, at(1), "a")).toEqual({
+      ok: false,
+      error: "invalid_transition",
+    });
   });
 });
 
 describe("findDuplicateHazard", () => {
   const open = hazard({ location: "Floor 3" });
-  const report = (hours: number, overrides = {}) => ({ category: "scaffolding" as const, siteId: "site1", location: "3rd floor", at: at(hours), ...overrides });
+  const report = (hours: number, overrides = {}) => ({
+    category: "scaffolding" as const,
+    siteId: "site1",
+    location: "3rd floor",
+    at: at(hours),
+    ...overrides,
+  });
 
   it("matches the same category and zone within 48 hours", () => {
     expect(findDuplicateHazard(report(5), [open])?.id).toBe("h1");

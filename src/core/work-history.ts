@@ -2,10 +2,10 @@
 // "Lost career history" is about experience as much as certificates. Every check-in is
 // employer-verified evidence of where a worker worked, for how long, and in which role.
 
-import { minutesByDay } from './overtime';
-import type { ClosedShift, Sector } from './types';
+import { minutesByDay } from "./overtime";
+import type { ClosedShift, Sector } from "./types";
 
-export type HistorySource = 'verified_employer' | 'self_reported';
+export type HistorySource = "verified_employer" | "self_reported";
 
 export interface WorkHistoryEntry {
   employer: string;
@@ -27,7 +27,11 @@ export interface SiteInfo {
 }
 
 /** One entry per site, built from closed shifts. Newest first. */
-export function buildWorkHistory(shifts: ClosedShift[], sites: ReadonlyMap<string, SiteInfo>, role: string): WorkHistoryEntry[] {
+export function buildWorkHistory(
+  shifts: ClosedShift[],
+  sites: ReadonlyMap<string, SiteInfo>,
+  role: string,
+): WorkHistoryEntry[] {
   const bySite = new Map<string, ClosedShift[]>();
   for (const shift of shifts) bySite.set(shift.siteId, [...(bySite.get(shift.siteId) ?? []), shift]);
 
@@ -46,7 +50,7 @@ export function buildWorkHistory(shifts: ClosedShift[], sites: ReadonlyMap<strin
       to: days[days.length - 1],
       days: days.length,
       minutes: [...byDay.values()].reduce((a, b) => a + b, 0),
-      source: 'verified_employer',
+      source: "verified_employer",
     });
   }
   return entries.sort((a, b) => b.to.localeCompare(a.to));
@@ -55,7 +59,7 @@ export function buildWorkHistory(shifts: ClosedShift[], sites: ReadonlyMap<strin
 /** Totals over verified entries only: self-reported work is shown but never counted. */
 export function verifiedTotals(entries: WorkHistoryEntry[]): { days: number; minutes: number } {
   return entries
-    .filter((e) => e.source === 'verified_employer')
+    .filter((e) => e.source === "verified_employer")
     .reduce((acc, e) => ({ days: acc.days + e.days, minutes: acc.minutes + e.minutes }), { days: 0, minutes: 0 });
 }
 

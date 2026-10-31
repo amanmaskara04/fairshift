@@ -1,4 +1,10 @@
-import { attendanceRuleMet, checkEligibility, windowStart, type AttendanceDay, type SchemeEligibility } from "@/core/eligibility";
+import {
+  attendanceRuleMet,
+  checkEligibility,
+  windowStart,
+  type AttendanceDay,
+  type SchemeEligibility,
+} from "@/core/eligibility";
 import { minutesByDay } from "@/core/overtime";
 import { monthlyWage } from "@/core/pay";
 import { getISTDay } from "@/core/time";
@@ -31,14 +37,29 @@ export async function benefitsFor(repos: Repos, workerId: string, now: Date): Pr
   const worker = await repos.workers.getById(workerId);
   const org = worker ? await repos.orgs.getById(worker.orgId) : undefined;
   if (!worker || !org) return null;
-  const [shifts, certificates, sectorOf] = await Promise.all([repos.shifts.getByWorker(workerId), repos.certificates.getByWorker(workerId), siteSectors(repos)]);
+  const [shifts, certificates, sectorOf] = await Promise.all([
+    repos.shifts.getByWorker(workerId),
+    repos.certificates.getByWorker(workerId),
+    siteSectors(repos),
+  ]);
   return { results: eligibilityFrom(worker, org, shifts, sectorOf, now), certificates };
 }
 
 /** Scheme eligibility from already-loaded data, so a whole organisation needs one batch of queries. */
-function eligibilityFrom(worker: Worker, org: Org, shifts: Shift[], sectorOf: Map<string, Sector>, now: Date): SchemeEligibility[] {
+function eligibilityFrom(
+  worker: Worker,
+  org: Org,
+  shifts: Shift[],
+  sectorOf: Map<string, Sector>,
+  now: Date,
+): SchemeEligibility[] {
   const closed = shifts.filter((s): s is ClosedShift => Boolean(s.outAt));
-  return checkEligibility({ sector: org.sector, monthlyWage: monthlyWage(worker.pay, org.labourRules) }, attendanceDays(closed, sectorOf), SCHEMES, now);
+  return checkEligibility(
+    { sector: org.sector, monthlyWage: monthlyWage(worker.pay, org.labourRules) },
+    attendanceDays(closed, sectorOf),
+    SCHEMES,
+    now,
+  );
 }
 
 export type CertificateError = "not_eligible" | "already_requested" | "not_found" | "not_pending";
@@ -51,8 +72,10 @@ export async function requestCertificate(
   const scheme = getScheme(input.schemeId);
   const view = await benefitsFor(repos, input.workerId, input.now);
   const result = view?.results.find((r) => r.schemeId === input.schemeId);
-  if (!scheme?.needsWorkCertificate || !view || !result || !attendanceRuleMet(result)) return { ok: false, error: "not_eligible" };
-  if (view.certificates.some((c) => c.schemeId === input.schemeId && c.status !== "rejected")) return { ok: false, error: "already_requested" };
+  if (!scheme?.needsWorkCertificate || !view || !result || !attendanceRuleMet(result))
+    return { ok: false, error: "not_eligible" };
+  if (view.certificates.some((c) => c.schemeId === input.schemeId && c.status !== "rejected"))
+    return { ok: false, error: "already_requested" };
 
   const worker = (await repos.workers.getById(input.workerId))!;
   const shifts = (await repos.shifts.getByWorker(worker.id)).filter((s): s is ClosedShift => Boolean(s.outAt));
@@ -82,7 +105,11 @@ export async function decideCertificate(
   const request = await repos.certificates.getById(input.id);
   if (!request || request.orgId !== input.orgId) return { ok: false, error: "not_found" };
   if (request.status !== "requested") return { ok: false, error: "not_pending" };
-  await repos.certificates.update(request.id, { status: input.approve ? "approved" : "rejected", decidedAt: input.now, decidedBy: input.adminId });
+  await repos.certificates.update(request.id, {
+    status: input.approve ? "approved" : "rejected",
+    decidedAt: input.now,
+    decidedBy: input.adminId,
+  });
   return { ok: true };
 }
 

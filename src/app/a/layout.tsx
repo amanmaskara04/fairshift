@@ -19,7 +19,10 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
   return (
     <div className="admin flex min-h-dvh flex-col md:flex-row">
       {/* Laptops: a full-height rail. Persistent: page transitions never move it. */}
-      <aside style={{ viewTransitionName: "app-header" }} className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-line bg-surface p-4 md:flex">
+      <aside
+        style={{ viewTransitionName: "app-header" }}
+        className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-line bg-surface p-4 md:flex"
+      >
         <Link href="/a" className="w-fit rounded-xl px-2 pt-1">
           <BrandMark className="text-xl" />
         </Link>
@@ -41,7 +44,10 @@ export default async function AdminLayout({ children }: LayoutProps<"/a">) {
       </aside>
 
       {/* Phones and tablets: compact header, organisation on its own line, then swipeable tabs. */}
-      <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur md:hidden">
+      <header
+        style={{ viewTransitionName: "app-header" }}
+        className="sticky top-0 z-30 border-b border-line bg-paper/90 backdrop-blur md:hidden"
+      >
         <div className="flex items-center gap-2 px-4 py-2">
           <BackButton />
           <Link href="/a" className="shrink-0 rounded-xl">

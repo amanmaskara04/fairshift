@@ -16,7 +16,11 @@ export async function requestCertificateAction(schemeId: unknown): Promise<{ ok:
   const parsed = SchemeId.safeParse(schemeId);
   if (!parsed.success) return { ok: false, error: "invalid" };
   if (!requestLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
-  const result = await requestCertificate(getRepos(), { workerId: session.uid, schemeId: parsed.data, now: new Date() });
+  const result = await requestCertificate(getRepos(), {
+    workerId: session.uid,
+    schemeId: parsed.data,
+    now: new Date(),
+  });
   revalidatePath("/w/skills");
   revalidatePath("/a/people");
   return result.ok ? { ok: true } : { ok: false, error: result.error };
@@ -29,7 +33,12 @@ export async function decideCertificateAction(input: unknown): Promise<{ ok: boo
   const session = await requireRole("admin");
   const parsed = Decision.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
-  const result = await decideCertificate(getRepos(), { ...parsed.data, orgId: session.orgId, adminId: session.uid, now: new Date() });
+  const result = await decideCertificate(getRepos(), {
+    ...parsed.data,
+    orgId: session.orgId,
+    adminId: session.uid,
+    now: new Date(),
+  });
   revalidatePath("/a/people");
   revalidatePath("/w/skills");
   return result.ok ? { ok: true } : { ok: false, error: result.error };

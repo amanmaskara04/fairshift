@@ -16,7 +16,17 @@ const percent = (value: number, top: number) => `${(value / top) * 100}%`;
  * No legend (the title names the series), thin bars with 4px rounded data-ends on the
  * baseline, a recessive grid, the value on hover, and a table alternative for screen readers.
  */
-export function BarChartCard({ title, unit, data, tableLabel }: { title: string; unit: string; data: Point[]; tableLabel: string }) {
+export function BarChartCard({
+  title,
+  unit,
+  data,
+  tableLabel,
+}: {
+  title: string;
+  unit: string;
+  data: Point[];
+  tableLabel: string;
+}) {
   const ticks = axisTicks(Math.max(0, ...data.map((d) => d.value)));
   const top = ticks[ticks.length - 1];
   const every = Math.ceil(data.length / MAX_X_LABELS);
@@ -35,12 +45,22 @@ export function BarChartCard({ title, unit, data, tableLabel }: { title: string;
         </div>
         <div className="relative">
           {ticks.map((tick) => (
-            <div key={tick} className="absolute inset-x-0 border-t border-line" style={{ bottom: percent(tick, top) }} />
+            <div
+              key={tick}
+              className="absolute inset-x-0 border-t border-line"
+              style={{ bottom: percent(tick, top) }}
+            />
           ))}
           <div className="absolute inset-0 flex items-end">
             {data.map((d, i) => (
-              <div key={i} className="group relative flex h-full flex-1 items-end justify-center rounded-t-md hover:bg-surface-2">
-                <div className="w-3/5 max-w-[30px] rounded-t-[4px] bg-primary" style={{ height: percent(d.value, top) }} />
+              <div
+                key={i}
+                className="group relative flex h-full flex-1 items-end justify-center rounded-t-md hover:bg-surface-2"
+              >
+                <div
+                  className="w-3/5 max-w-[30px] rounded-t-[4px] bg-primary"
+                  style={{ height: percent(d.value, top) }}
+                />
                 <span
                   className={`figure pointer-events-none absolute z-10 rounded-lg border border-line bg-surface px-2 py-1 text-xs font-bold whitespace-nowrap text-ink opacity-0 shadow-sm transition-opacity group-hover:opacity-100 ${edge(i)}`}
                   style={{ bottom: `calc(${percent(d.value, top)} + 6px)` }}

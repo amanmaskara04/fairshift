@@ -60,7 +60,10 @@ export async function duplicateFor(
   repos: Repos,
   input: Pick<ReportInput, "orgId" | "siteId" | "category" | "location" | "now">,
 ): Promise<{ reportCount: number } | null> {
-  const match = findDuplicateHazard({ category: input.category, siteId: input.siteId, location: input.location, at: input.now }, await openHazards(repos, input.orgId));
+  const match = findDuplicateHazard(
+    { category: input.category, siteId: input.siteId, location: input.location, at: input.now },
+    await openHazards(repos, input.orgId),
+  );
   return match ? { reportCount: match.reports.length } : null;
 }
 
@@ -77,17 +80,26 @@ export async function reportHazard(repos: Repos, input: ReportInput): Promise<Re
 
   const duplicate =
     input.attach === "auto"
-      ? findDuplicateHazard({ category: input.category, siteId: input.siteId, location: input.location, at: input.now }, await openHazards(repos, input.orgId))
+      ? findDuplicateHazard(
+          { category: input.category, siteId: input.siteId, location: input.location, at: input.now },
+          await openHazards(repos, input.orgId),
+        )
       : null;
 
   // Severity: the category's floor, raised by Gemini's reading of the report and by urgent words in it.
-  const severity = maxSeverity(resolveSeverity(input.category, input.severityHint), urgencyFromText(input.transcript, input.transcriptEn) ?? "low");
+  const severity = maxSeverity(
+    resolveSeverity(input.category, input.severityHint),
+    urgencyFromText(input.transcript, input.transcriptEn) ?? "low",
+  );
 
   if (duplicate) {
     const reports = [...duplicate.reports, report];
     await repos.hazards.update(duplicate.id, {
       reports,
-      severity: maxSeverity(maxSeverity(duplicate.severity, severity), severityForReports(duplicate.baseSeverity, reports.length)),
+      severity: maxSeverity(
+        maxSeverity(duplicate.severity, severity),
+        severityForReports(duplicate.baseSeverity, reports.length),
+      ),
       trackingRefs: [...duplicate.trackingRefs, ...refHashes],
       timeline: [...duplicate.timeline, { status: "report_added", at: input.now }],
     });
@@ -127,7 +139,11 @@ export async function sweepHazards(repos: Repos, orgId: string, now: Date): Prom
     hazards.map(async (hazard) => {
       const swept = sweepHazard(hazard, now, chainLength);
       if (!swept) return hazard;
-      await repos.hazards.update(hazard.id, { escalationLevel: swept.escalationLevel, confirmation: swept.confirmation, timeline: swept.timeline });
+      await repos.hazards.update(hazard.id, {
+        escalationLevel: swept.escalationLevel,
+        confirmation: swept.confirmation,
+        timeline: swept.timeline,
+      });
       return swept;
     }),
   );
@@ -147,7 +163,13 @@ async function persist(repos: Repos, before: Hazard, after: Hazard): Promise<voi
 
 export async function adminHazardAction(
   repos: Repos,
-  input: { orgId: string; hazardId: string; adminId: string; action: Exclude<HazardAction, { type: "confirm" }>; now: Date },
+  input: {
+    orgId: string;
+    hazardId: string;
+    adminId: string;
+    action: Exclude<HazardAction, { type: "confirm" }>;
+    now: Date;
+  },
 ): Promise<{ ok: true } | { ok: false; error: HazardServiceError }> {
   const hazard = await repos.hazards.getById(input.hazardId);
   if (!hazard || hazard.orgId !== input.orgId) return { ok: false, error: "not_found" };
@@ -160,7 +182,15 @@ export async function adminHazardAction(
 /** "Is it really fixed?" — only the reporter, or the device holding the private reference. */
 export async function confirmFix(
   repos: Repos,
-  input: { orgId: string; hazardId: string; workerId: string; trackingRefs: string[]; fixed: boolean; now: Date; secret: string },
+  input: {
+    orgId: string;
+    hazardId: string;
+    workerId: string;
+    trackingRefs: string[];
+    fixed: boolean;
+    now: Date;
+    secret: string;
+  },
 ): Promise<{ ok: true } | { ok: false; error: HazardServiceError }> {
   const hazard = await repos.hazards.getById(input.hazardId);
   if (!hazard || hazard.orgId !== input.orgId) return { ok: false, error: "not_found" };
@@ -173,7 +203,12 @@ export async function confirmFix(
 }
 
 /** The hazard an anonymous reporter's private reference belongs to (for following up on another device). */
-export async function hazardByTrackingRef(repos: Repos, orgId: string, ref: string, secret: string): Promise<Hazard | undefined> {
+export async function hazardByTrackingRef(
+  repos: Repos,
+  orgId: string,
+  ref: string,
+  secret: string,
+): Promise<Hazard | undefined> {
   const hash = trackingRefHash(secret, ref);
   return (await repos.hazards.getByOrg(orgId)).find((h) => h.trackingRefs.includes(hash));
 }
@@ -184,8 +219,12 @@ export async function mergeHazards(
   repos: Repos,
   input: { orgId: string; sourceId: string; targetId: string; adminId: string; now: Date },
 ): Promise<{ ok: true } | { ok: false; error: HazardServiceError }> {
-  const [source, target] = await Promise.all([repos.hazards.getById(input.sourceId), repos.hazards.getById(input.targetId)]);
-  if (!source || !target || source.id === target.id || source.orgId !== input.orgId || target.orgId !== input.orgId) return { ok: false, error: "not_found" };
+  const [source, target] = await Promise.all([
+    repos.hazards.getById(input.sourceId),
+    repos.hazards.getById(input.targetId),
+  ]);
+  if (!source || !target || source.id === target.id || source.orgId !== input.orgId || target.orgId !== input.orgId)
+    return { ok: false, error: "not_found" };
   // Only the same danger at the same site: different hazards need different fixes.
   if (!canMerge(source, target)) return { ok: false, error: "invalid_transition" };
 
@@ -193,7 +232,10 @@ export async function mergeHazards(
   await repos.hazards.update(target.id, {
     reports,
     trackingRefs: [...new Set([...target.trackingRefs, ...source.trackingRefs])],
-    severity: maxSeverity(maxSeverity(target.severity, source.severity), severityForReports(target.baseSeverity, reports.length)),
+    severity: maxSeverity(
+      maxSeverity(target.severity, source.severity),
+      severityForReports(target.baseSeverity, reports.length),
+    ),
     timeline: [...target.timeline, { status: "merged", at: input.now, by: input.adminId, note: source.id }],
   });
   await repos.hazards.update(source.id, {

@@ -19,8 +19,13 @@ export const metadata: Metadata = { title: "Skill passport", robots: { index: fa
 export default async function PassportPage({ params }: PageProps<"/passport/[token]">) {
   const { token } = await params;
   const claims = readPassportToken(token, new Date());
-  if (!claims.ok) return <VerificationError kind="passport" reason={claims.reason === "expired" ? "expired" : "invalid"} />;
-  const [data, t, locale] = await Promise.all([passportData(getRepos(), claims.workerId), getTranslations("passport"), getLocale()]);
+  if (!claims.ok)
+    return <VerificationError kind="passport" reason={claims.reason === "expired" ? "expired" : "invalid"} />;
+  const [data, t, locale] = await Promise.all([
+    passportData(getRepos(), claims.workerId),
+    getTranslations("passport"),
+    getLocale(),
+  ]);
   if (!data) return <VerificationError kind="passport" reason="invalid" />;
 
   const [first, last] = data.worker.name.split(" ");
@@ -32,7 +37,9 @@ export default async function PassportPage({ params }: PageProps<"/passport/[tok
     <PublicShell wide>
       <section className="hero-card flex flex-col gap-2 p-6">
         <BadgeCheck aria-hidden="true" className="size-9 text-primary" />
-        <h1 className="font-display text-3xl leading-tight font-extrabold">{t("passportOf", { name: `${first} ${last?.[0] ?? ""}.` })}</h1>
+        <h1 className="font-display text-3xl leading-tight font-extrabold">
+          {t("passportOf", { name: `${first} ${last?.[0] ?? ""}.` })}
+        </h1>
         <p className="text-ink-2">
           {data.worker.jobTitle} · {t("issuedBy", { org: data.org.name })}
         </p>
@@ -72,7 +79,10 @@ export default async function PassportPage({ params }: PageProps<"/passport/[tok
           <ul className="stagger flex flex-col gap-2.5">
             {sections.skills.map((skill) => (
               <li key={skill.id} className="card flex items-center gap-3 p-4">
-                <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success text-white">
+                <span
+                  aria-hidden="true"
+                  className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-success text-white"
+                >
                   <BadgeCheck className="size-6" />
                 </span>
                 <div>

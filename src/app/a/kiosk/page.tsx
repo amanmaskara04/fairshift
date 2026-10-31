@@ -20,13 +20,13 @@ export default async function KioskIndex() {
               <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-primary text-on-primary">
                 <QrCode aria-hidden="true" className="size-7" />
               </span>
-                <div>
-                  <p className="font-bold">{site.name}</p>
-                  <p className="flex items-center gap-1 text-sm text-ink-2">
-                    <MapPin aria-hidden="true" className="size-4" />
-                    {t("open")}
-                  </p>
-                </div>
+              <div>
+                <p className="font-bold">{site.name}</p>
+                <p className="flex items-center gap-1 text-sm text-ink-2">
+                  <MapPin aria-hidden="true" className="size-4" />
+                  {t("open")}
+                </p>
+              </div>
             </Link>
           </li>
         ))}

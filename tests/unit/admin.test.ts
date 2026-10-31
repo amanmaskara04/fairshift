@@ -25,14 +25,19 @@ describe("CSV export", () => {
   it("quotes commas and quotes, and neutralises formula injection", () => {
     expect(csvCell("Kumar, Ramesh")).toBe('"Kumar, Ramesh"');
     expect(csvCell('say "hi"')).toBe('"say ""hi"""');
-    expect(csvCell("=HYPERLINK(\"x\")")).toBe('"\'=HYPERLINK(""x"")"');
-    expect(csvCell("+91")).toBe("\"'+91\"");
+    expect(csvCell('=HYPERLINK("x")')).toBe('"\'=HYPERLINK(""x"")"');
+    expect(csvCell("+91")).toBe('"\'+91"');
     expect(csvCell(42)).toBe("42");
     expect(csvCell(-5)).toBe("-5"); // negative numbers stay numbers
   });
 
   it("builds CRLF rows and formats paise", () => {
-    expect(toCsv([["a", 1], ["b", 2]])).toBe("a,1\r\nb,2\r\n");
+    expect(
+      toCsv([
+        ["a", 1],
+        ["b", 2],
+      ]),
+    ).toBe("a,1\r\nb,2\r\n");
     expect(paiseToRupees(123456)).toBe("1234.56");
   });
 });

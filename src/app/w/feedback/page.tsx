@@ -22,7 +22,15 @@ export default async function FeedbackPage() {
     session.siteId ? issuesForWorker(repos, session.siteId, session.uid, secret) : [],
   ]);
   // Never send signer keys or org ids to the browser: only what the card shows.
-  const issueViews = issues.map(({ id, text, signerCount, status, response, signed, needed }) => ({ id, text, signerCount, status, response, signed, needed }));
+  const issueViews = issues.map(({ id, text, signerCount, status, response, signed, needed }) => ({
+    id,
+    text,
+    signerCount,
+    status,
+    response,
+    signed,
+    needed,
+  }));
 
   return (
     <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-3xl">

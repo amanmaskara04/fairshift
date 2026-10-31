@@ -33,7 +33,9 @@ test("worker checks in with the site QR, then checks out — the heading always 
   await expect(page.getByRole("heading", { level: 1, name: "Checked out!" })).toBeVisible();
 });
 
-test("FairPay Sentinel shows the possible shortfall with its arithmetic, and a review can be requested", async ({ page }) => {
+test("FairPay Sentinel shows the possible shortfall with its arithmetic, and a review can be requested", async ({
+  page,
+}) => {
   await loginAs(page, /Ramesh/);
   await page.goto("/w/pay");
   await expect(page.getByTestId("net-pay")).toContainText("₹");
@@ -195,7 +197,14 @@ test("sync endpoint rejects bad input and unauthenticated calls", async ({ page,
   expect((await request.post("/api/sync", { data: { ops: [] } })).status()).toBe(401);
   await loginAs(page, /Ramesh/);
   expect((await page.request.post("/api/sync", { data: { ops: [] } })).status()).toBe(400);
-  expect((await page.request.post("/api/sync", { data: "x".repeat(20_000), headers: { "content-type": "application/json" } })).status()).toBe(413);
+  expect(
+    (
+      await page.request.post("/api/sync", {
+        data: "x".repeat(20_000),
+        headers: { "content-type": "application/json" },
+      })
+    ).status(),
+  ).toBe(413);
 });
 
 test("help page: one-tap 112, and a typed problem gets steps and the right helplines", async ({ page }) => {

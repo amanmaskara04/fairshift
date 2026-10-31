@@ -11,9 +11,16 @@ import { PageHeader } from "@/components/page-header";
 
 export default async function SitesPage() {
   const session = await requireRole("admin");
-  const [t, ta, tr] = await Promise.all([getTranslations("admin.sitesPage"), getTranslations("admin"), getTranslations("report")]);
+  const [t, ta, tr] = await Promise.all([
+    getTranslations("admin.sitesPage"),
+    getTranslations("admin"),
+    getTranslations("report"),
+  ]);
   const repos = getRepos();
-  const [sites, workers] = await Promise.all([repos.sites.getByOrg(session.orgId), repos.workers.getByOrg(session.orgId)]);
+  const [sites, workers] = await Promise.all([
+    repos.sites.getByOrg(session.orgId),
+    repos.workers.getByOrg(session.orgId),
+  ]);
 
   const cards = await Promise.all(
     sites.map(async (site) => {
@@ -48,7 +55,13 @@ export default async function SitesPage() {
                 <dl className="grid grid-cols-2 gap-2 text-sm [&>div]:rounded-2xl [&>div]:bg-surface-2 [&>div]:p-3">
                   <div>
                     <dt className="text-ink-2">{t("rules")}</dt>
-                    <dd>{t("rulesValue", { daily: profile.labourRules.dailyHrs, weekly: profile.labourRules.weeklyHrs, ot: profile.labourRules.otMultiplier })}</dd>
+                    <dd>
+                      {t("rulesValue", {
+                        daily: profile.labourRules.dailyHrs,
+                        weekly: profile.labourRules.weeklyHrs,
+                        ot: profile.labourRules.otMultiplier,
+                      })}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-ink-2">{t("geofence")}</dt>
@@ -65,7 +78,10 @@ export default async function SitesPage() {
                     ))}
                   </ul>
                 </div>
-                <Link href={`/a/kiosk/${site.id}`} className={buttonVariants({ size: "sm", variant: "primary", className: "mt-auto w-fit" })}>
+                <Link
+                  href={`/a/kiosk/${site.id}`}
+                  className={buttonVariants({ size: "sm", variant: "primary", className: "mt-auto w-fit" })}
+                >
                   <QrCode aria-hidden="true" className="size-4" />
                   {t("openKiosk")}
                 </Link>

@@ -6,12 +6,12 @@
  */
 export function csvCell(value: string | number): string {
   let text = String(value);
-  if (typeof value === 'string' && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
+  if (typeof value === "string" && /^[=+\-@\t\r]/.test(text)) text = `'${text}`;
   return /[",\n\r]/.test(text) || text !== String(value) ? `"${text.replaceAll('"', '""')}"` : text;
 }
 
 export function toCsv(rows: (string | number)[][]): string {
-  return rows.map((row) => row.map(csvCell).join(',')).join('\r\n') + '\r\n';
+  return rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
 
 /** Paise → rupees with 2 decimals, as a plain number string for spreadsheets. */
@@ -26,9 +26,9 @@ export function paiseToRupees(paise: number): string {
 export function parseCsv(text: string): string[][] {
   const rows: string[][] = [];
   let row: string[] = [];
-  let cell = '';
+  let cell = "";
   let quoted = false;
-  const input = text.replace(/^﻿/, '');
+  const input = text.replace(/^﻿/, "");
 
   for (let i = 0; i < input.length; i++) {
     const ch = input[i];
@@ -39,25 +39,25 @@ export function parseCsv(text: string): string[][] {
       } else if (ch === '"') quoted = false;
       else cell += ch;
     } else if (ch === '"') quoted = true;
-    else if (ch === ',') {
+    else if (ch === ",") {
       row.push(cell);
-      cell = '';
-    } else if (ch === '\n' || ch === '\r') {
-      if (ch === '\r' && input[i + 1] === '\n') i++;
+      cell = "";
+    } else if (ch === "\n" || ch === "\r") {
+      if (ch === "\r" && input[i + 1] === "\n") i++;
       row.push(cell);
-      if (row.some((c) => c.trim() !== '')) rows.push(row);
+      if (row.some((c) => c.trim() !== "")) rows.push(row);
       row = [];
-      cell = '';
+      cell = "";
     } else cell += ch;
   }
   row.push(cell);
-  if (row.some((c) => c.trim() !== '')) rows.push(row);
+  if (row.some((c) => c.trim() !== "")) rows.push(row);
   return rows;
 }
 
 /** Rupees as typed in a spreadsheet ("12,450.50", "₹900") → integer paise, or NaN. */
 export function rupeesToPaise(value: string): number {
-  const cleaned = value.replace(/[₹,\s]/g, '');
+  const cleaned = value.replace(/[₹,\s]/g, "");
   if (!/^\d+(\.\d{1,2})?$/.test(cleaned)) return NaN;
   return Math.round(Number(cleaned) * 100);
 }

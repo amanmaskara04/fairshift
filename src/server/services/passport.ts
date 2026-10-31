@@ -21,7 +21,9 @@ export async function passportData(repos: Repos, workerId: string): Promise<Pass
     repos.orgs.getAll(),
   ]);
   const orgName = new Map(orgs.map((o) => [o.id, o.name]));
-  const siteInfo = new Map<string, SiteInfo>(sites.map((s) => [s.id, { name: s.name, employer: orgName.get(s.orgId) ?? "", sector: s.sector }]));
+  const siteInfo = new Map<string, SiteInfo>(
+    sites.map((s) => [s.id, { name: s.name, employer: orgName.get(s.orgId) ?? "", sector: s.sector }]),
+  );
   const verified = buildWorkHistory(
     shifts.filter((s): s is ClosedShift => Boolean(s.outAt)),
     siteInfo,

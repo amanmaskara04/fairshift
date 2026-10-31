@@ -48,7 +48,8 @@ describe("seeded demo data (in-memory repos)", () => {
     const feedback = await getRepos().feedback.getAll();
     for (const entry of feedback) expect(entry).not.toHaveProperty("workerId");
     const sizes = new Map<string, number>();
-    for (const f of feedback) sizes.set(`${f.cohort}|${f.weekBucket}`, (sizes.get(`${f.cohort}|${f.weekBucket}`) ?? 0) + 1);
+    for (const f of feedback)
+      sizes.set(`${f.cohort}|${f.weekBucket}`, (sizes.get(`${f.cohort}|${f.weekBucket}`) ?? 0) + 1);
     expect(Math.max(...sizes.values())).toBeGreaterThanOrEqual(K_ANONYMITY);
   });
 

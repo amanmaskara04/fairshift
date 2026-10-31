@@ -20,7 +20,14 @@ describe("organisation-wide batching", () => {
       expect(rows.length).toBe((await repos.workers.getByOrg(orgId)).length);
       for (const row of rows) {
         const own = (await payCheckFor(repos, row.workerId, month))!;
-        expect(row).toMatchObject({ gross: own.view.payslip.gross, net: own.view.payslip.net, daysWorked: own.view.daysWorked, check: own.result, outstanding: own.outstanding, rates: own.rates });
+        expect(row).toMatchObject({
+          gross: own.view.payslip.gross,
+          net: own.view.payslip.net,
+          daysWorked: own.view.daysWorked,
+          check: own.result,
+          outstanding: own.outstanding,
+          rates: own.rates,
+        });
       }
     }
   });

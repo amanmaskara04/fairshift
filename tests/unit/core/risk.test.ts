@@ -9,7 +9,9 @@ describe("computeQuitRisk (individual signals only)", () => {
   });
 
   it("scores 100 when every individual signal is at its maximum", () => {
-    expect(computeQuitRisk({ overtimeMinThisWeek: 900, overtimeMinLastWeek: 100, missedCheckIns: 9, payDisputes: 4 }).score).toBe(100);
+    expect(
+      computeQuitRisk({ overtimeMinThisWeek: 900, overtimeMinLastWeek: 100, missedCheckIns: 9, payDisputes: 4 }).score,
+    ).toBe(100);
   });
 
   it("explains every factor, and weights sum to 100", () => {
@@ -29,7 +31,12 @@ describe("computeQuitRisk (individual signals only)", () => {
 
   it("separates two workers at the same site by their own signals", () => {
     const steady = computeQuitRisk(calm);
-    const strained = computeQuitRisk({ overtimeMinThisWeek: 480, overtimeMinLastWeek: 120, missedCheckIns: 2, payDisputes: 1 });
+    const strained = computeQuitRisk({
+      overtimeMinThisWeek: 480,
+      overtimeMinLastWeek: 120,
+      missedCheckIns: 2,
+      payDisputes: 1,
+    });
     expect(strained.score - steady.score).toBeGreaterThan(40);
   });
 });

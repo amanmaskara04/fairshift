@@ -93,8 +93,7 @@
 body {
   background:
     radial-gradient(1200px 500px at 85% -10%, rgb(245 165 36 / 0.08), transparent 60%),
-    radial-gradient(900px 480px at -10% 0%, rgb(15 107 90 / 0.06), transparent 60%),
-    var(--bg);
+    radial-gradient(900px 480px at -10% 0%, rgb(15 107 90 / 0.06), transparent 60%), var(--bg);
   background-attachment: fixed;
   color: var(--ink);
   min-height: 100dvh;
@@ -359,13 +358,27 @@ html:not([data-scene-live]) .work-scene * {
   animation: rise-in 0.45s var(--ease-out) both;
   animation-delay: calc(min(var(--n, 0), 6) * 60ms);
 }
-.stagger > *:nth-child(1) { --n: 0; }
-.stagger > *:nth-child(2) { --n: 1; }
-.stagger > *:nth-child(3) { --n: 2; }
-.stagger > *:nth-child(4) { --n: 3; }
-.stagger > *:nth-child(5) { --n: 4; }
-.stagger > *:nth-child(6) { --n: 5; }
-.stagger > *:nth-child(n + 7) { --n: 6; }
+.stagger > *:nth-child(1) {
+  --n: 0;
+}
+.stagger > *:nth-child(2) {
+  --n: 1;
+}
+.stagger > *:nth-child(3) {
+  --n: 2;
+}
+.stagger > *:nth-child(4) {
+  --n: 3;
+}
+.stagger > *:nth-child(5) {
+  --n: 4;
+}
+.stagger > *:nth-child(6) {
+  --n: 5;
+}
+.stagger > *:nth-child(n + 7) {
+  --n: 6;
+}
 
 /* Held back while the welcome moment plays, then released together */
 [data-welcome="playing"] .stagger > * {
@@ -497,7 +510,9 @@ html:not([data-scene-live]) .work-scene * {
 
 /* Key press: a soft squash on the PIN keypad and big buttons */
 .press {
-  transition: transform 0.12s var(--ease-out), background-color 0.15s ease;
+  transition:
+    transform 0.12s var(--ease-out),
+    background-color 0.15s ease;
 }
 .press:active {
   transform: scale(0.94);
@@ -888,7 +903,22 @@ html[data-nav-dir="back"]::view-transition-new(.page) {
   transition: transform 0.6s var(--ease-out);
 }
 
-.work-scene :is(.scene-sun, .scene-cloud, .scene-load, .scene-trolley, .scene-mason-arm, .scene-brick, .scene-walker, .scene-leg, .scene-nurse, .scene-wheel, .scene-gear, .scene-press, .scene-smoke) {
+.work-scene
+  :is(
+    .scene-sun,
+    .scene-cloud,
+    .scene-load,
+    .scene-trolley,
+    .scene-mason-arm,
+    .scene-brick,
+    .scene-walker,
+    .scene-leg,
+    .scene-nurse,
+    .scene-wheel,
+    .scene-gear,
+    .scene-press,
+    .scene-smoke
+  ) {
   transform-box: fill-box;
 }
 
@@ -1046,7 +1076,9 @@ html[data-nav-dir="back"]::view-transition-new(.page) {
 
 /* PIN keypad keys: soft press */
 .key {
-  transition: transform 0.1s var(--ease-out), background-color 0.15s ease;
+  transition:
+    transform 0.1s var(--ease-out),
+    background-color 0.15s ease;
 }
 .key:active {
   transform: scale(0.92);

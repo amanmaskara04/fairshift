@@ -40,7 +40,9 @@ function Card({ icon, title, children }: { icon: ReactNode; title: string; child
   return (
     <div className="flex flex-col gap-2 rounded-card border border-line bg-surface p-4">
       <div className="flex items-center gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-accent text-ink">{icon}</span>
+        <span className="flex size-10 shrink-0 items-center justify-center rounded-tile bg-accent text-ink">
+          {icon}
+        </span>
         <h3 className="font-display text-lg leading-tight font-extrabold">{title}</h3>
       </div>
       <div className="text-ink-2">{children}</div>
@@ -58,7 +60,9 @@ function Stat({ value, label }: { value: string; label: string }) {
 }
 
 function Prompt({ children }: { children: ReactNode }) {
-  return <li className="rounded-tile border border-line bg-surface px-3 py-2 text-sm leading-snug italic">“{children}”</li>;
+  return (
+    <li className="rounded-tile border border-line bg-surface px-3 py-2 text-sm leading-snug italic">“{children}”</li>
+  );
 }
 
 export const SLIDES: Slide[] = [
@@ -70,8 +74,8 @@ export const SLIDES: Slide[] = [
       <div className="flex flex-col gap-8">
         <BrandMark className="text-4xl md:text-5xl" />
         <p className="max-w-3xl text-xl md:text-2xl">
-          A voice-first, multilingual app that gives shift workers proof of their hours, a payslip they can hear, and a safe way to report danger — and gives
-          employers an early warning before people get hurt or quit.
+          A voice-first, multilingual app that gives shift workers proof of their hours, a payslip they can hear, and a
+          safe way to report danger — and gives employers an early warning before people get hurt or quit.
         </p>
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <Stat value="4" label="languages, read aloud" />
@@ -98,7 +102,8 @@ export const SLIDES: Slide[] = [
           A shaking scaffold or exposed wire is ignored until someone is injured.
         </Card>
         <Card icon={<ClipboardList className="size-5" />} title="Lost career history">
-          No record of skills, so every new job starts from zero. Employers can&apos;t see who is overworked or about to quit.
+          No record of skills, so every new job starts from zero. Employers can&apos;t see who is overworked or about to
+          quit.
         </Card>
       </div>
     ),
@@ -145,7 +150,8 @@ export const SLIDES: Slide[] = [
         />
         <div className="grid gap-4 md:grid-cols-3">
           <Card icon={<Lightbulb className="size-5" />} title="Insight from winners">
-            Top projects were judged on code quality, security, efficiency, testing, accessibility and alignment — not just features.
+            Top projects were judged on code quality, security, efficiency, testing, accessibility and alignment — not
+            just features.
           </Card>
           <Card icon={<Cpu className="size-5" />} title="The core idea">
             Let the AI <em>understand</em> messy speech; let tested code <em>compute</em> every rupee and hour.
@@ -228,7 +234,9 @@ export const SLIDES: Slide[] = [
         <div className="grid gap-3 md:grid-cols-3">
           <Node tone="accent">
             core/ — pure TypeScript
-            <span className="block text-xs font-normal">IST time · 2× overtime · payslip · fatigue · quit risk · QR · k-anonymity</span>
+            <span className="block text-xs font-normal">
+              IST time · 2× overtime · payslip · fatigue · quit risk · QR · k-anonymity
+            </span>
           </Node>
           <Node>
             ai/ — Gemini 3.5 Flash-Lite
@@ -240,7 +248,8 @@ export const SLIDES: Slide[] = [
           </Node>
         </div>
         <p className="text-ink-2">
-          Gemini never produces a number. If it is down, a keyword classifier and template text take over — the demo cannot break.
+          Gemini never produces a number. If it is down, a keyword classifier and template text take over — the demo
+          cannot break.
         </p>
       </div>
     ),
@@ -279,7 +288,12 @@ export const SLIDES: Slide[] = [
     body: (
       <div className="grid items-start gap-6 md:grid-cols-[320px_1fr]">
         <div className="mx-auto w-[300px] rounded-[2.2rem] border-[10px] border-foreground bg-foreground shadow-xl">
-          <iframe src="/login" title="Worker app demo" className="h-[560px] w-full rounded-[1.5rem] bg-paper" loading="lazy" />
+          <iframe
+            src="/login"
+            title="Worker app demo"
+            className="h-[560px] w-full rounded-[1.5rem] bg-paper"
+            loading="lazy"
+          />
         </div>
         <div className="flex flex-col gap-4">
           <ol className="flex flex-col gap-3">
@@ -291,16 +305,28 @@ export const SLIDES: Slide[] = [
               "Log in as Priya in another tab → Hazards → Start work → Ramesh sees “In progress”.",
             ].map((step, i) => (
               <li key={step} className="flex gap-3">
-                <span className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-ink">{i + 1}</span>
+                <span className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-accent text-ink">
+                  {i + 1}
+                </span>
                 <span className="pt-1">{step}</span>
               </li>
             ))}
           </ol>
           <div className="flex flex-wrap gap-3">
-            <a href="/login" target="_blank" rel="noreferrer" className="rounded-tile border-2 border-ink bg-accent px-4 py-2 font-bold text-ink">
+            <a
+              href="/login"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-tile border-2 border-ink bg-accent px-4 py-2 font-bold text-ink"
+            >
               Open worker app ↗
             </a>
-            <a href="/login" target="_blank" rel="noreferrer" className="rounded-tile border-2 border-ink bg-surface px-4 py-2 font-bold">
+            <a
+              href="/login"
+              target="_blank"
+              rel="noreferrer"
+              className="rounded-tile border-2 border-ink bg-surface px-4 py-2 font-bold"
+            >
               Open manager dashboard ↗
             </a>
           </div>
@@ -315,17 +341,24 @@ export const SLIDES: Slide[] = [
     body: (
       <div className="grid gap-6 md:grid-cols-2">
         <ul className="flex flex-col gap-2">
-          <Prompt>Check GitHub, LinkedIn and the internet for the best past Prompt Wars projects and what they did; read my docs to learn what we must do to win.</Prompt>
-          <Prompt>Make proper build docs on a Next.js architecture — research the UI, research the architecture, make a build plan, put it in the docs folder, and verify everything.</Prompt>
+          <Prompt>
+            Check GitHub, LinkedIn and the internet for the best past Prompt Wars projects and what they did; read my
+            docs to learn what we must do to win.
+          </Prompt>
+          <Prompt>
+            Make proper build docs on a Next.js architecture — research the UI, research the architecture, make a build
+            plan, put it in the docs folder, and verify everything.
+          </Prompt>
           <Prompt>Use the animations folder I added to make the app look great.</Prompt>
         </ul>
         <div className="flex flex-col gap-3">
           <Card icon={<FileText className="size-5" />} title="What came out">
-            Six planning docs: past-winner research, product spec, UI/UX research for low-literacy users, architecture, phased build plan, and a verification log
-            with every library version checked against the registry.
+            Six planning docs: past-winner research, product spec, UI/UX research for low-literacy users, architecture,
+            phased build plan, and a verification log with every library version checked against the registry.
           </Card>
           <Card icon={<Gauge className="size-5" />} title="Key decision">
-            Of the animation library, only the lightweight canvas “Waves” made it in — the WebGL effects were too heavy for a ₹6,000 phone.
+            Of the animation library, only the lightweight canvas “Waves” made it in — the WebGL effects were too heavy
+            for a ₹6,000 phone.
           </Card>
         </div>
       </div>
@@ -339,14 +372,21 @@ export const SLIDES: Slide[] = [
       <div className="grid gap-6 md:grid-cols-2">
         <ul className="flex flex-col gap-2">
           <Prompt>Delegate the whole build to Antigravity, phase by phase.</Prompt>
-          <Prompt>I don&apos;t like the UI theme — make it distinctive and human-designed, not an AI template; keep it accessible and fast.</Prompt>
+          <Prompt>
+            I don&apos;t like the UI theme — make it distinctive and human-designed, not an AI template; keep it
+            accessible and fast.
+          </Prompt>
           <Prompt>Switch to MongoDB and deploy; follow the submission guide and push to GitHub.</Prompt>
           <Prompt>Button clicks feel delayed — add hover effects and fix the click issue on every page.</Prompt>
-          <Prompt>There is no user flow or architecture diagram — show who our users are, why we stand out, and build the pitch.</Prompt>
+          <Prompt>
+            There is no user flow or architecture diagram — show who our users are, why we stand out, and build the
+            pitch.
+          </Prompt>
         </ul>
         <div className="flex flex-col gap-3">
           <Card icon={<Sparkles className="size-5" />} title="What came out">
-            The “worksite ledger” design system, MongoDB behind one data interface, Cloud Run deployment per the guide, a 100× faster database path, and this deck.
+            The “worksite ledger” design system, MongoDB behind one data interface, Cloud Run deployment per the guide,
+            a 100× faster database path, and this deck.
           </Card>
         </div>
       </div>
@@ -392,11 +432,12 @@ You are working in D:/promptwars/fairshift …
           </pre>
           <div className="flex flex-col gap-3">
             <Card icon={<Bot className="size-5" />} title="Why briefs, not chats">
-              An agent starts cold. A brief fixes the decisions up front, lists exactly what to deliver, says what is <em>not</em> its job, and defines “done” as
-              passing checks.
+              An agent starts cold. A brief fixes the decisions up front, lists exactly what to deliver, says what is{" "}
+              <em>not</em> its job, and defines “done” as passing checks.
             </Card>
             <Card icon={<BadgeCheck className="size-5" />} title="Trust, but verify">
-              Agent output was never committed on faith: every phase had to pass lint, types, unit and end-to-end tests first.
+              Agent output was never committed on faith: every phase had to pass lint, types, unit and end-to-end tests
+              first.
             </Card>
           </div>
         </div>
@@ -418,9 +459,18 @@ You are working in D:/promptwars/fairshift …
         <tbody>
           {[
             ["Study past winners", "Treat security, tests and accessibility as features — they are scored."],
-            ["Follow the submission guide", "Google Cloud Run + Docker + Secret Manager; one branch, public .git repo."],
-            ["UI looks AI-generated", "Original paper / ink / marigold system; every colour pair computed for WCAG AA."],
-            ["Clicks feel slow", "Measured 200 ms per DB query → moved servers to Mumbai (2 ms), added skeletons and spinners."],
+            [
+              "Follow the submission guide",
+              "Google Cloud Run + Docker + Secret Manager; one branch, public .git repo.",
+            ],
+            [
+              "UI looks AI-generated",
+              "Original paper / ink / marigold system; every colour pair computed for WCAG AA.",
+            ],
+            [
+              "Clicks feel slow",
+              "Measured 200 ms per DB query → moved servers to Mumbai (2 ms), added skeletons and spinners.",
+            ],
             ["Use the animations folder", "Kept one light canvas effect; skipped WebGL for low-end phones."],
             ["Switch to MongoDB", "One data interface, so storage changed without touching a single page."],
           ].map(([prompt, decision]) => (
@@ -471,7 +521,8 @@ You are working in D:/promptwars/fairshift …
     body: (
       <div className="grid gap-4 md:grid-cols-3">
         <Card icon={<ShieldCheck className="size-5" />} title="Caught in review">
-          A helper exported from a server-action file would have become a public endpoint leaking QR secrets. Moved to server-only code.
+          A helper exported from a server-action file would have become a public endpoint leaking QR secrets. Moved to
+          server-only code.
         </Card>
         <Card icon={<Bot className="size-5" />} title="Prompt injection">
           Speech and text are fenced as untrusted; output must match a strict schema; code decides final severity.
@@ -498,8 +549,14 @@ You are working in D:/promptwars/fairshift …
     body: (
       <div className="grid gap-3">
         {[
-          ["Real-world impact", "Unpaid overtime visible; hazards reach managers in seconds and updates return to the worker."],
-          ["SDG 8", "8.5 fair pay (2× overtime, readable payslips) · 8.8 safe workplaces (hazards, anonymous voice, fatigue rules)."],
+          [
+            "Real-world impact",
+            "Unpaid overtime visible; hazards reach managers in seconds and updates return to the worker.",
+          ],
+          [
+            "SDG 8",
+            "8.5 fair pay (2× overtime, readable payslips) · 8.8 safe workplaces (hazards, anonymous voice, fatigue rules).",
+          ],
           ["Inclusivity", "4 languages, voice in and out, offline, big targets, axe 0 violations."],
           ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 141 tests, green CI."],
           ["Feasibility", "Construction and hospital from one codebase; Cloud Run autoscaling; MongoDB."],

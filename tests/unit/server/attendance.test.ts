@@ -34,7 +34,11 @@ describe("attendance service", () => {
   it("checks in with a valid site token, then checks out", async () => {
     const result = await checkIn(getRepos(), input());
     expect(result).toMatchObject({ ok: true, status: "checked_in" });
-    const out = await checkOut(getRepos(), { workerId: "w1001", clientOpId: uuid(2), now: new Date(NOW.getTime() + 8 * 3_600_000) });
+    const out = await checkOut(getRepos(), {
+      workerId: "w1001",
+      clientOpId: uuid(2),
+      now: new Date(NOW.getTime() + 8 * 3_600_000),
+    });
     expect(out).toMatchObject({ ok: true, status: "checked_out" });
   });
 
@@ -64,8 +68,14 @@ describe("attendance service", () => {
   });
 
   it("rejects forged, unknown and expired tokens", async () => {
-    expect(await checkIn(getRepos(), input({ token: signQRToken("site1", NOW, "wrong") }))).toEqual({ ok: false, error: "invalid_qr" });
-    expect(await checkIn(getRepos(), input({ token: "garbage-token-value" }))).toEqual({ ok: false, error: "invalid_qr" });
+    expect(await checkIn(getRepos(), input({ token: signQRToken("site1", NOW, "wrong") }))).toEqual({
+      ok: false,
+      error: "invalid_qr",
+    });
+    expect(await checkIn(getRepos(), input({ token: "garbage-token-value" }))).toEqual({
+      ok: false,
+      error: "invalid_qr",
+    });
     const old = signQRToken("site1", new Date(NOW.getTime() - 10 * 60_000), SECRET);
     expect(await checkIn(getRepos(), input({ token: old }))).toEqual({ ok: false, error: "expired_qr" });
   });
@@ -79,9 +89,17 @@ describe("attendance service", () => {
   });
 
   it("refuses to check out when not checked in, and clamps offline check-out times", async () => {
-    expect(await checkOut(getRepos(), { workerId: "w1001", clientOpId: uuid(5), now: NOW })).toEqual({ ok: false, error: "not_in" });
+    expect(await checkOut(getRepos(), { workerId: "w1001", clientOpId: uuid(5), now: NOW })).toEqual({
+      ok: false,
+      error: "not_in",
+    });
     await checkIn(getRepos(), input());
-    const out = await checkOut(getRepos(), { workerId: "w1001", clientOpId: uuid(6), now: new Date(NOW.getTime() + 3_600_000), at: new Date(NOW.getTime() - 3_600_000) });
+    const out = await checkOut(getRepos(), {
+      workerId: "w1001",
+      clientOpId: uuid(6),
+      now: new Date(NOW.getTime() + 3_600_000),
+      at: new Date(NOW.getTime() - 3_600_000),
+    });
     expect(out.ok && out.shift.outAt).toEqual(NOW); // never before check-in
   });
 });

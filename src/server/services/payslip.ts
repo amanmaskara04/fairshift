@@ -20,7 +20,12 @@ export async function buildPayslip(repos: Repos, workerId: string, month: string
   if (!worker || !org) return null;
 
   const { start, end } = monthRange(month);
-  return payslipFrom(worker, org, month, await repos.shifts.getByWorkerInRange(workerId, start, new Date(end.getTime() - 1)));
+  return payslipFrom(
+    worker,
+    org,
+    month,
+    await repos.shifts.getByWorkerInRange(workerId, start, new Date(end.getTime() - 1)),
+  );
 }
 
 /** The same payslip from already-loaded data, so payroll can build every row from one batch of queries. */

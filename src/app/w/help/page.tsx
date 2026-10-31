@@ -22,12 +22,17 @@ export default async function HelpPage() {
       </PageHeader>
 
       {/* One tap, no typing: in danger nobody should have to read further than this. */}
-      <a href={`tel:${emergency.dial}`} className="press flex items-center gap-4 rounded-card bg-danger p-5 text-white shadow-[var(--shadow-lift)]">
+      <a
+        href={`tel:${emergency.dial}`}
+        className="press flex items-center gap-4 rounded-card bg-danger p-5 text-white shadow-[var(--shadow-lift)]"
+      >
         <span className="flex size-14 shrink-0 items-center justify-center rounded-2xl bg-white/20">
           <Siren aria-hidden="true" className="size-8" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="font-display block text-2xl leading-tight font-extrabold">{t("callEmergency", { number: emergency.number })}</span>
+          <span className="font-display block text-2xl leading-tight font-extrabold">
+            {t("callEmergency", { number: emergency.number })}
+          </span>
           <span className="block text-white/90">{t("emergencyHint")}</span>
         </span>
       </a>
@@ -43,7 +48,12 @@ export default async function HelpPage() {
             {HELPLINES.filter((line) => line.kind === group).map((line) => (
               <li key={line.id}>
                 <a href={`tel:${line.dial}`} className="tile flex min-h-16 items-center gap-3 p-3">
-                  <span className={cn("flex size-11 shrink-0 items-center justify-center rounded-xl", group === "emergency" ? "bg-danger-soft text-danger" : "bg-primary-soft text-primary-strong")}>
+                  <span
+                    className={cn(
+                      "flex size-11 shrink-0 items-center justify-center rounded-xl",
+                      group === "emergency" ? "bg-danger-soft text-danger" : "bg-primary-soft text-primary-strong",
+                    )}
+                  >
                     <Phone aria-hidden="true" className="size-5" />
                   </span>
                   <span className="min-w-0 flex-1">
@@ -52,7 +62,14 @@ export default async function HelpPage() {
                       {t(`lines.${line.id}.what`)} · {line.allDay ? t("allDay") : t("officeHours")}
                     </span>
                   </span>
-                  <span className={cn(buttonVariants({ variant: group === "emergency" ? "danger" : "secondary", size: "sm" }), "figure pointer-events-none")}>{line.number}</span>
+                  <span
+                    className={cn(
+                      buttonVariants({ variant: group === "emergency" ? "danger" : "secondary", size: "sm" }),
+                      "figure pointer-events-none",
+                    )}
+                  >
+                    {line.number}
+                  </span>
                 </a>
               </li>
             ))}

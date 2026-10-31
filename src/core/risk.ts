@@ -4,7 +4,7 @@
 // site shares (open hazards, team mood) are scored separately as site context, so they
 // can't inflate every worker's score by the same amount.
 
-import { QuitRiskResult } from './types';
+import { QuitRiskResult } from "./types";
 
 export const INDIVIDUAL_WEIGHTS = {
   overtime: 40,
@@ -38,7 +38,7 @@ export interface SiteSignals {
   unresolvedHazards: number;
 }
 
-function total(reasons: QuitRiskResult['reasons']): number {
+function total(reasons: QuitRiskResult["reasons"]): number {
   const score = reasons.reduce((sum, r) => sum + r.value * r.weight, 0);
   return Math.round(Math.min(100, Math.max(0, score)));
 }
@@ -56,21 +56,21 @@ export function computeQuitRisk(signals: IndividualSignals): QuitRiskResult {
   let overtime = Math.min(signals.overtimeMinThisWeek / OVERTIME_REF_MIN, 1);
   if (rising) overtime = Math.min(overtime * RISING_TREND_BOOST, 1);
 
-  const reasons: QuitRiskResult['reasons'] = [
+  const reasons: QuitRiskResult["reasons"] = [
     {
-      factor: 'overtime',
+      factor: "overtime",
       weight: INDIVIDUAL_WEIGHTS.overtime,
       value: round2(overtime),
-      detail: `OT this week: ${signals.overtimeMinThisWeek}min, last week: ${signals.overtimeMinLastWeek}min${rising ? ' (rising trend)' : ''}`,
+      detail: `OT this week: ${signals.overtimeMinThisWeek}min, last week: ${signals.overtimeMinLastWeek}min${rising ? " (rising trend)" : ""}`,
     },
     {
-      factor: 'missedDays',
+      factor: "missedDays",
       weight: INDIVIDUAL_WEIGHTS.missedDays,
       value: round2(Math.min(signals.missedCheckIns / MISSED_DAYS_REF, 1)),
       detail: `${signals.missedCheckIns} missed working days (reference: ${MISSED_DAYS_REF})`,
     },
     {
-      factor: 'payDisputes',
+      factor: "payDisputes",
       weight: INDIVIDUAL_WEIGHTS.payDisputes,
       value: round2(Math.min(signals.payDisputes / PAY_DISPUTES_REF, 1)),
       detail: `${signals.payDisputes} open pay disputes (reference: ${PAY_DISPUTES_REF})`,
@@ -86,15 +86,15 @@ export function computeQuitRisk(signals: IndividualSignals): QuitRiskResult {
  */
 export function computeSiteRisk(signals: SiteSignals): QuitRiskResult {
   const mood = Math.max(1, Math.min(3, signals.teamMoodAvg));
-  const reasons: QuitRiskResult['reasons'] = [
+  const reasons: QuitRiskResult["reasons"] = [
     {
-      factor: 'mood',
+      factor: "mood",
       weight: SITE_WEIGHTS.mood,
       value: round2((3 - mood) / 2),
       detail: `Team mood avg: ${signals.teamMoodAvg}/3`,
     },
     {
-      factor: 'hazards',
+      factor: "hazards",
       weight: SITE_WEIGHTS.hazards,
       value: round2(Math.min(signals.unresolvedHazards / OPEN_HAZARDS_REF, 1)),
       detail: `${signals.unresolvedHazards} unresolved hazards (reference: ${OPEN_HAZARDS_REF})`,

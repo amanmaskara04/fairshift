@@ -47,14 +47,19 @@ export function ExplainPay({ month, sentences }: { month: string; sentences: str
       <ol className="flex flex-col gap-2">
         {lines.map((line, i) => (
           <li key={line} className="flex gap-3">
-            <span aria-hidden="true" className="figure mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-bold">
+            <span
+              aria-hidden="true"
+              className="figure mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm font-bold"
+            >
               {i + 1}
             </span>
             <span>{line}</span>
           </li>
         ))}
       </ol>
-      {aiResult === "unavailable" && <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm text-ink-2">{t("aiUnavailable")}</p>}
+      {aiResult === "unavailable" && (
+        <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm text-ink-2">{t("aiUnavailable")}</p>
+      )}
       {aiResult === "ok" && <p className="text-sm text-ink-2">{t("aiReworded")}</p>}
       {aiResult === "none" && (
         <Button variant="outline" onClick={explainMore} disabled={pending}>

@@ -12,7 +12,10 @@ export default async function WorkerLayout({ children }: LayoutProps<"/w">) {
   return (
     <div className="worker flex min-h-dvh flex-col">
       {/* Persistent: named so page transitions slide the content, never the header. */}
-      <header style={{ viewTransitionName: "app-header" }} className="sticky top-0 z-30 border-b border-line/70 bg-paper/90 backdrop-blur">
+      <header
+        style={{ viewTransitionName: "app-header" }}
+        className="sticky top-0 z-30 border-b border-line/70 bg-paper/90 backdrop-blur"
+      >
         <div className="mx-auto flex max-w-md items-center gap-3 px-4 py-2 md:max-w-5xl md:px-8">
           <BackButton />
           <Link href="/w" className="rounded-xl">
@@ -26,7 +29,10 @@ export default async function WorkerLayout({ children }: LayoutProps<"/w">) {
       </header>
       <OfflineSync />
       {/* Bottom padding keeps the last item clear of the floating tab bar (and Android's gesture bar). */}
-      <main id="main" className="mx-auto w-full max-w-md flex-1 px-4 pt-5 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:max-w-5xl md:px-8 md:pt-10 md:pb-16">
+      <main
+        id="main"
+        className="mx-auto w-full max-w-md flex-1 px-4 pt-5 pb-[calc(7.5rem+env(safe-area-inset-bottom))] md:max-w-5xl md:px-8 md:pt-10 md:pb-16"
+      >
         {children}
       </main>
       <BottomNav />

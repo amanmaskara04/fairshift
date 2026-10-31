@@ -17,10 +17,16 @@ export default async function ReportDetail({ params, searchParams }: PageProps<"
   const [{ id }, query, locale] = await Promise.all([params, searchParams, getLocale()]);
   const repos = getRepos();
   const now = new Date();
-  const [hazards, tracked, org] = await Promise.all([sweepHazards(repos, session.orgId, now), trackedReports(), repos.orgs.getById(session.orgId)]);
+  const [hazards, tracked, org] = await Promise.all([
+    sweepHazards(repos, session.orgId, now),
+    trackedReports(),
+    repos.orgs.getById(session.orgId),
+  ]);
   const hazard = hazards.find((h) => h.id === id);
   // A private reference also follows a report that a manager merged into this one.
-  const trackedRef = tracked.find((r) => r.hazardId === id || hazards.find((h) => h.id === r.hazardId)?.mergedInto === id)?.ref;
+  const trackedRef = tracked.find(
+    (r) => r.hazardId === id || hazards.find((h) => h.id === r.hazardId)?.mergedInto === id,
+  )?.ref;
   // Only the reporter (or the phone holding the private reference) may follow a report.
   if (!hazard || !org || (!isReporter(hazard, session.uid) && !trackedRef)) notFound();
   if (hazard.mergedInto) redirect(`/w/report/${hazard.mergedInto}`);
@@ -29,14 +35,19 @@ export default async function ReportDetail({ params, searchParams }: PageProps<"
   const label = t(`categories.${hazard.category}`);
   const statusText = t(`status.${hazard.status}`);
   const anonymous = !isReporter(hazard, session.uid);
-  const transcript = hazard.reports.find((r) => r.reporterId === session.uid)?.transcript ?? hazard.reports[0]?.transcript;
+  const transcript =
+    hazard.reports.find((r) => r.reporterId === session.uid)?.transcript ?? hazard.reports[0]?.transcript;
   const canConfirm = hazard.status === "fixed" && hazard.confirmation === "pending";
   const isNew = query.new === "1" || query.new === "merged";
 
   return (
     <div className="flex flex-col gap-4 md:mx-auto md:w-full md:max-w-3xl">
       {isNew && (
-        <div role="status" aria-live="polite" className="card rise-in flex flex-col items-center gap-2 px-5 py-8 text-center">
+        <div
+          role="status"
+          aria-live="polite"
+          className="card rise-in flex flex-col items-center gap-2 px-5 py-8 text-center"
+        >
           <SuccessCheck className="size-20" />
           <p className="font-display text-3xl font-extrabold">{t("sent")}</p>
           <p>{query.new === "merged" ? t("sentMerged") : t("sentHint")}</p>

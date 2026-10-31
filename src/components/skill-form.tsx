@@ -35,7 +35,12 @@ export function AddSkill({ workers }: { workers?: { id: string; label: string }[
 
   return (
     <>
-      <Button variant={admin ? "secondary" : "primary"} size={admin ? "md" : "lg"} onClick={() => setOpen(true)} className={admin ? undefined : "w-full"}>
+      <Button
+        variant={admin ? "secondary" : "primary"}
+        size={admin ? "md" : "lg"}
+        onClick={() => setOpen(true)}
+        className={admin ? undefined : "w-full"}
+      >
         <Plus aria-hidden="true" className="size-5" />
         {admin ? t("adminButton") : t("button")}
       </Button>
@@ -45,7 +50,12 @@ export function AddSkill({ workers }: { workers?: { id: string; label: string }[
           {workers && (
             <div>
               <Label htmlFor="skill-worker">{t("worker")}</Label>
-              <select id="skill-worker" name="workerId" required className="mt-1 min-h-12 w-full rounded-2xl border border-line bg-surface px-3">
+              <select
+                id="skill-worker"
+                name="workerId"
+                required
+                className="mt-1 min-h-12 w-full rounded-2xl border border-line bg-surface px-3"
+              >
                 {workers.map((w) => (
                   <option key={w.id} value={w.id}>
                     {w.label}
@@ -56,11 +66,27 @@ export function AddSkill({ workers }: { workers?: { id: string; label: string }[
           )}
           <div>
             <Label htmlFor="skill-title">{t("name")}</Label>
-            <Input id="skill-title" name="title" required minLength={2} maxLength={80} placeholder={t("namePlaceholder")} className="mt-1" />
+            <Input
+              id="skill-title"
+              name="title"
+              required
+              minLength={2}
+              maxLength={80}
+              placeholder={t("namePlaceholder")}
+              className="mt-1"
+            />
           </div>
           <div>
             <Label htmlFor="skill-issuer">{t("issuer")}</Label>
-            <Input id="skill-issuer" name="issuer" required minLength={2} maxLength={80} placeholder={t("issuerPlaceholder")} className="mt-1" />
+            <Input
+              id="skill-issuer"
+              name="issuer"
+              required
+              minLength={2}
+              maxLength={80}
+              placeholder={t("issuerPlaceholder")}
+              className="mt-1"
+            />
           </div>
           <div className="grid gap-3 sm:grid-cols-2">
             <div>
@@ -69,7 +95,13 @@ export function AddSkill({ workers }: { workers?: { id: string; label: string }[
             </div>
             <div>
               <Label htmlFor="skill-evidence">{t("evidence")}</Label>
-              <Input id="skill-evidence" name="evidence" maxLength={120} placeholder={t("evidencePlaceholder")} className="mt-1" />
+              <Input
+                id="skill-evidence"
+                name="evidence"
+                maxLength={120}
+                placeholder={t("evidencePlaceholder")}
+                className="mt-1"
+              />
             </div>
           </div>
           <p aria-live="polite" className="text-sm font-semibold text-danger">

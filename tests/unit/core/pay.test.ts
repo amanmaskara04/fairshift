@@ -21,7 +21,13 @@ describe("deriveHourlyRate (paise)", () => {
 
 describe("computePayslip", () => {
   it("pays a daily-wage worker exactly one wage per 8h day", () => {
-    const slip = computePayslip("w1", "2026-10", dayShifts("2026-10-05", 5, 8), { basis: "daily", rate: 80_000 }, RULES);
+    const slip = computePayslip(
+      "w1",
+      "2026-10",
+      dayShifts("2026-10-05", 5, 8),
+      { basis: "daily", rate: 80_000 },
+      RULES,
+    );
     expect(slip.gross).toBe(400_000);
     expect(slip.net).toBe(400_000);
     expect(slip.lines).toHaveLength(1);
@@ -30,16 +36,27 @@ describe("computePayslip", () => {
 
   it("pays overtime at twice the hourly rate", () => {
     // 2 × 10h days: 16h regular + 4h OT. ₹100/h → ₹1,600 + 4 × ₹200 = ₹2,400
-    const slip = computePayslip("w1", "2026-10", dayShifts("2026-10-05", 2, 10), { basis: "daily", rate: 80_000 }, RULES);
+    const slip = computePayslip(
+      "w1",
+      "2026-10",
+      dayShifts("2026-10-05", 2, 10),
+      { basis: "daily", rate: 80_000 },
+      RULES,
+    );
     const ot = slip.lines.find((l) => l.kind === "overtime");
     expect(ot).toMatchObject({ minutes: 240, rate: 20_000, amount: 80_000 });
     expect(slip.gross).toBe(240_000);
   });
 
   it("subtracts deductions from gross", () => {
-    const slip = computePayslip("w1", "2026-10", dayShifts("2026-10-05", 1, 8), { basis: "daily", rate: 80_000 }, RULES, [
-      { label: "PF", amount: 9_600 },
-    ]);
+    const slip = computePayslip(
+      "w1",
+      "2026-10",
+      dayShifts("2026-10-05", 1, 8),
+      { basis: "daily", rate: 80_000 },
+      RULES,
+      [{ label: "PF", amount: 9_600 }],
+    );
     expect(slip.deductions).toEqual([{ kind: "deduction", label: "PF", amount: 9_600 }]);
     expect(slip.net).toBe(70_400);
   });

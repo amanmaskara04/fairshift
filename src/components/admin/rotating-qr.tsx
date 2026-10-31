@@ -29,7 +29,7 @@ export function RotatingQr({ siteId, initialToken }: { siteId: string; initialTo
     <figure className="flex flex-col items-center gap-3">
       <div className="viewfinder rounded-[28px] p-3" data-testid="kiosk-qr">
         <div className="rounded-3xl bg-white p-4">
-        <QRCodeSVG value={token} size={300} level="M" title={t("qrLabel")} className="h-auto max-w-full" />
+          <QRCodeSVG value={token} size={300} level="M" title={t("qrLabel")} className="h-auto max-w-full" />
         </div>
       </div>
       <figcaption className="figure flex items-center gap-2 font-bold" aria-live="off">

@@ -22,7 +22,11 @@ export async function askHelpAction(input: unknown): Promise<HelpResult | { erro
   if (!parsed.success) return { error: "invalid" };
   if (!limiter.check(session.uid)) return { error: "rate_limited" };
   const repos = getRepos();
-  const [workers, admins, locale] = await Promise.all([repos.workers.getByOrg(session.orgId), repos.admins.getAll(), getLocale()]);
+  const [workers, admins, locale] = await Promise.all([
+    repos.workers.getByOrg(session.orgId),
+    repos.admins.getAll(),
+    getLocale(),
+  ]);
   const names = [...workers.map((w) => w.name), ...admins.filter((a) => a.orgId === session.orgId).map((a) => a.name)];
   return adviseHelp(redactPII(parsed.data, names), locale);
 }

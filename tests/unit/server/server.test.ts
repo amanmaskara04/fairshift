@@ -7,7 +7,13 @@ import { formatDuration, formatINR } from "@/lib/format";
 vi.mock("next/headers", () => ({ cookies: vi.fn() }));
 
 const future = () => Math.floor(Date.now() / 1000) + 3600;
-const payload = (exp = future()): SessionPayload => ({ uid: "w1001", role: "worker", orgId: "org1", siteId: "site1", exp });
+const payload = (exp = future()): SessionPayload => ({
+  uid: "w1001",
+  role: "worker",
+  orgId: "org1",
+  siteId: "site1",
+  exp,
+});
 
 describe("session tokens", () => {
   it("round-trips a signed payload", () => {

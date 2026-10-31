@@ -33,7 +33,12 @@ export async function requestPayReviewAction(month: unknown): Promise<{ ok: bool
   const parsed = MonthKey.safeParse(month);
   if (!parsed.success) return { ok: false, error: "invalid" };
   if (!disputeLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
-  const result = await requestPayReview(getRepos(), { workerId: session.uid, orgId: session.orgId, month: parsed.data, now: new Date() });
+  const result = await requestPayReview(getRepos(), {
+    workerId: session.uid,
+    orgId: session.orgId,
+    month: parsed.data,
+    now: new Date(),
+  });
   revalidatePath("/w/pay");
   revalidatePath("/a/payroll");
   revalidatePath("/a");

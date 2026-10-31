@@ -9,7 +9,15 @@ import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/input";
 
 /** Management's answer to a co-signed issue: shown to every worker at the site. */
-export function IssueResponse({ issueId, status, response }: { issueId: string; status: IssueStatus; response?: string }) {
+export function IssueResponse({
+  issueId,
+  status,
+  response,
+}: {
+  issueId: string;
+  status: IssueStatus;
+  response?: string;
+}) {
   const t = useTranslations("admin.feedbackPage.issues");
   const router = useRouter();
   const [text, setText] = useState(response ?? "");

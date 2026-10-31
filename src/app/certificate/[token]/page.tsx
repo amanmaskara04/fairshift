@@ -53,7 +53,14 @@ export default async function CertificatePage({ params }: PageProps<"/certificat
           </span>
         </header>
         <p className="text-lg leading-relaxed">
-          {t("body", { name: worker.name, role: worker.jobTitle, org: org.name, days: request.daysWorked, from: formatDay(request.from, locale), to: formatDay(request.to, locale) })}
+          {t("body", {
+            name: worker.name,
+            role: worker.jobTitle,
+            org: org.name,
+            days: request.daysWorked,
+            from: formatDay(request.from, locale),
+            to: formatDay(request.to, locale),
+          })}
         </p>
         <dl className="grid gap-3 sm:grid-cols-2">
           {[

@@ -86,7 +86,8 @@ export async function buildOrgSnapshot(repos: Repos, orgId: string, now: Date): 
     repos.sites.getByOrg(orgId),
   ]);
   const activeDisputes = new Map<string, number>();
-  for (const d of disputes.filter(isActiveDispute)) activeDisputes.set(d.workerId, (activeDisputes.get(d.workerId) ?? 0) + 1);
+  for (const d of disputes.filter(isActiveDispute))
+    activeDisputes.set(d.workerId, (activeDisputes.get(d.workerId) ?? 0) + 1);
 
   const thisWeek = getISTWeekBucket(now);
   const lastWeek = getISTWeekBucket(new Date(now.getTime() - 7 * DAY_MS));
@@ -163,7 +164,10 @@ export async function buildOrgSnapshot(repos: Repos, orgId: string, now: Date): 
     workers: health.sort((a, b) => b.risk.score - a.risk.score),
     sites: sites.map((site) => ({
       siteId: site.id,
-      risk: computeSiteRisk({ teamMoodAvg: moodBySite.get(site.id) ?? 2, unresolvedHazards: openHazardsBySite.get(site.id) ?? 0 }),
+      risk: computeSiteRisk({
+        teamMoodAvg: moodBySite.get(site.id) ?? 2,
+        unresolvedHazards: openHazardsBySite.get(site.id) ?? 0,
+      }),
     })),
     hazards: hazards.filter((h) => !h.mergedInto),
     feedback,

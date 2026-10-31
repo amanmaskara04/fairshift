@@ -73,11 +73,14 @@ async function ensureSeeded(database: Db): Promise<void> {
   const now = new Date();
   if (!(await claimReseed(database, now))) return;
   const seed = getSeedData(now);
-  await Promise.all([...SEEDED_COLLECTIONS, ...GUARD_COLLECTIONS].map((name) => database.collection(name).deleteMany({})));
+  await Promise.all(
+    [...SEEDED_COLLECTIONS, ...GUARD_COLLECTIONS].map((name) => database.collection(name).deleteMany({})),
+  );
   await Promise.all(
     SEEDED_COLLECTIONS.map(async (name) => {
       const items = seed[name] as { id: string }[];
-      if (items.length) await database.collection(name).insertMany(items.map((item) => ({ _id: item.id, ...item }) as Document));
+      if (items.length)
+        await database.collection(name).insertMany(items.map((item) => ({ _id: item.id, ...item }) as Document));
     }),
   );
   await Promise.all([
@@ -130,7 +133,9 @@ async function update<T>(name: string, id: string, data: Partial<T>): Promise<vo
     if (value === undefined) unset[key] = "";
     else set[key] = value;
   }
-  await (await col(name)).updateOne({ _id: id } as Document, {
+  await (
+    await col(name)
+  ).updateOne({ _id: id } as Document, {
     ...(Object.keys(set).length ? { $set: set } : {}),
     ...(Object.keys(unset).length ? { $unset: unset } : {}),
   });
@@ -149,7 +154,9 @@ function guards(name: (typeof GUARD_COLLECTIONS)[number]) {
   return {
     has: async (key: string) => (await (await col(name)).countDocuments({ _id: key } as Document, { limit: 1 })) > 0,
     add: async (key: string) => {
-      await (await col(name)).updateOne({ _id: key } as Document, { $setOnInsert: { at: new Date() } }, { upsert: true });
+      await (
+        await col(name)
+      ).updateOne({ _id: key } as Document, { $setOnInsert: { at: new Date() } }, { upsert: true });
     },
   };
 }
@@ -181,7 +188,8 @@ export function createMongoRepos(): Repos {
       // outAt: null matches both a stored null and a missing field.
       getOpenByWorkers: (workerIds) => find("shifts", { workerId: { $in: workerIds }, outAt: null }),
       getByWorkerInRange: (workerId, from, to) => find("shifts", { workerId, inAt: { $gte: from, $lte: to } }),
-      getByWorkersInRange: (workerIds, from, to) => find("shifts", { workerId: { $in: workerIds }, inAt: { $gte: from, $lte: to } }),
+      getByWorkersInRange: (workerIds, from, to) =>
+        find("shifts", { workerId: { $in: workerIds }, inAt: { $gte: from, $lte: to } }),
       getBySite: (siteId) => find("shifts", { siteId }),
     },
     hazards: { ...crud("hazards"), getAll: () => find("hazards"), getByOrg: (orgId) => find("hazards", { orgId }) },
@@ -209,7 +217,11 @@ export function createMongoRepos(): Repos {
       getByOrg: (orgId) => find("payDisputes", { orgId }),
       getByWorker: (workerId) => find("payDisputes", { workerId }),
     },
-    issues: { ...crud("issues"), getBySite: (siteId) => find("issues", { siteId }), getByOrg: (orgId) => find("issues", { orgId }) },
+    issues: {
+      ...crud("issues"),
+      getBySite: (siteId) => find("issues", { siteId }),
+      getByOrg: (orgId) => find("issues", { orgId }),
+    },
     issueSigners: guards("issueSigners"),
     certificates: {
       ...crud("certificates"),
@@ -221,14 +233,22 @@ export function createMongoRepos(): Repos {
         await (await col("aiLog")).insertOne(entry as unknown as Document);
       },
       recent: async (limit) => {
-        const docs = await (await col("aiLog")).find({}, { projection: { _id: 0 } }).sort({ at: -1 }).limit(Math.min(limit, AI_LOG_LIMIT)).toArray();
+        const docs = await (
+          await col("aiLog")
+        )
+          .find({}, { projection: { _id: 0 } })
+          .sort({ at: -1 })
+          .limit(Math.min(limit, AI_LOG_LIMIT))
+          .toArray();
         return docs as unknown as AiLogEntry[];
       },
     },
     ttsCache: {
       get: async (key) => (await findOne<{ wav: string }>("ttsCache", { _id: key }))?.wav,
       set: async (key, wav) => {
-        await (await col("ttsCache")).updateOne({ _id: key } as Document, { $set: { wav, at: new Date() } }, { upsert: true });
+        await (
+          await col("ttsCache")
+        ).updateOne({ _id: key } as Document, { $set: { wav, at: new Date() } }, { upsert: true });
       },
     },
   };

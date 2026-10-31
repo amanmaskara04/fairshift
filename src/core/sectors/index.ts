@@ -1,8 +1,8 @@
-import { Sector, SectorProfile } from '../types';
-import { construction } from './construction';
-import { hospital } from './hospital';
-import { campus } from './campus';
-import { factory } from './factory';
+import { Sector, SectorProfile } from "../types";
+import { construction } from "./construction";
+import { hospital } from "./hospital";
+import { campus } from "./campus";
+import { factory } from "./factory";
 
 export const SECTOR_PROFILES: Record<Sector, SectorProfile> = {
   construction,

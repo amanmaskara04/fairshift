@@ -29,7 +29,15 @@ export function LogoMark({ className = "size-8", mono = false, animated = false 
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true" className={cn(className, animated && "logo-animated")}>
       {!mono && <rect width="24" height="24" rx={badgeRadius} fill="var(--primary)" />}
-      <circle cx={face.cx} cy={face.cy} r={face.r} fill="none" stroke={stroke} strokeWidth="1.6" opacity={mono ? 1 : 0.55} />
+      <circle
+        cx={face.cx}
+        cy={face.cy}
+        r={face.r}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="1.6"
+        opacity={mono ? 1 : 0.55}
+      />
       <g fill="none" stroke={stroke} strokeWidth="2.2" strokeLinecap="round">
         <path className="logo-hand logo-hand-short" d={`M${pivot.x} ${pivot.y} L${shortHand.x} ${shortHand.y}`} />
         <path className="logo-hand logo-hand-long" d={`M${pivot.x} ${pivot.y} L${longHand.x} ${longHand.y}`} />
@@ -45,7 +53,12 @@ export function LogoMark({ className = "size-8", mono = false, animated = false 
  */
 export function Wordmark({ className }: { className?: string }) {
   return (
-    <span className={cn("wordmark font-display inline-flex items-baseline leading-none tracking-[-0.035em] text-ink", className)}>
+    <span
+      className={cn(
+        "wordmark font-display inline-flex items-baseline leading-none tracking-[-0.035em] text-ink",
+        className,
+      )}
+    >
       <span className="font-extrabold">
         Fa<span className="wordmark-i">ı</span>r
       </span>

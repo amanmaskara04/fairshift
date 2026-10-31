@@ -1,6 +1,18 @@
 import Link from "next/link";
 import { getLocale, getTranslations } from "next-intl/server";
-import { Activity, BatteryLow, CheckCircle2, Clock, Cpu, FileText, Megaphone, Scale, Smile, Siren, TriangleAlert } from "lucide-react";
+import {
+  Activity,
+  BatteryLow,
+  CheckCircle2,
+  Clock,
+  Cpu,
+  FileText,
+  Megaphone,
+  Scale,
+  Smile,
+  Siren,
+  TriangleAlert,
+} from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildOrgSnapshot, shortDay } from "@/server/services/workforce";
@@ -26,7 +38,12 @@ const URGENT = new Set(["critical", "high"]);
 
 export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
   const session = await requireRole("admin");
-  const [t, tr, locale, params] = await Promise.all([getTranslations("admin"), getTranslations("report"), getLocale(), searchParams]);
+  const [t, tr, locale, params] = await Promise.all([
+    getTranslations("admin"),
+    getTranslations("report"),
+    getLocale(),
+    searchParams,
+  ]);
   const repos = getRepos();
   const now = new Date();
   const [snapshot, admin, disputes, issues, certificates, aiCalls] = await Promise.all([
@@ -44,14 +61,23 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
 
   const open = hazards.filter(isOpen);
   // Escalated first (highest level, then oldest), then other urgent ones.
-  const escalated = open.filter((h) => h.escalationLevel > 0).sort((a, b) => b.escalationLevel - a.escalationLevel || a.createdAt.getTime() - b.createdAt.getTime());
+  const escalated = open
+    .filter((h) => h.escalationLevel > 0)
+    .sort((a, b) => b.escalationLevel - a.escalationLevel || a.createdAt.getTime() - b.createdAt.getTime());
   const urgent = open.filter((h) => h.escalationLevel === 0 && URGENT.has(h.severity));
   const openDisputes = disputes.filter(isActiveDispute);
   const raisedIssues = issues.filter((i) => i.status === "escalated");
   const pendingCertificates = certificates.filter((c) => c.status === "requested");
   const tired = workers.filter((w) => w.fatigue.length > 0);
   const atRisk = workers.filter((w) => w.risk.score >= RISK_ATTENTION);
-  const attentionCount = escalated.length + urgent.length + openDisputes.length + raisedIssues.length + pendingCertificates.length + tired.length + atRisk.length;
+  const attentionCount =
+    escalated.length +
+    urgent.length +
+    openDisputes.length +
+    raisedIssues.length +
+    pendingCertificates.length +
+    tired.length +
+    atRisk.length;
 
   const onSite = workers.filter((w) => w.onSite).length;
   const overtimeMin = workers.reduce((sum, w) => sum + w.overtimeThisWeek, 0);
@@ -61,7 +87,13 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
 
   const kpis = [
     { label: t("overtimeThisWeek"), value: formatDuration(overtimeMin), detail: t("acrossTeam"), Icon: Clock },
-    { label: t("openHazards"), value: String(open.length), detail: t("escalatedCount", { count: escalated.length }), Icon: TriangleAlert, alert: escalated.length > 0 },
+    {
+      label: t("openHazards"),
+      value: String(open.length),
+      detail: t("escalatedCount", { count: escalated.length }),
+      Icon: TriangleAlert,
+      alert: escalated.length > 0,
+    },
     {
       label: t("feedbackMood"),
       value: snapshot.moodAverage === null ? "—" : `${snapshot.moodAverage.toFixed(1)} / 3`,
@@ -74,7 +106,13 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
   const rowClass = "flex flex-wrap items-center gap-3 rounded-2xl px-3 py-3 transition-colors hover:bg-surface-2";
 
   return (
-    <WelcomeMoment active={params.welcome === "1"} variant="admin" part={part} greeting={greeting} line={t("welcome.attention", { count: attentionCount })}>
+    <WelcomeMoment
+      active={params.welcome === "1"}
+      variant="admin"
+      part={part}
+      greeting={greeting}
+      line={t("welcome.attention", { count: attentionCount })}
+    >
       <div className="flex flex-col gap-6">
         <PageHeader eyebrow={todayLabel(locale)} title={t("overview")} />
 
@@ -86,11 +124,16 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                 {t("onSiteNow")}
               </span>
               <div>
-                <span className="figure font-display block text-6xl leading-none font-extrabold text-primary-strong">{onSite}</span>
+                <span className="figure font-display block text-6xl leading-none font-extrabold text-primary-strong">
+                  {onSite}
+                </span>
                 <span className="mt-2 block text-sm text-ink-2">{t("ofWorkers", { count: workers.length })}</span>
               </div>
               <div className="h-2 overflow-hidden rounded-full bg-white/80" aria-hidden="true">
-                <div className="meter-fill h-full rounded-full bg-primary" style={{ width: `${workers.length ? (onSite / workers.length) * 100 : 0}%` }} />
+                <div
+                  className="meter-fill h-full rounded-full bg-primary"
+                  style={{ width: `${workers.length ? (onSite / workers.length) * 100 : 0}%` }}
+                />
               </div>
             </div>
           </li>
@@ -99,7 +142,12 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
               <div className="card flex h-full flex-col justify-between gap-3 p-4">
                 <span className="flex items-start justify-between gap-2">
                   <span className="eyebrow">{label}</span>
-                  <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-xl", alert ? "bg-danger text-white" : "bg-surface-2 text-ink")}>
+                  <span
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-xl",
+                      alert ? "bg-danger text-white" : "bg-surface-2 text-ink",
+                    )}
+                  >
                     <Icon aria-hidden="true" className="size-4" />
                   </span>
                 </span>
@@ -114,7 +162,10 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
 
         <div className="grid gap-4 xl:grid-cols-[1.25fr_1fr]">
           <section aria-labelledby="attention" className="card flex flex-col gap-2 p-4 md:p-5">
-            <h2 id="attention" className="font-display flex items-center justify-between gap-2 px-1 text-xl font-extrabold">
+            <h2
+              id="attention"
+              className="font-display flex items-center justify-between gap-2 px-1 text-xl font-extrabold"
+            >
               {t("needsAttention")}
               <Badge tone={attentionCount ? "danger" : "success"}>{attentionCount}</Badge>
             </h2>
@@ -128,17 +179,26 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                 {[...escalated, ...urgent].map((h) => (
                   <li key={h.id}>
                     <Link href={`/a/hazards#${h.id}`} className={rowClass}>
-                      <span className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl", h.escalationLevel ? "bg-danger text-white" : "bg-danger-soft text-danger")}>
+                      <span
+                        className={cn(
+                          "flex size-10 shrink-0 items-center justify-center rounded-xl",
+                          h.escalationLevel ? "bg-danger text-white" : "bg-danger-soft text-danger",
+                        )}
+                      >
                         <HazardIcon category={h.category} className="size-5" />
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block font-bold">{tr(`categories.${h.category}`)}</span>
-                        <span className="block truncate text-sm text-ink-2">{h.reports[0]?.transcriptEn || h.reports[0]?.transcript}</span>
+                        <span className="block truncate text-sm text-ink-2">
+                          {h.reports[0]?.transcriptEn || h.reports[0]?.transcript}
+                        </span>
                         <span className="mt-1.5 flex flex-wrap gap-1.5">
                           {h.escalationLevel > 0 && (
                             <Badge tone="solidDanger">
                               <Siren aria-hidden="true" className="size-4" />
-                              {t("escalatedTo", { role: tr(`roles.${chain[Math.min(h.escalationLevel, chain.length) - 1]}`) })}
+                              {t("escalatedTo", {
+                                role: tr(`roles.${chain[Math.min(h.escalationLevel, chain.length) - 1]}`),
+                              })}
                             </Badge>
                           )}
                           <HazardAge hazard={h} now={now} />
@@ -154,7 +214,12 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-warning-ink">
                         <Scale aria-hidden="true" className="size-5" />
                       </span>
-                      <span className="min-w-0 flex-1 font-bold">{t("attention.dispute", { name: nameOf.get(d.workerId) ?? "", amount: formatRupees(d.shortfall) })}</span>
+                      <span className="min-w-0 flex-1 font-bold">
+                        {t("attention.dispute", {
+                          name: nameOf.get(d.workerId) ?? "",
+                          amount: formatRupees(d.shortfall),
+                        })}
+                      </span>
                       <Badge tone="warning">{t(`disputeStatus.${d.status}`)}</Badge>
                     </Link>
                   </li>
@@ -167,7 +232,9 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="block font-bold">{issue.text}</span>
-                        <span className="block text-sm text-ink-2">{t("attention.issue", { count: issue.signerCount })}</span>
+                        <span className="block text-sm text-ink-2">
+                          {t("attention.issue", { count: issue.signerCount })}
+                        </span>
                       </span>
                     </Link>
                   </li>
@@ -178,7 +245,9 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                       <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-success-soft text-success">
                         <FileText aria-hidden="true" className="size-5" />
                       </span>
-                      <span className="min-w-0 flex-1 font-bold">{t("attention.certificate", { name: nameOf.get(c.workerId) ?? "", days: c.daysWorked })}</span>
+                      <span className="min-w-0 flex-1 font-bold">
+                        {t("attention.certificate", { name: nameOf.get(c.workerId) ?? "", days: c.daysWorked })}
+                      </span>
                     </Link>
                   </li>
                 ))}
@@ -214,7 +283,12 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
               {t("ai.title")}
             </h2>
             <p className="text-sm text-ink-2">{t("ai.intro")}</p>
-            <p className={cn("w-fit rounded-full px-3 py-1 text-sm font-bold", hasGemini() ? "bg-success-soft text-success" : "bg-warning-soft text-warning-ink")}>
+            <p
+              className={cn(
+                "w-fit rounded-full px-3 py-1 text-sm font-bold",
+                hasGemini() ? "bg-success-soft text-success" : "bg-warning-soft text-warning-ink",
+              )}
+            >
               {hasGemini() ? t("ai.configured") : t("ai.missingKey")}
             </p>
             {aiCalls.length === 0 ? (
@@ -236,7 +310,15 @@ export default async function AdminOverview({ searchParams }: PageProps<"/a">) {
                         <td className="py-1.5">{t(`ai.features.${call.feature}`)}</td>
                         <td className="py-1.5 font-mono text-xs">{call.model}</td>
                         <td className="figure py-1.5">{call.latencyMs} ms</td>
-                        <td className="py-1.5">{call.error ? <span className="text-danger">{t("ai.failed")}</span> : call.fallbackUsed ? t("ai.fallback") : t("ai.ok")}</td>
+                        <td className="py-1.5">
+                          {call.error ? (
+                            <span className="text-danger">{t("ai.failed")}</span>
+                          ) : call.fallbackUsed ? (
+                            t("ai.fallback")
+                          ) : (
+                            t("ai.ok")
+                          )}
+                        </td>
                       </tr>
                     ))}
                   </tbody>

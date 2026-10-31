@@ -49,9 +49,18 @@ export function PassportShare() {
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 font-bold">{t("choose")}</legend>
         {SECTIONS.map((section) => (
-          <label key={section} className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-2xl bg-white/80 px-4">
+          <label
+            key={section}
+            className="flex min-h-12 cursor-pointer items-center justify-between gap-3 rounded-2xl bg-white/80 px-4"
+          >
             <span className="font-semibold">{t(`sections.${section}`)}</span>
-            <input type="checkbox" role="switch" checked={share[section]} onChange={() => toggle(section)} className="size-6 accent-primary" />
+            <input
+              type="checkbox"
+              role="switch"
+              checked={share[section]}
+              onChange={() => toggle(section)}
+              className="size-6 accent-primary"
+            />
           </label>
         ))}
       </fieldset>
@@ -62,9 +71,17 @@ export function PassportShare() {
             <QRCodeSVG value={link.url} size={196} title={t("qrLabel")} />
           </div>
           <p className="figure text-sm font-semibold">
-            {t("validity", { issued: formatDay(link.issuedAt.slice(0, 10), locale), until: formatDay(link.expiresAt.slice(0, 10), locale) })}
+            {t("validity", {
+              issued: formatDay(link.issuedAt.slice(0, 10), locale),
+              until: formatDay(link.expiresAt.slice(0, 10), locale),
+            })}
           </p>
-          <a href={link.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-primary underline underline-offset-4">
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm font-bold text-primary underline underline-offset-4"
+          >
             {t("openLink")}
           </a>
           <Button variant="outline" onClick={generate} disabled={pending || nothing}>

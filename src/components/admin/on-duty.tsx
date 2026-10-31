@@ -38,11 +38,18 @@ export function OnDuty({ variant }: { variant: "rail" | "strip" }) {
 
   const label = duty ? t("onDuty", { count: duty.onDuty, total: duty.total }) : null;
   // Until the first answer, an invisible placeholder holds the space so nothing shifts.
-  const text = <span aria-hidden={!label || undefined} className={cn("figure transition-opacity", !label && "opacity-0")}>{label ?? t("onDuty", { count: 0, total: 0 })}</span>;
+  const text = (
+    <span aria-hidden={!label || undefined} className={cn("figure transition-opacity", !label && "opacity-0")}>
+      {label ?? t("onDuty", { count: 0, total: 0 })}
+    </span>
+  );
 
   if (variant === "rail") {
     return (
-      <Link href="/a/people" className="flex items-center gap-2.5 rounded-2xl border border-line px-3 py-2.5 text-sm font-bold hover:bg-surface-2">
+      <Link
+        href="/a/people"
+        className="flex items-center gap-2.5 rounded-2xl border border-line px-3 py-2.5 text-sm font-bold hover:bg-surface-2"
+      >
         <span className="live-dot" aria-hidden="true" />
         {text}
       </Link>

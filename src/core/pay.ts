@@ -2,8 +2,8 @@
 // All amounts are integer paise (1 INR = 100 paise). Every division is
 // rounded with Math.round so no floating-point value reaches a payslip.
 
-import { ClosedShift, LabourRules, PayConfig, Payslip, PayslipLine } from './types';
-import { computeOvertime } from './overtime';
+import { ClosedShift, LabourRules, PayConfig, Payslip, PayslipLine } from "./types";
+import { computeOvertime } from "./overtime";
 
 /** Working days per month used to derive an hourly rate from a monthly salary. */
 export const WORKING_DAYS_PER_MONTH = 26;
@@ -16,18 +16,18 @@ export const WORKING_DAYS_PER_MONTH = 26;
  */
 export function deriveHourlyRate(pay: PayConfig, rules: LabourRules): number {
   switch (pay.basis) {
-    case 'hourly':
+    case "hourly":
       return pay.rate;
-    case 'daily':
+    case "daily":
       return Math.round(pay.rate / rules.dailyHrs);
-    case 'monthly':
+    case "monthly":
       return Math.round(pay.rate / (rules.dailyHrs * WORKING_DAYS_PER_MONTH));
   }
 }
 
 /** Full-time monthly wage in paise (26 standard days), used for wage-ceiling rules. */
 export function monthlyWage(pay: PayConfig, rules: LabourRules): number {
-  return pay.basis === 'monthly' ? pay.rate : deriveHourlyRate(pay, rules) * rules.dailyHrs * WORKING_DAYS_PER_MONTH;
+  return pay.basis === "monthly" ? pay.rate : deriveHourlyRate(pay, rules) * rules.dailyHrs * WORKING_DAYS_PER_MONTH;
 }
 
 export interface Deduction {
@@ -56,14 +56,14 @@ export function computePayslip(
   const otPay = Math.round((ot.overtimeMin * otRate) / 60);
 
   const lines: PayslipLine[] = [
-    { kind: 'regular', label: 'regular', minutes: ot.regularMin, rate: hourlyRate, amount: regularPay },
+    { kind: "regular", label: "regular", minutes: ot.regularMin, rate: hourlyRate, amount: regularPay },
   ];
   if (ot.overtimeMin > 0) {
-    lines.push({ kind: 'overtime', label: 'overtime', minutes: ot.overtimeMin, rate: otRate, amount: otPay });
+    lines.push({ kind: "overtime", label: "overtime", minutes: ot.overtimeMin, rate: otRate, amount: otPay });
   }
 
   const deductionLines: PayslipLine[] = deductions.map((d) => ({
-    kind: 'deduction',
+    kind: "deduction",
     label: d.label,
     amount: d.amount,
   }));

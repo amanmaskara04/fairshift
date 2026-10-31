@@ -3,10 +3,10 @@
 // A new report joins an open hazard of the same category at the same site and zone
 // received within the last 48 hours. Reporters never see who else reported.
 
-import { DUPLICATE_WINDOW_MS, REPORTS_FOR_SEVERITY_BUMP } from '@/config/hazard-sla';
-import { isOpen } from './hazard-lifecycle';
-import { raiseSeverity } from './hazard-rules';
-import type { Hazard, HazardCategory, HazardSeverity } from './types';
+import { DUPLICATE_WINDOW_MS, REPORTS_FOR_SEVERITY_BUMP } from "@/config/hazard-sla";
+import { isOpen } from "./hazard-lifecycle";
+import { raiseSeverity } from "./hazard-rules";
+import type { Hazard, HazardCategory, HazardSeverity } from "./types";
 
 export interface NewReport {
   category: HazardCategory;
@@ -15,18 +15,18 @@ export interface NewReport {
   at: Date;
 }
 
-const ORDINALS: Record<string, string> = { first: '1', second: '2', third: '3', fourth: '4', fifth: '5', ground: '0' };
+const ORDINALS: Record<string, string> = { first: "1", second: "2", third: "3", fourth: "4", fifth: "5", ground: "0" };
 
 /**
  * Normalised zone: lower-case words with ordinals unified, sorted, so "Floor 3", "3rd floor"
  * and "floor-3" match. An empty zone means "site-wide".
  */
 export function zoneKey(location: string | undefined): string {
-  const words = (location ?? '').toLowerCase().match(/[\p{L}\p{M}\p{N}]+/gu) ?? [];
+  const words = (location ?? "").toLowerCase().match(/[\p{L}\p{M}\p{N}]+/gu) ?? [];
   return words
-    .map((w) => ORDINALS[w] ?? w.replace(/^(\d+)(st|nd|rd|th)$/, '$1'))
+    .map((w) => ORDINALS[w] ?? w.replace(/^(\d+)(st|nd|rd|th)$/, "$1"))
     .sort()
-    .join(' ');
+    .join(" ");
 }
 
 /** The open hazard a new report duplicates, or null. The newest match wins. */

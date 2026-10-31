@@ -32,7 +32,12 @@ function newSkill(workerId: string, input: SkillInput, now: Date): Skill {
 }
 
 /** The worker's own claim: pending until their employer verifies it. */
-export async function addSkillByWorker(repos: Repos, workerId: string, input: SkillInput, now: Date): Promise<{ ok: true } | { ok: false; error: SkillError }> {
+export async function addSkillByWorker(
+  repos: Repos,
+  workerId: string,
+  input: SkillInput,
+  now: Date,
+): Promise<{ ok: true } | { ok: false; error: SkillError }> {
   const pending = (await repos.skills.getByWorker(workerId)).filter(isPendingSkill);
   if (pending.length >= MAX_PENDING_SKILLS) return { ok: false, error: "too_many" };
   await repos.skills.create({ ...newSkill(workerId, input, now), addedBy: "worker" });
@@ -46,7 +51,12 @@ export async function addSkillByAdmin(
 ): Promise<{ ok: true } | { ok: false; error: SkillError }> {
   const worker = await repos.workers.getById(input.workerId);
   if (!worker || worker.orgId !== input.orgId) return { ok: false, error: "not_found" };
-  await repos.skills.create({ ...newSkill(worker.id, input, input.now), addedBy: "admin", verifiedBy: input.adminId, decidedAt: input.now });
+  await repos.skills.create({
+    ...newSkill(worker.id, input, input.now),
+    addedBy: "admin",
+    verifiedBy: input.adminId,
+    decidedAt: input.now,
+  });
   return { ok: true };
 }
 
@@ -59,7 +69,10 @@ export async function decideSkill(
   const worker = skill ? await repos.workers.getById(skill.workerId) : undefined;
   if (!skill || !worker || worker.orgId !== input.orgId) return { ok: false, error: "not_found" };
   if (!isPendingSkill(skill)) return { ok: false, error: "not_pending" };
-  await repos.skills.update(skill.id, input.verify ? { verifiedBy: input.adminId, decidedAt: input.now } : { rejected: true, decidedAt: input.now });
+  await repos.skills.update(
+    skill.id,
+    input.verify ? { verifiedBy: input.adminId, decidedAt: input.now } : { rejected: true, decidedAt: input.now },
+  );
   return { ok: true };
 }
 

@@ -21,8 +21,7 @@ const serwist = new Serwist({
     // Personal data (APIs, signed-in worker/admin pages) is never written to the cache.
     { matcher: ({ url }) => url.pathname.startsWith("/api/"), handler: new NetworkOnly() },
     {
-      matcher: ({ request, url }) =>
-        request.mode === "navigate" && /^\/(w|a)(\/|$)/.test(url.pathname),
+      matcher: ({ request, url }) => request.mode === "navigate" && /^\/(w|a)(\/|$)/.test(url.pathname),
       handler: new NetworkOnly(),
     },
     ...defaultCache,

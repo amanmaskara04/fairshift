@@ -2,13 +2,12 @@
 // Feedback is shown to employers only for groups of at least K responses,
 // so no single answer can be traced back to one worker.
 
-import { getISTWeekBucket } from './time';
+import { getISTWeekBucket } from "./time";
 
 export const K_ANONYMITY = 5;
 
 export type GateResult<T> =
-  | { visible: true; count: number; items: T[] }
-  | { visible: false; count: number; needed: number };
+  { visible: true; count: number; items: T[] } | { visible: false; count: number; needed: number };
 
 /** Hide a cohort's items unless there are at least `k` of them. */
 export function kAnonymityGate<T>(items: T[], k: number = K_ANONYMITY): GateResult<T> {

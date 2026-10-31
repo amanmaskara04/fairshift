@@ -14,7 +14,15 @@ import { PageHeader } from "@/components/page-header";
 import { DisputeControls, PaidRecordTools, PayGapButton } from "@/components/admin/paid-records";
 
 /** Sentinel status for one row: nothing recorded yet, matches, gap paid, or a possible shortfall (with "Pay the gap"). */
-function CheckBadge({ row, month, t }: { row: PayrollRow; month: string; t: (key: string, values?: Record<string, string>) => string }) {
+function CheckBadge({
+  row,
+  month,
+  t,
+}: {
+  row: PayrollRow;
+  month: string;
+  t: (key: string, values?: Record<string, string>) => string;
+}) {
   if (row.check.status === "no_record") {
     return (
       <Badge>
@@ -48,13 +56,24 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
   const [t, locale] = await Promise.all([getTranslations("admin.payrollPage"), getLocale()]);
   const months = [0, -1, -2].map((offset) => monthKey(new Date(), offset));
   const requested = (await searchParams).m;
-  const month = typeof requested === "string" && isMonthKey(requested) && months.includes(requested) ? requested : months[0];
+  const month =
+    typeof requested === "string" && isMonthKey(requested) && months.includes(requested) ? requested : months[0];
   const repos = getRepos();
-  const [rows, disputes] = await Promise.all([buildPayroll(repos, session.orgId, month), repos.payDisputes.getByOrg(session.orgId)]);
+  const [rows, disputes] = await Promise.all([
+    buildPayroll(repos, session.orgId, month),
+    repos.payDisputes.getByOrg(session.orgId),
+  ]);
   const nameOf = new Map(rows.map((r) => [r.workerId, r.name]));
-  const totals = rows.reduce((acc, r) => ({ gross: acc.gross + r.gross, net: acc.net + r.net, ot: acc.ot + r.overtimeMinutes }), { gross: 0, net: 0, ot: 0 });
+  const totals = rows.reduce(
+    (acc, r) => ({ gross: acc.gross + r.gross, net: acc.net + r.net, ot: acc.ot + r.overtimeMinutes }),
+    { gross: 0, net: 0, ot: 0 },
+  );
   const flagged = rows.filter((r) => r.outstanding > 0);
-  const sortedDisputes = [...disputes].sort((a, b) => Number(a.status === "resolved") - Number(b.status === "resolved") || b.createdAt.getTime() - a.createdAt.getTime());
+  const sortedDisputes = [...disputes].sort(
+    (a, b) =>
+      Number(a.status === "resolved") - Number(b.status === "resolved") ||
+      b.createdAt.getTime() - a.createdAt.getTime(),
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -70,7 +89,10 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
         {t("intro")}
       </PageHeader>
 
-      <nav aria-label={t("month")} className="flex w-fit flex-wrap gap-1 rounded-full border border-line bg-surface p-1">
+      <nav
+        aria-label={t("month")}
+        className="flex w-fit flex-wrap gap-1 rounded-full border border-line bg-surface p-1"
+      >
         {months.map((m) => (
           <Link
             key={m}
@@ -78,7 +100,10 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
             replace
             scroll={false}
             aria-current={m === month ? "page" : undefined}
-            className={cn(buttonVariants({ size: "sm", variant: m === month ? "primary" : "ghost" }), m !== month && "text-ink-2")}
+            className={cn(
+              buttonVariants({ size: "sm", variant: m === month ? "primary" : "ghost" }),
+              m !== month && "text-ink-2",
+            )}
           >
             {formatMonth(m, locale)}
           </Link>
@@ -90,7 +115,9 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
           {t("sentinel.title")}
         </h2>
         <p className="text-ink-2">{t("sentinel.hint")}</p>
-        <p className="font-bold">{flagged.length ? t("sentinel.flagged", { count: flagged.length }) : t("sentinel.clear")}</p>
+        <p className="font-bold">
+          {flagged.length ? t("sentinel.flagged", { count: flagged.length }) : t("sentinel.clear")}
+        </p>
         <PaidRecordTools
           month={month}
           workers={rows.map((r) => ({
@@ -154,15 +181,33 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
           <caption className="sr-only">{t("title")}</caption>
           <thead className="border-b border-line text-xs tracking-wide text-ink-2 uppercase">
             <tr>
-              <th scope="col" className="px-4 py-3 font-bold">{t("worker")}</th>
-              <th scope="col" className="px-4 py-3 font-bold">{t("days")}</th>
-              <th scope="col" className="px-4 py-3 font-bold">{t("regular")}</th>
-              <th scope="col" className="px-4 py-3 font-bold">{t("overtime")}</th>
-              <th scope="col" className="px-4 py-3 text-right font-bold">{t("gross")}</th>
-              <th scope="col" className="px-4 py-3 text-right font-bold">{t("pf")}</th>
-              <th scope="col" className="px-4 py-3 text-right font-bold">{t("net")}</th>
-              <th scope="col" className="px-4 py-3 text-right font-bold">{t("paid")}</th>
-              <th scope="col" className="px-4 py-3 font-bold">{t("checkColumn")}</th>
+              <th scope="col" className="px-4 py-3 font-bold">
+                {t("worker")}
+              </th>
+              <th scope="col" className="px-4 py-3 font-bold">
+                {t("days")}
+              </th>
+              <th scope="col" className="px-4 py-3 font-bold">
+                {t("regular")}
+              </th>
+              <th scope="col" className="px-4 py-3 font-bold">
+                {t("overtime")}
+              </th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">
+                {t("gross")}
+              </th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">
+                {t("pf")}
+              </th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">
+                {t("net")}
+              </th>
+              <th scope="col" className="px-4 py-3 text-right font-bold">
+                {t("paid")}
+              </th>
+              <th scope="col" className="px-4 py-3 font-bold">
+                {t("checkColumn")}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -176,11 +221,15 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
                 </th>
                 <td className="figure px-4 py-3">{r.daysWorked}</td>
                 <td className="figure px-4 py-3 whitespace-nowrap">{formatDuration(r.regularMinutes)}</td>
-                <td className="figure px-4 py-3 whitespace-nowrap">{r.overtimeMinutes ? formatDuration(r.overtimeMinutes) : "—"}</td>
+                <td className="figure px-4 py-3 whitespace-nowrap">
+                  {r.overtimeMinutes ? formatDuration(r.overtimeMinutes) : "—"}
+                </td>
                 <td className="figure px-4 py-3 text-right whitespace-nowrap">{formatINR(r.gross)}</td>
                 <td className="figure px-4 py-3 text-right whitespace-nowrap">{formatINR(r.deductions)}</td>
                 <td className="figure px-4 py-3 text-right font-bold whitespace-nowrap">{formatINR(r.net)}</td>
-                <td className="figure px-4 py-3 text-right whitespace-nowrap">{r.paid ? formatINR(r.paid.netPaid) : "—"}</td>
+                <td className="figure px-4 py-3 text-right whitespace-nowrap">
+                  {r.paid ? formatINR(r.paid.netPaid) : "—"}
+                </td>
                 <td className="px-4 py-3">
                   <CheckBadge row={r} month={month} t={t} />
                 </td>
@@ -189,7 +238,9 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
           </tbody>
           <tfoot className="figure border-t-2 border-ink/60 bg-surface-2/50 font-bold">
             <tr>
-              <th scope="row" className="px-4 py-3">{t("total")}</th>
+              <th scope="row" className="px-4 py-3">
+                {t("total")}
+              </th>
               <td className="px-4 py-3" />
               <td className="px-4 py-3" />
               <td className="px-4 py-3 whitespace-nowrap">{formatDuration(totals.ot)}</td>
@@ -219,7 +270,9 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
                       {formatMonth(d.month, locale)} · {t("disputes.shortfall", { amount: formatRupees(d.shortfall) })}
                     </p>
                   </div>
-                  <Badge tone={d.status === "resolved" ? "success" : d.status === "reviewing" ? "info" : "warning"}>{t(`disputes.status.${d.status}`)}</Badge>
+                  <Badge tone={d.status === "resolved" ? "success" : d.status === "reviewing" ? "info" : "warning"}>
+                    {t(`disputes.status.${d.status}`)}
+                  </Badge>
                 </div>
                 <ul className="flex flex-wrap gap-1">
                   {d.findings.map((code) => (
@@ -229,7 +282,9 @@ export default async function PayrollPage({ searchParams }: PageProps<"/a/payrol
                   ))}
                 </ul>
                 {d.settledAmount !== undefined && (
-                  <p className="rounded-xl bg-success-soft px-3 py-2 text-sm font-semibold text-success">{t("disputes.settled", { amount: formatRupees(d.settledAmount) })}</p>
+                  <p className="rounded-xl bg-success-soft px-3 py-2 text-sm font-semibold text-success">
+                    {t("disputes.settled", { amount: formatRupees(d.settledAmount) })}
+                  </p>
                 )}
                 {d.resolutionNote && <p className="rounded-xl bg-surface-2 px-3 py-2 text-sm">{d.resolutionNote}</p>}
                 <DisputeControls id={d.id} status={d.status} />

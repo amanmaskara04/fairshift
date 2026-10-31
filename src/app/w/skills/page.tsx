@@ -24,7 +24,11 @@ function formatYear(date: Date): string {
 
 export default async function MePage() {
   const session = await requireRole("worker");
-  const [t, tb, locale] = await Promise.all([getTranslations("skills"), getTranslations("benefits"), getLocale() as Promise<Locale>]);
+  const [t, tb, locale] = await Promise.all([
+    getTranslations("skills"),
+    getTranslations("benefits"),
+    getLocale() as Promise<Locale>,
+  ]);
   const repos = getRepos();
   const now = new Date();
   const [data, benefits] = await Promise.all([passportData(repos, session.uid), benefitsFor(repos, session.uid, now)]);
@@ -56,7 +60,10 @@ export default async function MePage() {
         wageTooHigh: result.failedConditions.includes("max_monthly_wage"),
         certificate: certificate && {
           status: certificate.status,
-          url: certificate.status === "approved" ? `/certificate/${certificateToken(certificate.id, certificate.decidedAt ?? certificate.requestedAt)}` : undefined,
+          url:
+            certificate.status === "approved"
+              ? `/certificate/${certificateToken(certificate.id, certificate.decidedAt ?? certificate.requestedAt)}`
+              : undefined,
         },
       },
     ];
@@ -64,7 +71,15 @@ export default async function MePage() {
 
   return (
     <div className="flex flex-col gap-6 md:mx-auto md:w-full md:max-w-3xl">
-      <PageHeader title={worker.name} eyebrow={t("eyebrow")} action={<SpeakButton text={`${worker.name}. ${worker.jobTitle}, ${org.name}. ${t("summary", { count: skills.length, verified })}`} />}>
+      <PageHeader
+        title={worker.name}
+        eyebrow={t("eyebrow")}
+        action={
+          <SpeakButton
+            text={`${worker.name}. ${worker.jobTitle}, ${org.name}. ${t("summary", { count: skills.length, verified })}`}
+          />
+        }
+      >
         {worker.jobTitle} · {org.name}
       </PageHeader>
 
@@ -97,37 +112,42 @@ export default async function MePage() {
         <p className="text-ink-2">{t("summary", { count: skills.length, verified })}</p>
         <AddSkill />
         <ul className="stagger flex flex-col gap-2.5">
-          {[...skills].sort((a, b) => b.date.getTime() - a.date.getTime()).map((skill) => (
-            <li key={skill.id} className="card flex items-center justify-between gap-3 p-4">
-              <div className="flex items-center gap-3">
-                <span aria-hidden="true" className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong">
-                  <BadgeCheck className="size-6" />
-                </span>
-                <div>
-                  <p className="font-bold">{skill.title}</p>
-                  <p className="text-sm text-ink-2">
-                    {skill.issuer} · {formatYear(skill.date)}
-                  </p>
+          {[...skills]
+            .sort((a, b) => b.date.getTime() - a.date.getTime())
+            .map((skill) => (
+              <li key={skill.id} className="card flex items-center justify-between gap-3 p-4">
+                <div className="flex items-center gap-3">
+                  <span
+                    aria-hidden="true"
+                    className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong"
+                  >
+                    <BadgeCheck className="size-6" />
+                  </span>
+                  <div>
+                    <p className="font-bold">{skill.title}</p>
+                    <p className="text-sm text-ink-2">
+                      {skill.issuer} · {formatYear(skill.date)}
+                    </p>
+                  </div>
                 </div>
-              </div>
-              {skill.verifiedBy ? (
-                <Badge tone="success">
-                  <BadgeCheck aria-hidden="true" className="size-4" />
-                  {t("verified")}
-                </Badge>
-              ) : skill.rejected ? (
-                <Badge>
-                  <XCircle aria-hidden="true" className="size-4" />
-                  {t("rejected")}
-                </Badge>
-              ) : (
-                <Badge tone="warning">
-                  <Clock aria-hidden="true" className="size-4" />
-                  {t("pending")}
-                </Badge>
-              )}
-            </li>
-          ))}
+                {skill.verifiedBy ? (
+                  <Badge tone="success">
+                    <BadgeCheck aria-hidden="true" className="size-4" />
+                    {t("verified")}
+                  </Badge>
+                ) : skill.rejected ? (
+                  <Badge>
+                    <XCircle aria-hidden="true" className="size-4" />
+                    {t("rejected")}
+                  </Badge>
+                ) : (
+                  <Badge tone="warning">
+                    <Clock aria-hidden="true" className="size-4" />
+                    {t("pending")}
+                  </Badge>
+                )}
+              </li>
+            ))}
         </ul>
       </section>
 

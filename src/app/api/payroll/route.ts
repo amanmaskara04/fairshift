@@ -14,7 +14,21 @@ export async function GET(request: Request) {
   const rows = await buildPayroll(getRepos(), session.orgId, month);
 
   const csv = toCsv([
-    ["Code", "Name", "Pay basis", "Days worked", "Regular hours", "Overtime hours", "Gross (INR)", "PF (INR)", "Net (INR)", "Net paid (INR)", "Possible shortfall (INR)", "Arrears paid (INR)", "Still owed (INR)"],
+    [
+      "Code",
+      "Name",
+      "Pay basis",
+      "Days worked",
+      "Regular hours",
+      "Overtime hours",
+      "Gross (INR)",
+      "PF (INR)",
+      "Net (INR)",
+      "Net paid (INR)",
+      "Possible shortfall (INR)",
+      "Arrears paid (INR)",
+      "Still owed (INR)",
+    ],
     ...rows.map((r) => [
       r.code,
       r.name,

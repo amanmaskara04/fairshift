@@ -33,7 +33,12 @@ export async function explainPay(
   for (const [index, model] of [MODELS.fast, MODELS.fallback].entries()) {
     const started = Date.now();
     try {
-      const raw = await client.generateText({ model, system: paySystemPrompt(locale), parts: [{ text: payload }], jsonSchema: payJsonSchema });
+      const raw = await client.generateText({
+        model,
+        system: paySystemPrompt(locale),
+        parts: [{ text: payload }],
+        jsonSchema: payJsonSchema,
+      });
       const parsed = PayExplanation.safeParse(JSON.parse(raw));
       const accepted = parsed.success && keepsAllNumbers(parsed.data.sentences, facts);
       await logAiCall({
@@ -42,11 +47,21 @@ export async function explainPay(
         latencyMs: Date.now() - started,
         fallbackUsed: index > 0,
         // A rewrite that changes or drops a number is never shown: the worker keeps the exact template.
-        error: accepted ? undefined : parsed.success ? "rejected: a number was changed or dropped" : "rejected: invalid JSON shape",
+        error: accepted
+          ? undefined
+          : parsed.success
+            ? "rejected: a number was changed or dropped"
+            : "rejected: invalid JSON shape",
       });
       if (accepted) return parsed.data.sentences;
     } catch (error) {
-      await logAiCall({ feature: "explainPay", model, latencyMs: Date.now() - started, fallbackUsed: true, error: describeAiError(error) });
+      await logAiCall({
+        feature: "explainPay",
+        model,
+        latencyMs: Date.now() - started,
+        fallbackUsed: true,
+        error: describeAiError(error),
+      });
     }
   }
   return null;

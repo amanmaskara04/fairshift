@@ -32,7 +32,9 @@ export default async function PeoplePage() {
   // Only requests need a decision up top; everyone's progress sits with their row below.
   const approvals = candidates.filter((c) => c.request?.status === "requested");
   const certsOf = Map.groupBy(candidates, (c) => c.worker.id);
-  const certCell = (workerId: string) => <CertificateProgress rows={certsOf.get(workerId) ?? []} t={t} locale={locale} />;
+  const certCell = (workerId: string) => (
+    <CertificateProgress rows={certsOf.get(workerId) ?? []} t={t} locale={locale} />
+  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -67,7 +69,12 @@ export default async function PeoplePage() {
             </h2>
             <p className="text-sm text-ink-2">{t("skills.hint")}</p>
           </div>
-          <AddSkill workers={snapshot.workers.map(({ worker }) => ({ id: worker.id, label: `${worker.name} (#${worker.code})` }))} />
+          <AddSkill
+            workers={snapshot.workers.map(({ worker }) => ({
+              id: worker.id,
+              label: `${worker.name} (#${worker.code})`,
+            }))}
+          />
         </div>
         {skillQueue.length === 0 ? (
           <p className="text-ink-2">{t("skills.none")}</p>
@@ -76,7 +83,10 @@ export default async function PeoplePage() {
             {skillQueue.map(({ skill, worker }) => (
               <li key={skill.id} className="card flex flex-col gap-2 p-4">
                 <div className="flex items-start gap-3">
-                  <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong">
+                  <span
+                    aria-hidden="true"
+                    className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong"
+                  >
                     <BadgeCheck className="size-5" />
                   </span>
                   <div className="min-w-0">
@@ -84,7 +94,9 @@ export default async function PeoplePage() {
                     <p className="text-sm text-ink-2">
                       {worker.name} · {skill.issuer} · {formatDay(skill.date.toISOString().slice(0, 10), locale)}
                     </p>
-                    {skill.evidence && <p className="mt-1 text-sm">{t("skills.evidence", { evidence: skill.evidence })}</p>}
+                    {skill.evidence && (
+                      <p className="mt-1 text-sm">{t("skills.evidence", { evidence: skill.evidence })}</p>
+                    )}
                   </div>
                 </div>
                 <SkillDecision id={skill.id} />
@@ -153,7 +165,11 @@ export default async function PeoplePage() {
                     <dt className="eyebrow">{t("thisWeek")}</dt>
                     <dd className="figure">
                       {formatDuration(w.weekMinutes)}
-                      {w.overtimeThisWeek > 0 && <span className="block text-ink-2">{t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}</span>}
+                      {w.overtimeThisWeek > 0 && (
+                        <span className="block text-ink-2">
+                          {t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}
+                        </span>
+                      )}
                     </dd>
                   </div>
                 </dl>
@@ -180,17 +196,32 @@ export default async function PeoplePage() {
             <caption className="sr-only">{t("title")}</caption>
             <thead className="border-b border-line text-xs tracking-wide text-ink-2 uppercase">
               <tr>
-                <th scope="col" className="px-4 py-3 font-bold">{t("worker")}</th>
-                <th scope="col" className="px-4 py-3 font-bold">{t("status")}</th>
-                <th scope="col" className="px-4 py-3 font-bold">{t("thisWeek")}</th>
-                <th scope="col" className="px-4 py-3 font-bold">{t("fatigue")}</th>
-                <th scope="col" className="px-4 py-3 font-bold">{t("risk")}</th>
-                <th scope="col" className="px-4 py-3 font-bold">{t("certificates.column")}</th>
+                <th scope="col" className="px-4 py-3 font-bold">
+                  {t("worker")}
+                </th>
+                <th scope="col" className="px-4 py-3 font-bold">
+                  {t("status")}
+                </th>
+                <th scope="col" className="px-4 py-3 font-bold">
+                  {t("thisWeek")}
+                </th>
+                <th scope="col" className="px-4 py-3 font-bold">
+                  {t("fatigue")}
+                </th>
+                <th scope="col" className="px-4 py-3 font-bold">
+                  {t("risk")}
+                </th>
+                <th scope="col" className="px-4 py-3 font-bold">
+                  {t("certificates.column")}
+                </th>
               </tr>
             </thead>
             <tbody>
               {snapshot.workers.map((w) => (
-                <tr key={w.worker.id} className="border-t border-line align-top transition-colors hover:bg-surface-2/50">
+                <tr
+                  key={w.worker.id}
+                  className="border-t border-line align-top transition-colors hover:bg-surface-2/50"
+                >
                   <th scope="row" className="px-4 py-3 font-semibold">
                     {w.worker.name}
                     <span className="block text-sm font-normal text-ink-2">
@@ -202,7 +233,11 @@ export default async function PeoplePage() {
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap">
                     {formatDuration(w.weekMinutes)}
-                    {w.overtimeThisWeek > 0 && <span className="block text-sm text-ink-2">{t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}</span>}
+                    {w.overtimeThisWeek > 0 && (
+                      <span className="block text-sm text-ink-2">
+                        {t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <FatigueReasons alerts={w.fatigue} />
@@ -228,7 +263,15 @@ export default async function PeoplePage() {
 }
 
 /** One worker's welfare-certificate progress, compact enough for a table cell. */
-function CertificateProgress({ rows, t, locale }: { rows: EligibilityRow[]; t: Awaited<ReturnType<typeof getTranslations<"admin.peoplePage">>>; locale: Locale }) {
+function CertificateProgress({
+  rows,
+  t,
+  locale,
+}: {
+  rows: EligibilityRow[];
+  t: Awaited<ReturnType<typeof getTranslations<"admin.peoplePage">>>;
+  locale: Locale;
+}) {
   if (rows.length === 0) return <p className="text-sm text-ink-2">{t("certificates.notYet")}</p>;
   return (
     <ul className="flex flex-col gap-2">
@@ -246,13 +289,20 @@ function CertificateProgress({ rows, t, locale }: { rows: EligibilityRow[]; t: A
             </a>
           )}
           {request?.status === "approved" && (
-            <a href={`/certificate/${certificateToken(request.id, request.decidedAt ?? request.requestedAt)}`} className="flex items-center gap-1.5 font-bold text-primary underline underline-offset-4">
+            <a
+              href={`/certificate/${certificateToken(request.id, request.decidedAt ?? request.requestedAt)}`}
+              className="flex items-center gap-1.5 font-bold text-primary underline underline-offset-4"
+            >
               <FileText aria-hidden="true" className="size-4" />
               {t("certificates.view")}
             </a>
           )}
           {request?.status === "rejected" && <span className="text-ink-2">{t("certificates.rejected")}</span>}
-          {!request && <span className="text-ink-2">{progress.done >= progress.needed ? t("certificates.eligibleNoRequest") : t("certificates.close")}</span>}
+          {!request && (
+            <span className="text-ink-2">
+              {progress.done >= progress.needed ? t("certificates.eligibleNoRequest") : t("certificates.close")}
+            </span>
+          )}
         </li>
       ))}
     </ul>

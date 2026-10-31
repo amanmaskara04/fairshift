@@ -2,39 +2,39 @@
 // All money values are in integer paise (1 INR = 100 paise).
 // All timestamps use Asia/Kolkata timezone.
 
-export type Sector = 'construction' | 'hospital' | 'campus' | 'factory';
+export type Sector = "construction" | "hospital" | "campus" | "factory";
 
-export type PayBasis = 'daily' | 'monthly' | 'hourly';
+export type PayBasis = "daily" | "monthly" | "hourly";
 
-export type Role = 'worker' | 'admin';
+export type Role = "worker" | "admin";
 
-export type HazardSeverity = 'critical' | 'high' | 'medium' | 'low';
+export type HazardSeverity = "critical" | "high" | "medium" | "low";
 
-export type HazardStatus = 'received' | 'in_progress' | 'fixed' | 'dismissed';
+export type HazardStatus = "received" | "in_progress" | "fixed" | "dismissed";
 
 export type HazardCategory =
   // Every sector: a fire is an emergency anywhere
-  | 'fire'
+  | "fire"
   // Construction
-  | 'fall_from_height'
-  | 'scaffolding'
-  | 'electrical'
-  | 'heat_stress'
-  | 'ppe_missing'
-  | 'machinery'
+  | "fall_from_height"
+  | "scaffolding"
+  | "electrical"
+  | "heat_stress"
+  | "ppe_missing"
+  | "machinery"
   // Hospital
-  | 'needle_stick'
-  | 'chemical_biohazard'
-  | 'patient_aggression'
-  | 'slip'
-  | 'lifting_injury'
+  | "needle_stick"
+  | "chemical_biohazard"
+  | "patient_aggression"
+  | "slip"
+  | "lifting_injury"
   // Campus
-  | 'chemical_labs'
+  | "chemical_labs"
   // Factory
-  | 'machinery_guard'
-  | 'noise'
-  | 'chemical'
-  | 'fire_exit';
+  | "machinery_guard"
+  | "noise"
+  | "chemical"
+  | "fire_exit";
 
 export type FeedbackScore = 1 | 2 | 3; // 1 = 😟, 2 = 😐, 3 = 😀
 
@@ -42,14 +42,7 @@ export type FeedbackScore = 1 | 2 | 3; // 1 = 😟, 2 = 😐, 3 = 😀
 
 /** Everything that can appear in a hazard's history. */
 export type HazardEvent =
-  | HazardStatus
-  | 'reopened'
-  | 'escalated'
-  | 'confirmed'
-  | 'auto_closed'
-  | 'report_added'
-  | 'merged'
-  | 'unmerged';
+  HazardStatus | "reopened" | "escalated" | "confirmed" | "auto_closed" | "report_added" | "merged" | "unmerged";
 
 export interface HazardTimelineEntry {
   status: HazardEvent;
@@ -74,7 +67,7 @@ export interface HazardReport {
 }
 
 /** After "fixed", the reporter is asked whether it really is. */
-export type FixConfirmation = 'pending' | 'confirmed' | 'auto_closed';
+export type FixConfirmation = "pending" | "confirmed" | "auto_closed";
 
 export interface Hazard {
   id: string;
@@ -112,7 +105,7 @@ export interface Shift {
   siteId: string;
   inAt: Date;
   outAt?: Date;
-  method: 'qr' | 'geo' | 'manual';
+  method: "qr" | "geo" | "manual";
   /** Idempotency key of the check-in operation */
   clientOpId?: string;
   /** Idempotency key of the check-out operation */
@@ -140,7 +133,7 @@ export interface PayConfig {
 }
 
 export interface PayslipLine {
-  kind: 'regular' | 'overtime' | 'deduction';
+  kind: "regular" | "overtime" | "deduction";
   /** i18n key for regular/overtime; free text for deductions */
   label: string;
   minutes?: number;
@@ -157,7 +150,7 @@ export interface Payslip {
   gross: number;
   deductions: PayslipLine[];
   net: number;
-  overtimeBasis: 'daily' | 'weekly' | 'mixed' | 'none';
+  overtimeBasis: "daily" | "weekly" | "mixed" | "none";
 }
 
 // ─── Fatigue ────────────────────────────────────────────────────────
@@ -170,12 +163,7 @@ export interface FatigueAlert {
 
 export interface FatigueRuleConfig {
   ruleId: string;
-  check:
-    | 'maxDailyHours'
-    | 'minRestHours'
-    | 'maxConsecutiveDays'
-    | 'maxConsecutiveNights'
-    | 'maxWeeklyHours';
+  check: "maxDailyHours" | "minRestHours" | "maxConsecutiveDays" | "maxConsecutiveNights" | "maxWeeklyHours";
   threshold: number;
 }
 
@@ -197,7 +185,7 @@ export interface Alert {
   id: string;
   orgId: string;
   workerId: string;
-  type: 'fatigue' | 'quitRisk';
+  type: "fatigue" | "quitRisk";
   score?: number;
   reasons: string[];
   at: Date;

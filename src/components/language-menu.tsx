@@ -97,9 +97,16 @@ export function LanguageMenu({ className, side = "bottom" }: { className?: strin
         }}
         className="press flex min-h-12 items-center gap-1.5 rounded-full border border-line bg-surface px-3.5 text-sm font-bold text-ink shadow-[var(--shadow-card)] hover:border-primary/40"
       >
-        {pending ? <Loader2 aria-hidden="true" className="size-4 animate-spin" /> : <Languages aria-hidden="true" className="size-4 text-primary" />}
+        {pending ? (
+          <Loader2 aria-hidden="true" className="size-4 animate-spin" />
+        ) : (
+          <Languages aria-hidden="true" className="size-4 text-primary" />
+        )}
         <span lang={current}>{LANGUAGE_LABELS[current].native}</span>
-        <ChevronDown aria-hidden="true" className={cn("size-4 transition-transform duration-200", open && "rotate-180")} />
+        <ChevronDown
+          aria-hidden="true"
+          className={cn("size-4 transition-transform duration-200", open && "rotate-180")}
+        />
       </button>
 
       <div

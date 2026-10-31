@@ -5,7 +5,13 @@ import { z } from "zod";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { RateLimiter } from "@/server/rate-limit";
-import { importPaidCsv, PaidRecordInput, payArrears, savePaidRecord, type CsvImportResult } from "@/server/services/pay-check";
+import {
+  importPaidCsv,
+  PaidRecordInput,
+  payArrears,
+  savePaidRecord,
+  type CsvImportResult,
+} from "@/server/services/pay-check";
 import { updateDispute } from "@/server/services/disputes";
 import { rupeesToPaise } from "@/core/csv";
 import { isMonthKey } from "@/core/period";
@@ -65,7 +71,12 @@ export async function payArrearsAction(input: unknown): Promise<{ ok: boolean; e
   const parsed = Arrears.safeParse(input);
   if (!parsed.success) return { ok: false, error: "invalid" };
   if (!arrearsLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
-  const result = await payArrears(getRepos(), { ...parsed.data, orgId: session.orgId, adminId: session.uid, now: new Date() });
+  const result = await payArrears(getRepos(), {
+    ...parsed.data,
+    orgId: session.orgId,
+    adminId: session.uid,
+    now: new Date(),
+  });
   if (!result.ok) return { ok: false, error: result.error };
   refresh();
   return { ok: true };

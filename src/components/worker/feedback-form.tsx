@@ -39,7 +39,11 @@ export function FeedbackForm() {
   if (result) {
     const text = t(result === "thanks" ? "thanks" : "alreadyAnswered");
     return (
-      <div role="status" aria-live="polite" className="card rise-in flex flex-col items-center gap-3 px-5 py-8 text-center">
+      <div
+        role="status"
+        aria-live="polite"
+        className="card rise-in flex flex-col items-center gap-3 px-5 py-8 text-center"
+      >
         <SuccessCheck className="size-20" />
         <p className="font-display text-2xl font-extrabold">{text}</p>
       </div>
@@ -57,7 +61,10 @@ export function FeedbackForm() {
         <section key={q.key} aria-labelledby={`q-${q.key}`} className="card p-4 pt-3">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 id={`q-${q.key}`} className="flex items-center gap-3 text-lg leading-snug font-extrabold">
-              <span aria-hidden="true" className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm">
+              <span
+                aria-hidden="true"
+                className="figure flex size-8 shrink-0 items-center justify-center rounded-full bg-surface-2 text-sm"
+              >
                 {i + 1}
               </span>
               {t(q.label)}
@@ -77,7 +84,13 @@ export function FeedbackForm() {
           {t("addComment")}
         </label>
         <div className="flex items-start gap-2">
-          <Textarea id="feedback-comment" value={comment} onChange={(e) => setComment(e.target.value)} maxLength={500} rows={3} />
+          <Textarea
+            id="feedback-comment"
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            maxLength={500}
+            rows={3}
+          />
           <DictateButton onText={(text) => setComment((c) => (c ? `${c} ${text}` : text).slice(0, 500))} />
         </div>
         <span className="text-sm text-ink-2">{t("commentHint")}</span>

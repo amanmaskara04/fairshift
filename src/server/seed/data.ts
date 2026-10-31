@@ -88,7 +88,9 @@ function fairPaidRecord(worker: Worker, org: Org, shifts: Shift[], month: string
 }
 
 const rate = (worker: Worker, org: Org) =>
-  worker.pay.basis === "daily" ? Math.round(worker.pay.rate / org.labourRules.dailyHrs) : Math.round(worker.pay.rate / (org.labourRules.dailyHrs * 26));
+  worker.pay.basis === "daily"
+    ? Math.round(worker.pay.rate / org.labourRules.dailyHrs)
+    : Math.round(worker.pay.rate / (org.labourRules.dailyHrs * 26));
 
 function buildPaidRecords(workers: Worker[], shifts: Shift[], now: Date): PaidRecordEntry[] {
   const lastMonth = monthKey(now, -1);
@@ -100,21 +102,43 @@ function buildPaidRecords(workers: Worker[], shifts: Shift[], now: Date): PaidRe
   const lastMonthAdjustments: Record<string, PaidAdjustment> = {
     // Arun: six regular hours left off the sheet (dispute since resolved).
     w1002: (r) => {
-      const short = 6 * rate(workers.find((w) => w.id === "w1002")!, orgOf.get("org1")!);
-      return { ...r, paidRegularHours: r.paidRegularHours - 6, grossPaid: r.grossPaid - short, netPaid: r.netPaid - short };
+      const short =
+        6 *
+        rate(
+          workers.find((w) => w.id === "w1002")!,
+          orgOf.get("org1")!,
+        );
+      return {
+        ...r,
+        paidRegularHours: r.paidRegularHours - 6,
+        grossPaid: r.grossPaid - short,
+        netPaid: r.netPaid - short,
+      };
     },
     // Lakshmi: ₹500 "uniform charge" withheld without being declared.
     w2003: (r) => ({ ...r, netPaid: r.netPaid - 500_00 }),
   };
 
   const records = workers.map((w) => {
-    const record = fairPaidRecord(w, orgOf.get(w.orgId)!, byWorker.get(w.id) ?? [], lastMonth, new Date(now.getTime() - 25 * DAY_MS));
+    const record = fairPaidRecord(
+      w,
+      orgOf.get(w.orgId)!,
+      byWorker.get(w.id) ?? [],
+      lastMonth,
+      new Date(now.getTime() - 25 * DAY_MS),
+    );
     return lastMonthAdjustments[w.id]?.(record) ?? record;
   });
 
   // This month: Ramesh's advance sheet pays 9h of the 13h 32m overtime recorded.
   const ramesh = workers.find((w) => w.id === "w1001")!;
-  const fair = fairPaidRecord(ramesh, orgOf.get("org1")!, byWorker.get("w1001") ?? [], thisMonth, new Date(now.getTime() - DAY_MS));
+  const fair = fairPaidRecord(
+    ramesh,
+    orgOf.get("org1")!,
+    byWorker.get("w1001") ?? [],
+    thisMonth,
+    new Date(now.getTime() - DAY_MS),
+  );
   const otRate = rate(ramesh, orgOf.get("org1")!) * 2;
   const unpaidMinutes = Math.min(RAMESH_UNPAID_OT_MINUTES, fair.paidOvertimeHours * 60);
   const unpaid = Math.round((unpaidMinutes * otRate) / 60);
@@ -160,8 +184,15 @@ function buildDisputes(now: Date): PayDispute[] {
 function buildCertificates(shifts: Shift[], now: Date): CertificateRequest[] {
   const yearAgo = getISTDay(new Date(now.getTime() - 365 * DAY_MS));
   const daysFor = (workerId: string) =>
-    [...minutesByDay(shifts.filter((s): s is ClosedShift => s.workerId === workerId && Boolean(s.outAt))).keys()].filter((d) => d >= yearAgo).sort();
-  const request = (id: string, workerId: string, status: CertificateRequest["status"], requestedDaysAgo: number): CertificateRequest => {
+    [...minutesByDay(shifts.filter((s): s is ClosedShift => s.workerId === workerId && Boolean(s.outAt))).keys()]
+      .filter((d) => d >= yearAgo)
+      .sort();
+  const request = (
+    id: string,
+    workerId: string,
+    status: CertificateRequest["status"],
+    requestedDaysAgo: number,
+  ): CertificateRequest => {
     const days = daysFor(workerId);
     return {
       id,
@@ -173,7 +204,9 @@ function buildCertificates(shifts: Shift[], now: Date): CertificateRequest[] {
       from: days[0],
       to: days[days.length - 1],
       requestedAt: new Date(now.getTime() - requestedDaysAgo * DAY_MS),
-      ...(status === "approved" ? { decidedAt: new Date(now.getTime() - (requestedDaysAgo - 1) * DAY_MS), decidedBy: "admin1" } : {}),
+      ...(status === "approved"
+        ? { decidedAt: new Date(now.getTime() - (requestedDaysAgo - 1) * DAY_MS), decidedBy: "admin1" }
+        : {}),
     };
   };
   return [request("cert-1", "w1003", "requested", 2), request("cert-2", "w1005", "approved", 20)];

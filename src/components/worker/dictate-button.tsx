@@ -53,7 +53,9 @@ export function DictateButton({ onText, className }: { onText: (text: string) =>
       aria-label={listening ? t("stopDictation") : t("dictate")}
       className={cn(
         "press relative z-0 flex size-12 shrink-0 items-center justify-center rounded-full",
-        listening ? "mic-pulse bg-danger text-white" : "bg-primary-soft text-primary-strong hover:bg-primary hover:text-on-primary",
+        listening
+          ? "mic-pulse bg-danger text-white"
+          : "bg-primary-soft text-primary-strong hover:bg-primary hover:text-on-primary",
         className,
       )}
     >

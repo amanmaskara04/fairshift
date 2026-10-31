@@ -46,7 +46,11 @@ export function HelpAssistant() {
   }
 
   // Gemini writes the steps; without it, plain steps for the topic in the worker's language.
-  const steps = result ? (result.steps.length ? result.steps : t.raw(`fallbackSteps.${result.topic}`) as string[]) : [];
+  const steps = result
+    ? result.steps.length
+      ? result.steps
+      : (t.raw(`fallbackSteps.${result.topic}`) as string[])
+    : [];
 
   return (
     <section aria-labelledby="ask-title" className="card flex flex-col gap-4 p-5">
@@ -65,7 +69,14 @@ export function HelpAssistant() {
       <div className="flex flex-col gap-2">
         <Label htmlFor="help-text">{t("label")}</Label>
         <div className="flex items-start gap-2">
-          <Textarea id="help-text" value={text} onChange={(e) => setText(e.target.value.slice(0, 800))} rows={3} placeholder={t("placeholder")} className="flex-1" />
+          <Textarea
+            id="help-text"
+            value={text}
+            onChange={(e) => setText(e.target.value.slice(0, 800))}
+            rows={3}
+            placeholder={t("placeholder")}
+            className="flex-1"
+          />
           <DictateButton
             onText={(spoken) => {
               const next = `${text} ${spoken}`.trim();
@@ -79,7 +90,12 @@ export function HelpAssistant() {
           {t("private")}
         </p>
       </div>
-      <Button size="lg" onClick={() => ask()} disabled={pending || text.trim().length < 3} aria-busy={pending || undefined}>
+      <Button
+        size="lg"
+        onClick={() => ask()}
+        disabled={pending || text.trim().length < 3}
+        aria-busy={pending || undefined}
+      >
         <Sparkles aria-hidden="true" className="size-5" />
         {pending ? t("thinking") : t("ask")}
       </Button>
@@ -90,7 +106,13 @@ export function HelpAssistant() {
       )}
 
       {result && (
-        <div aria-live="polite" className={cn("rise-in flex flex-col gap-3 rounded-2xl border p-4", result.urgency === "emergency" ? "border-danger bg-danger-soft" : "border-line")}>
+        <div
+          aria-live="polite"
+          className={cn(
+            "rise-in flex flex-col gap-3 rounded-2xl border p-4",
+            result.urgency === "emergency" ? "border-danger bg-danger-soft" : "border-line",
+          )}
+        >
           <div className="flex items-center justify-between gap-2">
             <Badge tone={URGENCY_TONE[result.urgency]}>
               {result.urgency === "emergency" && <Siren aria-hidden="true" className="size-4" />}
@@ -109,7 +131,13 @@ export function HelpAssistant() {
                 const line = getHelpline(id);
                 return (
                   <li key={id}>
-                    <a href={`tel:${line.dial}`} className={cn(buttonVariants({ variant: line.kind === "emergency" ? "danger" : "secondary", size: "lg" }), "w-full justify-between")}>
+                    <a
+                      href={`tel:${line.dial}`}
+                      className={cn(
+                        buttonVariants({ variant: line.kind === "emergency" ? "danger" : "secondary", size: "lg" }),
+                        "w-full justify-between",
+                      )}
+                    >
                       <span className="flex items-center gap-2">
                         <Phone aria-hidden="true" className="size-5" />
                         {t(`lines.${id}.name`)}

@@ -16,7 +16,17 @@ type SubmitButtonProps = Omit<ButtonProps, "type"> & {
  * and shows a spinner, so a slow network never looks like a dead button (and can't double-submit).
  * In a form with several submit buttons, only the pressed one shows the spinner.
  */
-export function SubmitButton({ children, className, name, value, variant, size, unstyled, disabled, ...props }: SubmitButtonProps) {
+export function SubmitButton({
+  children,
+  className,
+  name,
+  value,
+  variant,
+  size,
+  unstyled,
+  disabled,
+  ...props
+}: SubmitButtonProps) {
   const { pending, data } = useFormStatus();
   const isThisOne = pending && (!name || data?.get(String(name)) === String(value));
   const classes = unstyled ? className : cn(buttonVariants({ variant, size }), className);
@@ -32,7 +42,9 @@ export function SubmitButton({ children, className, name, value, variant, size, 
       {...(props as ComponentProps<"button">)}
     >
       {children}
-      {isThisOne && <Loader2 aria-hidden="true" className="absolute top-1/2 right-3 size-5 -translate-y-1/2 animate-spin" />}
+      {isThisOne && (
+        <Loader2 aria-hidden="true" className="absolute top-1/2 right-3 size-5 -translate-y-1/2 animate-spin" />
+      )}
     </button>
   );
 }

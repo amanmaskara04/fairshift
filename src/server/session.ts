@@ -23,9 +23,7 @@ function getSecret(): string {
   }
 
   if (!devSecretWarned) {
-    console.warn(
-      "[FairShift] SESSION_SECRET not set — using fixed dev secret. Do NOT use in production."
-    );
+    console.warn("[FairShift] SESSION_SECRET not set — using fixed dev secret. Do NOT use in production.");
     devSecretWarned = true;
   }
   return "fairshift-dev-secret-do-not-use-in-production-1234567890";
@@ -47,9 +45,7 @@ function verify(token: string): SessionPayload | null {
   const encoded = token.substring(0, dotIndex);
   const sig = token.substring(dotIndex + 1);
 
-  const expectedSig = createHmac("sha256", secret)
-    .update(encoded)
-    .digest("base64url");
+  const expectedSig = createHmac("sha256", secret).update(encoded).digest("base64url");
 
   // Constant-time comparison
   const sigBuf = Buffer.from(sig, "base64url");

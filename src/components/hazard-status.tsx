@@ -43,7 +43,15 @@ export function HazardAge({ hazard, now, className }: { hazard: Hazard; now: Dat
 }
 
 /** The hazard's history in the viewer's language. Escalations name the role they went to. */
-export function HazardTimeline({ timeline, sector, locale }: { timeline: HazardTimelineEntry[]; sector: Sector; locale: string }) {
+export function HazardTimeline({
+  timeline,
+  sector,
+  locale,
+}: {
+  timeline: HazardTimelineEntry[];
+  sector: Sector;
+  locale: string;
+}) {
   const t = useTranslations("report");
   const chain = ESCALATION_CHAINS[sector];
   return (
@@ -54,7 +62,11 @@ export function HazardTimeline({ timeline, sector, locale }: { timeline: HazardT
             aria-hidden="true"
             className={cn(
               "absolute top-1.5 -left-7 size-5 rounded-full border-4 border-surface ring-1 ring-line",
-              step.status === "escalated" ? "bg-danger" : step.status === "fixed" || step.status === "confirmed" ? "bg-success" : "bg-primary",
+              step.status === "escalated"
+                ? "bg-danger"
+                : step.status === "fixed" || step.status === "confirmed"
+                  ? "bg-success"
+                  : "bg-primary",
             )}
           />
           <p className="font-bold">
@@ -62,7 +74,11 @@ export function HazardTimeline({ timeline, sector, locale }: { timeline: HazardT
               ? t("events.escalated", { role: t(`roles.${chain[Math.min(step.level, chain.length) - 1]}`) })
               : t(`events.${step.status}`)}
           </p>
-          {step.note && step.status === "dismissed" && <p className="text-ink-2">{t.has(`dismissReasons.${step.note}`) ? t(`dismissReasons.${step.note}`) : step.note}</p>}
+          {step.note && step.status === "dismissed" && (
+            <p className="text-ink-2">
+              {t.has(`dismissReasons.${step.note}`) ? t(`dismissReasons.${step.note}`) : step.note}
+            </p>
+          )}
           {step.note && (step.status === "fixed" || step.status === "reopened") && (
             <p className="text-ink-2">{step.note === "not_fixed" ? t("events.notFixedNote") : step.note}</p>
           )}

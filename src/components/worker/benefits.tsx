@@ -84,7 +84,10 @@ function ProgressRing({ done, needed, label }: { done: number; needed: number; l
           className="ring-progress"
         />
       </svg>
-      <span aria-hidden="true" className="figure absolute inset-0 flex flex-col items-center justify-center leading-none">
+      <span
+        aria-hidden="true"
+        className="figure absolute inset-0 flex flex-col items-center justify-center leading-none"
+      >
         <span className="text-lg font-extrabold">{done}</span>
         <span className="text-[0.7rem] text-ink-2">/ {needed}</span>
       </span>
@@ -92,7 +95,15 @@ function ProgressRing({ done, needed, label }: { done: number; needed: number; l
   );
 }
 
-function Scheme({ card, answers, onAnswer }: { card: BenefitCard; answers: Answers; onAnswer: (c: ConditionId, v: boolean) => void }) {
+function Scheme({
+  card,
+  answers,
+  onAnswer,
+}: {
+  card: BenefitCard;
+  answers: Answers;
+  onAnswer: (c: ConditionId, v: boolean) => void;
+}) {
   const t = useTranslations("benefits");
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -104,7 +115,13 @@ function Scheme({ card, answers, onAnswer }: { card: BenefitCard; answers: Answe
   const daysMet = card.daysRemaining === 0;
   const eligible = daysMet && !ruledOut && unanswered.length === 0;
   const progressLabel = card.needed > 1 ? t("progress", { done: card.done, needed: card.needed }) : "";
-  const statusText = ruledOut ? t("status.notEligible") : eligible ? t("status.eligible") : daysMet ? t("status.answer") : t("status.daysLeft", { count: card.daysRemaining });
+  const statusText = ruledOut
+    ? t("status.notEligible")
+    : eligible
+      ? t("status.eligible")
+      : daysMet
+        ? t("status.answer")
+        : t("status.daysLeft", { count: card.daysRemaining });
 
   function requestCertificate() {
     setError("");
@@ -129,11 +146,20 @@ function Scheme({ card, answers, onAnswer }: { card: BenefitCard; answers: Answe
           <h3 className="text-lg leading-tight font-extrabold">{card.name}</h3>
           <p className="text-ink-2">{card.summary}</p>
           <Badge tone={ruledOut ? "neutral" : eligible ? "success" : "warning"} className="mt-1 w-fit">
-            {eligible ? <CircleCheck aria-hidden="true" className="size-4" /> : ruledOut ? <X aria-hidden="true" className="size-4" /> : <Hourglass aria-hidden="true" className="size-4" />}
+            {eligible ? (
+              <CircleCheck aria-hidden="true" className="size-4" />
+            ) : ruledOut ? (
+              <X aria-hidden="true" className="size-4" />
+            ) : (
+              <Hourglass aria-hidden="true" className="size-4" />
+            )}
             {statusText}
           </Badge>
         </div>
-        <SpeakButton text={[card.name, card.summary, progressLabel, statusText].filter(Boolean).join(". ")} className="shrink-0" />
+        <SpeakButton
+          text={[card.name, card.summary, progressLabel, statusText].filter(Boolean).join(". ")}
+          className="shrink-0"
+        />
       </div>
 
       {!ruledOut && daysMet && unanswered.length > 0 && (
@@ -160,9 +186,14 @@ function Scheme({ card, answers, onAnswer }: { card: BenefitCard; answers: Answe
           <ListChecks aria-hidden="true" className="size-5" />
           {t("howToApply")}
         </Button>
-        {card.needsWorkCertificate && daysMet && !card.wageTooHigh && (
-          card.certificate?.status === "approved" && card.certificate.url ? (
-            <a href={card.certificate.url} className="inline-flex min-h-12 items-center gap-2 rounded-full bg-success px-5 font-bold text-white">
+        {card.needsWorkCertificate &&
+          daysMet &&
+          !card.wageTooHigh &&
+          (card.certificate?.status === "approved" && card.certificate.url ? (
+            <a
+              href={card.certificate.url}
+              className="inline-flex min-h-12 items-center gap-2 rounded-full bg-success px-5 font-bold text-white"
+            >
               <FileText aria-hidden="true" className="size-5" />
               {t("certificate.open")}
             </a>
@@ -176,8 +207,7 @@ function Scheme({ card, answers, onAnswer }: { card: BenefitCard; answers: Answe
               <FileText aria-hidden="true" className="size-5" />
               {t("certificate.request")}
             </Button>
-          )
-        )}
+          ))}
       </div>
       {error && (
         <p role="alert" className="font-semibold text-danger">
@@ -210,7 +240,12 @@ function Scheme({ card, answers, onAnswer }: { card: BenefitCard; answers: Answe
           <p>{card.howToApply}</p>
           <SpeakButton text={card.howToApply} className="w-fit" />
         </section>
-        <a href={card.officialLink} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 w-fit items-center gap-2 rounded-full border border-line px-4 font-bold text-primary">
+        <a
+          href={card.officialLink}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex min-h-12 w-fit items-center gap-2 rounded-full border border-line px-4 font-bold text-primary"
+        >
           <ExternalLink aria-hidden="true" className="size-4" />
           {t("officialSite")}
         </a>

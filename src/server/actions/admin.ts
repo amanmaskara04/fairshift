@@ -32,7 +32,13 @@ export async function hazardStatusAction(input: unknown): Promise<AdminActionSta
   const parsed = HazardAction.safeParse(input);
   if (!parsed.success) return { error: "invalid" };
   const { hazardId, ...action } = parsed.data;
-  const result = await adminHazardAction(getRepos(), { orgId: session.orgId, hazardId, adminId: session.uid, action, now: new Date() });
+  const result = await adminHazardAction(getRepos(), {
+    orgId: session.orgId,
+    hazardId,
+    adminId: session.uid,
+    action,
+    now: new Date(),
+  });
   if (!result.ok) return { error: result.error };
   refresh(hazardId);
   return { ok: true };
@@ -45,7 +51,12 @@ export async function mergeHazardAction(input: unknown): Promise<AdminActionStat
   const session = await requireRole("admin");
   const parsed = Merge.safeParse(input);
   if (!parsed.success) return { error: "invalid" };
-  const result = await mergeHazards(getRepos(), { orgId: session.orgId, ...parsed.data, adminId: session.uid, now: new Date() });
+  const result = await mergeHazards(getRepos(), {
+    orgId: session.orgId,
+    ...parsed.data,
+    adminId: session.uid,
+    now: new Date(),
+  });
   if (!result.ok) return { error: result.error };
   refresh();
   return { ok: true };
@@ -55,7 +66,12 @@ export async function unmergeHazardAction(input: unknown): Promise<AdminActionSt
   const session = await requireRole("admin");
   const parsed = z.object({ sourceId: HazardId }).safeParse(input);
   if (!parsed.success) return { error: "invalid" };
-  const result = await unmergeHazard(getRepos(), { orgId: session.orgId, sourceId: parsed.data.sourceId, adminId: session.uid, now: new Date() });
+  const result = await unmergeHazard(getRepos(), {
+    orgId: session.orgId,
+    sourceId: parsed.data.sourceId,
+    adminId: session.uid,
+    now: new Date(),
+  });
   if (!result.ok) return { error: result.error };
   refresh();
   return { ok: true };

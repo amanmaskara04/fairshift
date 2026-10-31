@@ -27,7 +27,12 @@ export async function checkIn(repos: Repos, input: CheckInInput): Promise<Attend
   if (!site || !secret) return { ok: false, error: "invalid_qr" };
 
   const offline = input.scannedAt && input.now.getTime() - input.scannedAt.getTime() > 60_000;
-  const verdict = verifyQRToken(input.token, input.now, secret, offline ? { offlineScannedAt: input.scannedAt } : undefined);
+  const verdict = verifyQRToken(
+    input.token,
+    input.now,
+    secret,
+    offline ? { offlineScannedAt: input.scannedAt } : undefined,
+  );
   if (!verdict.valid) return { ok: false, error: verdict.reason === "tampered" ? "invalid_qr" : "expired_qr" };
   if (site.orgId !== input.orgId) return { ok: false, error: "wrong_site" };
   if (shifts.some((s) => !s.outAt)) return { ok: false, error: "already_in" };

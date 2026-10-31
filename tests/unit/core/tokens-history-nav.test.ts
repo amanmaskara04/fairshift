@@ -33,7 +33,8 @@ describe("signed tokens", () => {
   });
 
   it("rejects garbage", () => {
-    for (const token of ["", "abc", "a.b.c", "%%%.###"]) expect(verifyToken(token, SECRET, "passport", now).ok).toBe(false);
+    for (const token of ["", "abc", "a.b.c", "%%%.###"])
+      expect(verifyToken(token, SECRET, "passport", now).ok).toBe(false);
   });
 });
 
@@ -43,7 +44,11 @@ describe("work history", () => {
     ["site9", { name: "Old Market Mall", employer: "Shakti Infra", sector: "construction" }],
   ]);
   const atSite = (siteId: string, shifts: ReturnType<typeof dayShifts>) => shifts.map((s) => ({ ...s, siteId }));
-  const shifts = [...atSite("site9", dayShifts("2026-06-01", 10, 8)), ...atSite("site1", dayShifts("2026-09-01", 25, 9)), ist("2026-10-01", "22:00", "06:00", true)];
+  const shifts = [
+    ...atSite("site9", dayShifts("2026-06-01", 10, 8)),
+    ...atSite("site1", dayShifts("2026-09-01", 25, 9)),
+    ist("2026-10-01", "22:00", "06:00", true),
+  ];
 
   it("has one verified entry per employer site, newest first, with date range", () => {
     const history = buildWorkHistory(shifts, sites, "Mason");
@@ -68,12 +73,18 @@ describe("work history", () => {
   it("share toggles hide exactly the sections the worker switched off", () => {
     const history = buildWorkHistory(shifts, sites, "Mason");
     const skills = ["Scaffolding safety"];
-    expect(sharedSections(skills, history, { skills: true, history: false, hours: false })).toEqual({ skills, history: undefined, totals: undefined });
+    expect(sharedSections(skills, history, { skills: true, history: false, hours: false })).toEqual({
+      skills,
+      history: undefined,
+      totals: undefined,
+    });
     const noHours = sharedSections(skills, history, { skills: false, history: true, hours: false });
     expect(noHours.skills).toBeUndefined();
     expect(noHours.totals).toBeUndefined();
     expect(noHours.history?.every((e) => e.minutes === 0)).toBe(true);
-    expect(sharedSections(skills, history, { skills: true, history: true, hours: true }).totals?.days).toBeGreaterThan(0);
+    expect(sharedSections(skills, history, { skills: true, history: true, hours: true }).totals?.days).toBeGreaterThan(
+      0,
+    );
   });
 });
 

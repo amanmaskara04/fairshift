@@ -6,9 +6,7 @@ export function proxy(request: NextRequest) {
 
   // Optimistic auth redirect: /w/* and /a/* without fs_session → /login
   const { pathname } = request.nextUrl;
-  const isProtected = ["/w", "/a"].some(
-    (prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`)
-  );
+  const isProtected = ["/w", "/a"].some((prefix) => pathname === prefix || pathname.startsWith(`${prefix}/`));
   if (isProtected && !request.cookies.has("fs_session")) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
@@ -31,16 +29,11 @@ export function proxy(request: NextRequest) {
     upgrade-insecure-requests;
   `;
 
-  const contentSecurityPolicyHeaderValue = cspHeader
-    .replace(/\s{2,}/g, " ")
-    .trim();
+  const contentSecurityPolicyHeaderValue = cspHeader.replace(/\s{2,}/g, " ").trim();
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
-  requestHeaders.set(
-    "Content-Security-Policy",
-    contentSecurityPolicyHeaderValue
-  );
+  requestHeaders.set("Content-Security-Policy", contentSecurityPolicyHeaderValue);
 
   const response = NextResponse.next({
     request: {
@@ -48,23 +41,11 @@ export function proxy(request: NextRequest) {
     },
   });
 
-  response.headers.set(
-    "Content-Security-Policy",
-    contentSecurityPolicyHeaderValue
-  );
-  response.headers.set(
-    "Strict-Transport-Security",
-    "max-age=31536000; includeSubDomains"
-  );
+  response.headers.set("Content-Security-Policy", contentSecurityPolicyHeaderValue);
+  response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
   response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set(
-    "Referrer-Policy",
-    "strict-origin-when-cross-origin"
-  );
-  response.headers.set(
-    "Permissions-Policy",
-    "camera=(self), microphone=(self), geolocation=(self)"
-  );
+  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
+  response.headers.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(self)");
   response.headers.set("Cross-Origin-Opener-Policy", "same-origin");
 
   return response;
@@ -73,8 +54,7 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source:
-        "/((?!_next/static|_next/image|favicon\\.ico|serwist/).*)",
+      source: "/((?!_next/static|_next/image|favicon\\.ico|serwist/).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },

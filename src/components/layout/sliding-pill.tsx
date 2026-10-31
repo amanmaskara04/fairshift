@@ -6,7 +6,10 @@ import { useLayoutEffect, useRef, useState, type CSSProperties, type RefObject }
  * Position of the active-tab pill under a list of nav items. The pill moves with a
  * transform transition (GPU only) instead of jumping between items.
  */
-export function useSlidingPill(activeIndex: number): { listRef: RefObject<HTMLUListElement | null>; pillStyle: CSSProperties } {
+export function useSlidingPill(activeIndex: number): {
+  listRef: RefObject<HTMLUListElement | null>;
+  pillStyle: CSSProperties;
+} {
   const listRef = useRef<HTMLUListElement>(null);
   const [pillStyle, setPillStyle] = useState<CSSProperties>({ opacity: 0 });
 

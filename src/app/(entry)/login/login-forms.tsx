@@ -21,7 +21,11 @@ export function LoginForms({ initialTab = "worker" }: { initialTab?: Tab }) {
 
   return (
     <section className="flex flex-col gap-4">
-      <div role="tablist" aria-label={t("loginButton")} className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface-2 p-1">
+      <div
+        role="tablist"
+        aria-label={t("loginButton")}
+        className="grid grid-cols-2 gap-1 rounded-full border border-line bg-surface-2 p-1"
+      >
         {(["worker", "admin"] as const).map((value) => (
           <Button
             key={value}
@@ -90,7 +94,10 @@ function WorkerForm() {
             value={values[field]}
             onFocus={() => setActive(field)}
             onChange={(e) => setValues((prev) => ({ ...prev, [field]: e.target.value.replace(/\D/g, "") }))}
-            className={cn("figure mt-1.5 min-h-14 text-center text-2xl tracking-[0.4em]", active === field && "border-primary ring-2 ring-primary/25")}
+            className={cn(
+              "figure mt-1.5 min-h-14 text-center text-2xl tracking-[0.4em]",
+              active === field && "border-primary ring-2 ring-primary/25",
+            )}
           />
         </div>
       ))}
@@ -134,7 +141,14 @@ function AdminForm() {
       </div>
       <div>
         <Label htmlFor="admin-password">{t("password")}</Label>
-        <Input id="admin-password" name="password" type="password" autoComplete="current-password" required className="mt-1" />
+        <Input
+          id="admin-password"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          className="mt-1"
+        />
       </div>
       <Button type="submit" disabled={pending} aria-busy={pending || undefined}>
         {pending ? <Loader2 aria-hidden="true" className="size-5 animate-spin" /> : null}

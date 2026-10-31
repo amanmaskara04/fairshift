@@ -31,10 +31,16 @@ export function Sidebar({ variant }: { variant: "rail" | "strip" }) {
         ref={listRef}
         className={cn(
           "relative",
-          rail ? "flex flex-col gap-1" : "no-scrollbar flex snap-x gap-1.5 overflow-x-auto px-4 pb-3 [mask-image:linear-gradient(to_right,black_85%,transparent)]",
+          rail
+            ? "flex flex-col gap-1"
+            : "no-scrollbar flex snap-x gap-1.5 overflow-x-auto px-4 pb-3 [mask-image:linear-gradient(to_right,black_85%,transparent)]",
         )}
       >
-        <li aria-hidden="true" className={cn(PILL_CLASS, rail ? "rounded-xl bg-primary-soft" : "rounded-full bg-primary")} style={pillStyle} />
+        <li
+          aria-hidden="true"
+          className={cn(PILL_CLASS, rail ? "rounded-xl bg-primary-soft" : "rounded-full bg-primary")}
+          style={pillStyle}
+        />
         {ITEMS.map(({ href, key, Icon }, i) => {
           const current = i === active;
           return (

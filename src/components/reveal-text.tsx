@@ -2,7 +2,15 @@
  * Headline whose words skew in one after another (CSS only, see `.reveal-word` in globals.css).
  * The text stays real text, so it is selectable and screen readers read it normally.
  */
-export function RevealText({ text, delayMs = 0, markLast = false }: { text: string; delayMs?: number; markLast?: boolean }) {
+export function RevealText({
+  text,
+  delayMs = 0,
+  markLast = false,
+}: {
+  text: string;
+  delayMs?: number;
+  markLast?: boolean;
+}) {
   const words = text.split(" ");
   return (
     <>

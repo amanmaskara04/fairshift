@@ -4,8 +4,8 @@
 // Weeks are evaluated independently so multi-week periods (monthly payslips)
 // never apply a single 48h limit to the whole period.
 
-import { ClosedShift, LabourRules } from './types';
-import { getISTWeekBucket, splitShiftByDay } from './time';
+import { ClosedShift, LabourRules } from "./types";
+import { getISTWeekBucket, splitShiftByDay } from "./time";
 
 export const DEFAULT_LABOUR_RULES: LabourRules = {
   dailyHrs: 8,
@@ -13,7 +13,7 @@ export const DEFAULT_LABOUR_RULES: LabourRules = {
   otMultiplier: 2,
 };
 
-export type OvertimeBasis = 'daily' | 'weekly' | 'mixed' | 'none';
+export type OvertimeBasis = "daily" | "weekly" | "mixed" | "none";
 
 export interface WeekOvertime {
   week: string;
@@ -21,7 +21,7 @@ export interface WeekOvertime {
   dailyOtMin: number;
   weeklyOtMin: number;
   overtimeMin: number;
-  basis: 'daily' | 'weekly';
+  basis: "daily" | "weekly";
 }
 
 export interface OvertimeResult {
@@ -42,10 +42,7 @@ export function minutesByDay(shifts: ClosedShift[]): Map<string, number> {
   return byDay;
 }
 
-export function computeOvertime(
-  shifts: ClosedShift[],
-  rules: LabourRules = DEFAULT_LABOUR_RULES,
-): OvertimeResult {
+export function computeOvertime(shifts: ClosedShift[], rules: LabourRules = DEFAULT_LABOUR_RULES): OvertimeResult {
   const dailyLimitMin = rules.dailyHrs * 60;
   const weeklyLimitMin = rules.weeklyHrs * 60;
 
@@ -70,7 +67,7 @@ export function computeOvertime(
         dailyOtMin,
         weeklyOtMin,
         overtimeMin: useDaily ? dailyOtMin : weeklyOtMin,
-        basis: useDaily ? 'daily' : 'weekly',
+        basis: useDaily ? "daily" : "weekly",
       };
     });
 
@@ -78,8 +75,7 @@ export function computeOvertime(
   const overtimeMin = weeks.reduce((sum, w) => sum + w.overtimeMin, 0);
   const otWeeks = weeks.filter((w) => w.overtimeMin > 0);
   const bases = new Set(otWeeks.map((w) => w.basis));
-  const basis: OvertimeBasis =
-    bases.size === 0 ? 'none' : bases.size > 1 ? 'mixed' : otWeeks[0].basis;
+  const basis: OvertimeBasis = bases.size === 0 ? "none" : bases.size > 1 ? "mixed" : otWeeks[0].basis;
 
   return { regularMin: totalMin - overtimeMin, overtimeMin, basis, weeks };
 }

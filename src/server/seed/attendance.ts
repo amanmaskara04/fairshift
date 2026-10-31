@@ -62,7 +62,10 @@ function rameshShifts(now: Date): Shift[] {
   const extras = RAMESH_OVERTIME_THIS_MONTH.slice(RAMESH_OVERTIME_THIS_MONTH.length - otDays.length);
   otDays.forEach((day, i) => overtime.set(day.getTime(), extras[i]));
   // A little overtime in earlier months too, all paid correctly.
-  days.filter((d) => monthKey(d) !== thisMonth).filter((_, i) => i % 9 === 4).forEach((d) => overtime.set(d.getTime(), 60));
+  days
+    .filter((d) => monthKey(d) !== thisMonth)
+    .filter((_, i) => i % 9 === 4)
+    .forEach((d) => overtime.set(d.getTime(), 60));
 
   return days.map((day, i) => {
     // Regular days stay under 8h so the overtime above is exact.
