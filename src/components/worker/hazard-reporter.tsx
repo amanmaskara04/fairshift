@@ -2,35 +2,17 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
-import { Camera, Check, Lock, MapPin, Mic, Pencil, Phone, Square, Users } from "lucide-react";
+import { Mic, Square } from "lucide-react";
 import { checkDuplicateAction, submitHazardAction } from "@/server/actions/hazards";
-import { maxSeverity, resolveSeverity } from "@/core/hazard-rules";
-import { urgencyFromText } from "@/core/hazard-urgency";
-import type { HazardCategory } from "@/core/types";
 import { compressImage } from "@/lib/image";
 import { createRecognizer, transcriptFrom, type Recognizer } from "@/lib/speech-recognition";
 import { cn } from "@/lib/utils";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { HazardIcon } from "@/components/hazard-icon";
-import { SpeakButton } from "@/components/speak-button";
+import { CategoryGrid, ConfirmStep, DuplicateStep, type Suggestion } from "@/components/worker/hazard-report-steps";
 
 const MAX_RECORDING_MS = 30_000;
 
-type Severity = "low" | "medium" | "high" | "critical";
-interface Suggestion {
-  category: string;
-  severityHint?: Severity;
-  transcript?: string;
-  transcriptEn?: string;
-  locationHint?: string;
-}
-
 /** Report steps are local state (pick → confirm → duplicate check → sent): Back never steps through them. */
 type Phase = "pick" | "recording" | "analyzing" | "confirm" | "duplicate";
-
-const SEVERITY_TONE = { low: "neutral", medium: "warning", high: "danger", critical: "solidDanger" } as const;
 
 export function HazardReporter({ categories }: { categories: string[] }) {
   const t = useTranslations("report");
@@ -213,116 +195,29 @@ export function HazardReporter({ categories }: { categories: string[] }) {
 
   if (phase === "duplicate" && suggestion) {
     return (
-      <section aria-labelledby="dup-title" className="card rise-in flex flex-col gap-4 p-5" aria-live="polite">
-        <span className="flex size-12 items-center justify-center rounded-2xl bg-info-soft text-[#2558b5]">
-          <Users aria-hidden="true" className="size-6" />
-        </span>
-        <h2 id="dup-title" className="font-display text-2xl font-extrabold">
-          {t("duplicate.title")}
-        </h2>
-        <p>{t("duplicate.body", { count: duplicateCount })}</p>
-        <p className="flex items-center gap-2 text-sm text-ink-2">
-          <Lock aria-hidden="true" className="size-4" />
-          {t("duplicate.private")}
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <Button size="lg" onClick={() => send("auto")} disabled={pending} aria-busy={pending || undefined}>
-            <Check aria-hidden="true" className="size-5" />
-            {t("duplicate.add")}
-          </Button>
-          <Button size="lg" variant="outline" onClick={() => send("new")} disabled={pending}>
-            {t("duplicate.different")}
-          </Button>
-        </div>
-      </section>
+      <DuplicateStep
+        count={duplicateCount}
+        pending={pending}
+        onAdd={() => send("auto")}
+        onDifferent={() => send("new")}
+      />
     );
   }
 
   if (phase === "confirm" && suggestion) {
-    const heardText = suggestion.transcript ? t("weHeard", { text: suggestion.transcript }) : "";
-    const label = t(`categories.${suggestion.category}`);
-    // The same rule the server applies, so the worker sees the severity that will be recorded.
-    const severity = maxSeverity(
-      resolveSeverity(suggestion.category as HazardCategory, suggestion.severityHint),
-      urgencyFromText(suggestion.transcript, suggestion.transcriptEn) ?? "low",
-    );
     return (
-      <div className="flex flex-col gap-4">
-        {errorBox}
-        <section className="card rise-in flex flex-col gap-4 p-5" aria-live="polite">
-          <div className="flex items-center justify-between">
-            <h2 className="font-display text-2xl font-extrabold">{t("confirmTitle")}</h2>
-            <SpeakButton text={`${heardText} ${label}`} />
-          </div>
-          {heardText && <p className="rounded-2xl bg-surface-2 px-4 py-3 italic">{heardText}</p>}
-          <p className="flex flex-wrap items-center gap-3 text-xl font-extrabold">
-            <span className="flex size-14 items-center justify-center rounded-2xl bg-danger-soft text-danger">
-              <HazardIcon category={suggestion.category} className="size-8" />
-            </span>
-            {label}
-            <Badge tone={SEVERITY_TONE[severity]}>{t(`severity.${severity}`)}</Badge>
-          </p>
-          {severity === "critical" && (
-            // Danger to life: calling comes before finishing the report.
-            <a
-              href="tel:112"
-              className="press flex min-h-14 items-center justify-center gap-2 rounded-[18px] bg-danger px-5 text-lg font-bold text-white"
-            >
-              <Phone aria-hidden="true" className="size-5" />
-              {t("callNow")}
-            </a>
-          )}
-          <label className="flex flex-col gap-1.5 font-bold">
-            <span className="flex items-center gap-2">
-              <MapPin aria-hidden="true" className="size-4" />
-              {t("whereLabel")}
-            </span>
-            <Input
-              value={suggestion.locationHint ?? ""}
-              onChange={(e) => setSuggestion({ ...suggestion, locationHint: e.target.value.slice(0, 120) })}
-              placeholder={t("wherePlaceholder")}
-              maxLength={120}
-              className="font-normal"
-            />
-          </label>
-        </section>
-
-        <label className="tile flex min-h-14 cursor-pointer items-center gap-3 p-3 font-bold">
-          <span className="flex size-10 items-center justify-center rounded-xl bg-surface-2">
-            <Camera aria-hidden="true" className="size-5" />
-          </span>
-          {photo ? t("photoAdded") : t("addPhoto")}
-          <input
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="sr-only"
-            onChange={(e) => onPhoto(e.target.files?.[0])}
-          />
-        </label>
-
-        <label className="tile flex min-h-14 cursor-pointer items-center gap-3 p-3 font-bold">
-          <input
-            type="checkbox"
-            checked={hideName}
-            onChange={(e) => setHideName(e.target.checked)}
-            className="ml-2 size-6 accent-primary"
-          />
-          <Lock aria-hidden="true" className="size-5" />
-          {t("hideMyName")}
-        </label>
-
-        <div className="grid grid-cols-2 gap-3">
-          <Button variant="outline" size="lg" onClick={() => setPhase("pick")} disabled={pending}>
-            <Pencil aria-hidden="true" className="size-5" />
-            {t("change")}
-          </Button>
-          <Button size="lg" onClick={submit} disabled={pending} aria-busy={pending || undefined}>
-            <Check aria-hidden="true" className="size-6" />
-            {t("send")}
-          </Button>
-        </div>
-      </div>
+      <ConfirmStep
+        suggestion={suggestion}
+        onSuggestionChange={setSuggestion}
+        photoAdded={Boolean(photo)}
+        onPhoto={onPhoto}
+        hideName={hideName}
+        onHideNameChange={setHideName}
+        pending={pending}
+        onChange={() => setPhase("pick")}
+        onSend={submit}
+        errorBox={errorBox}
+      />
     );
   }
 
@@ -362,22 +257,7 @@ export function HazardReporter({ categories }: { categories: string[] }) {
       </div>
 
       <p className="eyebrow rule-label">{t("orTapIcon")}</p>
-      <ul className="stagger grid grid-cols-3 gap-2.5">
-        {categories.map((category) => (
-          <li key={category}>
-            <button
-              type="button"
-              onClick={() => pickCategory(category)}
-              className="tile flex min-h-28 w-full flex-col items-center justify-center gap-2 p-2 text-center text-[0.95rem] leading-tight font-bold"
-            >
-              <span className="flex size-12 items-center justify-center rounded-2xl bg-danger-soft text-danger">
-                <HazardIcon category={category} className="size-7" />
-              </span>
-              {t(`categories.${category}`)}
-            </button>
-          </li>
-        ))}
-      </ul>
+      <CategoryGrid categories={categories} onPick={pickCategory} />
     </div>
   );
 }

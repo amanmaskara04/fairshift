@@ -1,24 +1,20 @@
-import { getLocale, getTranslations } from "next-intl/server";
-import { BadgeCheck, Building, FileText } from "lucide-react";
+import { getTranslations } from "next-intl/server";
+import { Building } from "lucide-react";
 import { requireRole } from "@/server/dal";
 import { getRepos } from "@/server/repos";
 import { buildOrgSnapshot } from "@/server/services/workforce";
-import { certificateCandidates, type EligibilityRow } from "@/server/services/benefits";
+import { certificateCandidates } from "@/server/services/benefits";
 import { pendingSkills } from "@/server/services/skills";
-import { certificateToken } from "@/server/passport";
-import { getScheme } from "@/config/schemes";
-import type { Locale } from "@/i18n/locales";
-import { formatDay, formatDuration } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { FatigueReasons, RiskReasons, riskTone } from "@/components/admin/reason-chips";
-import { CertificateDecision, SkillDecision } from "@/components/admin/decision-buttons";
-import { AddSkill } from "@/components/skill-form";
+import { RiskReasons, riskTone } from "@/components/admin/reason-chips";
+import { CertificateApprovals } from "@/components/admin/certificates";
+import { PeopleList } from "@/components/admin/people-list";
+import { SkillQueue } from "@/components/admin/skill-queue";
 import { PageHeader } from "@/components/page-header";
 
 export default async function PeoplePage() {
   const session = await requireRole("admin");
-  const [t, locale] = await Promise.all([getTranslations("admin.peoplePage"), getLocale() as Promise<Locale>]);
+  const t = await getTranslations("admin.peoplePage");
   const repos = getRepos();
   const now = new Date();
   const [snapshot, sites, candidates, skillQueue] = await Promise.all([
@@ -29,12 +25,6 @@ export default async function PeoplePage() {
   ]);
   if (!snapshot) return null;
   const siteOf = new Map(sites.map((s) => [s.id, s.name]));
-  // Only requests need a decision up top; everyone's progress sits with their row below.
-  const approvals = candidates.filter((c) => c.request?.status === "requested");
-  const certsOf = Map.groupBy(candidates, (c) => c.worker.id);
-  const certCell = (workerId: string) => (
-    <CertificateProgress rows={certsOf.get(workerId) ?? []} t={t} locale={locale} />
-  );
 
   return (
     <div className="flex flex-col gap-5">
@@ -61,250 +51,13 @@ export default async function PeoplePage() {
         </ul>
       </section>
 
-      <section id="skills" aria-labelledby="skills-title" className="flex scroll-mt-24 flex-col gap-3">
-        <div className="flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <h2 id="skills-title" className="font-display text-xl font-extrabold">
-              {t("skills.title")}
-            </h2>
-            <p className="text-sm text-ink-2">{t("skills.hint")}</p>
-          </div>
-          <AddSkill
-            workers={snapshot.workers.map(({ worker }) => ({
-              id: worker.id,
-              label: `${worker.name} (#${worker.code})`,
-            }))}
-          />
-        </div>
-        {skillQueue.length === 0 ? (
-          <p className="text-ink-2">{t("skills.none")}</p>
-        ) : (
-          <ul className="grid gap-3 md:grid-cols-2">
-            {skillQueue.map(({ skill, worker }) => (
-              <li key={skill.id} className="card flex flex-col gap-2 p-4">
-                <div className="flex items-start gap-3">
-                  <span
-                    aria-hidden="true"
-                    className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-strong"
-                  >
-                    <BadgeCheck className="size-5" />
-                  </span>
-                  <div className="min-w-0">
-                    <p className="font-bold">{skill.title}</p>
-                    <p className="text-sm text-ink-2">
-                      {worker.name} · {skill.issuer} · {formatDay(skill.date.toISOString().slice(0, 10), locale)}
-                    </p>
-                    {skill.evidence && (
-                      <p className="mt-1 text-sm">{t("skills.evidence", { evidence: skill.evidence })}</p>
-                    )}
-                  </div>
-                </div>
-                <SkillDecision id={skill.id} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      <SkillQueue queue={skillQueue} workers={snapshot.workers.map((w) => w.worker)} />
 
-      <section id="certificates" aria-labelledby="cert-title" className="flex scroll-mt-24 flex-col gap-3">
-        <h2 id="cert-title" className="font-display text-xl font-extrabold">
-          {t("certificates.title")}
-        </h2>
-        <p className="text-sm text-ink-2">{t("certificates.hint")}</p>
-        {approvals.length === 0 ? (
-          <p className="text-ink-2">{t("certificates.none")}</p>
-        ) : (
-          <ul className="grid gap-3 md:grid-cols-2">
-            {approvals.map(({ worker, schemeId, progress, request }) => (
-              <li key={`${worker.id}-${schemeId}`} className="card flex flex-col gap-2 p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <p className="font-bold">{worker.name}</p>
-                    <p className="text-sm text-ink-2">{getScheme(schemeId)?.name[locale]}</p>
-                  </div>
-                  <Badge tone={progress.done >= progress.needed ? "success" : "warning"} className="figure">
-                    {t("certificates.progress", { done: progress.done, needed: progress.needed })}
-                  </Badge>
-                </div>
-                <p className="text-sm font-semibold">{t("certificates.requested", { days: request!.daysWorked })}</p>
-                <CertificateDecision id={request!.id} />
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {/* Only requests need a decision up top; everyone's progress sits with their row below. */}
+      <CertificateApprovals approvals={candidates.filter((c) => c.request?.status === "requested")} />
 
-      <section aria-labelledby="people-list" className="flex flex-col gap-3">
-        <h2 id="people-list" className="font-display text-xl font-extrabold">
-          {t("individualTitle")}
-        </h2>
-        {/* Phones: one card per worker, every column visible without sideways scrolling. */}
-        <ul className="flex flex-col gap-3 md:hidden">
-          {snapshot.workers.map((w) => (
-            <li key={w.worker.id}>
-              <Card className="flex flex-col gap-3 p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="font-bold">{w.worker.name}</p>
-                    <p className="truncate text-sm text-ink-2">
-                      {w.worker.jobTitle} · {siteOf.get(w.worker.siteId)}
-                    </p>
-                  </div>
-                  <Badge tone={riskTone(w.risk.score)}>
-                    {t("risk")} {w.risk.score}
-                  </Badge>
-                </div>
-                <dl className="grid grid-cols-2 gap-2 text-sm">
-                  <div>
-                    <dt className="eyebrow">{t("status")}</dt>
-                    <dd>
-                      <Badge tone={w.onSite ? "success" : "neutral"}>{w.onSite ? t("onSite") : t("offSite")}</Badge>
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="eyebrow">{t("thisWeek")}</dt>
-                    <dd className="figure">
-                      {formatDuration(w.weekMinutes)}
-                      {w.overtimeThisWeek > 0 && (
-                        <span className="block text-ink-2">
-                          {t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}
-                        </span>
-                      )}
-                    </dd>
-                  </div>
-                </dl>
-                <div className="flex flex-col gap-1">
-                  <p className="eyebrow">{t("fatigue")}</p>
-                  <FatigueReasons alerts={w.fatigue} />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="eyebrow">{t("risk")}</p>
-                  <RiskReasons risk={w.risk} />
-                </div>
-                <div className="flex flex-col gap-1">
-                  <p className="eyebrow">{t("certificates.column")}</p>
-                  {certCell(w.worker.id)}
-                </div>
-              </Card>
-            </li>
-          ))}
-        </ul>
-
-        {/* Laptops: the full comparison table. */}
-        <Card className="hidden overflow-x-auto p-0 md:block" tabIndex={0} role="region" aria-label={t("title")}>
-          <table className="w-full min-w-[920px] text-left">
-            <caption className="sr-only">{t("title")}</caption>
-            <thead className="border-b border-line text-xs tracking-wide text-ink-2 uppercase">
-              <tr>
-                <th scope="col" className="px-4 py-3 font-bold">
-                  {t("worker")}
-                </th>
-                <th scope="col" className="px-4 py-3 font-bold">
-                  {t("status")}
-                </th>
-                <th scope="col" className="px-4 py-3 font-bold">
-                  {t("thisWeek")}
-                </th>
-                <th scope="col" className="px-4 py-3 font-bold">
-                  {t("fatigue")}
-                </th>
-                <th scope="col" className="px-4 py-3 font-bold">
-                  {t("risk")}
-                </th>
-                <th scope="col" className="px-4 py-3 font-bold">
-                  {t("certificates.column")}
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {snapshot.workers.map((w) => (
-                <tr
-                  key={w.worker.id}
-                  className="border-t border-line align-top transition-colors hover:bg-surface-2/50"
-                >
-                  <th scope="row" className="px-4 py-3 font-semibold">
-                    {w.worker.name}
-                    <span className="block text-sm font-normal text-ink-2">
-                      {w.worker.jobTitle} · {siteOf.get(w.worker.siteId)}
-                    </span>
-                  </th>
-                  <td className="px-4 py-3">
-                    <Badge tone={w.onSite ? "success" : "neutral"}>{w.onSite ? t("onSite") : t("offSite")}</Badge>
-                  </td>
-                  <td className="px-4 py-3 whitespace-nowrap">
-                    {formatDuration(w.weekMinutes)}
-                    {w.overtimeThisWeek > 0 && (
-                      <span className="block text-sm text-ink-2">
-                        {t("overtime", { hours: formatDuration(w.overtimeThisWeek) })}
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <FatigueReasons alerts={w.fatigue} />
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      <Badge tone={riskTone(w.risk.score)} className="w-fit">
-                        {w.risk.score} / 100
-                      </Badge>
-                      <RiskReasons risk={w.risk} />
-                    </div>
-                  </td>
-                  <td className="px-4 py-3">{certCell(w.worker.id)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </Card>
-      </section>
+      <PeopleList workers={snapshot.workers} siteOf={siteOf} certsOf={Map.groupBy(candidates, (c) => c.worker.id)} />
       <p className="text-sm text-ink-2">{t("method")}</p>
     </div>
-  );
-}
-
-/** One worker's welfare-certificate progress, compact enough for a table cell. */
-function CertificateProgress({
-  rows,
-  t,
-  locale,
-}: {
-  rows: EligibilityRow[];
-  t: Awaited<ReturnType<typeof getTranslations<"admin.peoplePage">>>;
-  locale: Locale;
-}) {
-  if (rows.length === 0) return <p className="text-sm text-ink-2">{t("certificates.notYet")}</p>;
-  return (
-    <ul className="flex flex-col gap-2">
-      {rows.map(({ schemeId, progress, request }) => (
-        <li key={schemeId} className="flex flex-col items-start gap-1 text-sm">
-          <span className="flex flex-wrap items-center gap-1.5">
-            <span className="font-semibold">{getScheme(schemeId)?.name[locale]}</span>
-            <Badge tone={progress.done >= progress.needed ? "success" : "warning"} className="figure">
-              {t("certificates.progress", { done: progress.done, needed: progress.needed })}
-            </Badge>
-          </span>
-          {request?.status === "requested" && (
-            <a href="#certificates" className="font-bold text-primary underline underline-offset-4">
-              {t("certificates.waiting")}
-            </a>
-          )}
-          {request?.status === "approved" && (
-            <a
-              href={`/certificate/${certificateToken(request.id, request.decidedAt ?? request.requestedAt)}`}
-              className="flex items-center gap-1.5 font-bold text-primary underline underline-offset-4"
-            >
-              <FileText aria-hidden="true" className="size-4" />
-              {t("certificates.view")}
-            </a>
-          )}
-          {request?.status === "rejected" && <span className="text-ink-2">{t("certificates.rejected")}</span>}
-          {!request && (
-            <span className="text-ink-2">
-              {progress.done >= progress.needed ? t("certificates.eligibleNoRequest") : t("certificates.close")}
-            </span>
-          )}
-        </li>
-      ))}
-    </ul>
   );
 }
