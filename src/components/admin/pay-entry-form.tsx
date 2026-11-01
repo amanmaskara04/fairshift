@@ -172,7 +172,8 @@ export function PayEntryForm({
 
       <fieldset>
         <legend className="mb-2 font-bold">{t("howPaid")}</legend>
-        <div className="grid grid-cols-3 gap-2">
+        {/* Three in a row when they fit; longer labels (Tamil, Telugu) wrap onto a second row. */}
+        <div className="flex flex-wrap gap-2">
           {PRESETS.map((p) => {
             const disabled = !presetAllowed(
               p,
@@ -183,7 +184,7 @@ export function PayEntryForm({
               <label
                 key={p}
                 className={cn(
-                  "flex min-h-12 cursor-pointer items-center justify-center rounded-2xl border px-2 text-center text-sm font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary",
+                  "flex min-h-12 flex-1 basis-0 cursor-pointer items-center justify-center rounded-2xl border px-2 text-center text-sm font-bold has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-primary",
                   preset === p
                     ? "border-primary bg-primary-soft text-primary-strong"
                     : "border-line bg-surface text-ink-2",

@@ -313,7 +313,7 @@ export function PayrollLedger({
               <Landmark aria-hidden="true" className="size-4" />
               {t(`payouts.mode.${provider}`)}
             </Badge>
-            <p aria-live="polite" className="min-w-0 flex-1 text-sm font-semibold">
+            <p aria-live="polite" className="min-w-0 flex-1 basis-56 text-sm font-semibold">
               {chosen.length
                 ? t("ledger.selected", { count: chosen.length, amount: formatINR(chosenTotal) })
                 : t("ledger.idle")}

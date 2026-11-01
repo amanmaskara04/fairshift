@@ -84,7 +84,7 @@ export function BankConfirmCard({ account, employer }: { account: WorkerPayoutAc
         </div>
         <SpeakButton text={`${t("title")} ${body} ${auto}`} className="-mt-1 -mr-1 bg-white/70" />
       </div>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid gap-2 min-[420px]:grid-cols-2">
         <Button size="lg" onClick={() => answer(true)} disabled={pending} aria-busy={pending || undefined}>
           <CircleCheck aria-hidden="true" className="size-5" />
           {t("yes")}
