@@ -116,7 +116,7 @@ export const SLIDES: Slide[] = [
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <Stat value="4" label="languages, read aloud" />
           <Stat value="2+" label="industries, one codebase" />
-          <Stat value="455" label="automated tests" />
+          <Stat value="489" label="automated tests" />
           <Stat value="0" label="accessibility violations" />
         </div>
       </div>
