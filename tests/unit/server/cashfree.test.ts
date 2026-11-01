@@ -25,6 +25,9 @@ const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
 const linkUrl = "https://payments-test.cashfree.com/links/o1tf1nvcvjhg";
 
+const ramesh = vendorIdFor(request.splits[0]);
+const sunita = vendorIdFor(request.splits[1]);
+
 function checkout(fetchImpl: typeof fetch) {
   return createCashfreeCheckout({ appId: "APP_ID", secretKey: "SECRET", fetchImpl, now: () => NOW });
 }
@@ -35,16 +38,16 @@ describe("Cashfree checkout (sandbox)", () => {
   it("registers missing workers as vendors, then opens one payment link split between them", async () => {
     const fetchImpl = vi
       .fn<typeof fetch>()
-      .mockResolvedValueOnce(json(200, { vendor_id: "fairshift_w1001" })) // Ramesh already a vendor
+      .mockResolvedValueOnce(json(200, { vendor_id: ramesh })) // Ramesh already a vendor
       .mockResolvedValueOnce(json(400, { code: "api_request_failed", message: "vendor does not exist" })) // Sunita is not
-      .mockResolvedValueOnce(json(200, { vendor_id: "fairshift_w2001", status: "IN_BENE_CREATION" }))
+      .mockResolvedValueOnce(json(200, { vendor_id: sunita, status: "IN_BENE_CREATION" }))
       .mockResolvedValueOnce(json(200, { link_url: linkUrl, link_status: "ACTIVE" }));
     expect(await checkout(fetchImpl).create(request)).toEqual({ url: linkUrl });
 
     const calls = fetchImpl.mock.calls;
     expect(calls.map(([url, init]) => `${init?.method} ${url}`)).toEqual([
-      `GET ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors/fairshift_w1001`,
-      `GET ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors/fairshift_w2001`,
+      `GET ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors/${ramesh}`,
+      `GET ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors/${sunita}`,
       `POST ${CASHFREE_PG_SANDBOX_URL}/easy-split/vendors`,
       `POST ${CASHFREE_PG_SANDBOX_URL}/links`,
     ]);
@@ -57,10 +60,10 @@ describe("Cashfree checkout (sandbox)", () => {
     });
 
     expect(body(calls[2])).toMatchObject({
-      vendor_id: "fairshift_w2001",
+      vendor_id: sunita,
       status: "ACTIVE",
-      // Cashfree vendor names allow Latin letters only, so a name in Devanagari falls back to the id.
-      name: "fairshift_w2001",
+      // Cashfree vendor names allow Latin letters only, so a name in Devanagari falls back to the worker.
+      name: "Worker w2001",
       bank: { account_number: "00011020001772", ifsc: "HDFC0000001" },
     });
     expect(body(calls[3])).toEqual({
@@ -74,8 +77,8 @@ describe("Cashfree checkout (sandbox)", () => {
       link_meta: { return_url: request.returnUrl },
       link_notify: { send_sms: false, send_email: false },
       order_splits: [
-        { vendor_id: "fairshift_w1001", amount: 907.5 },
-        { vendor_id: "fairshift_w2001", amount: 18_400 },
+        { vendor_id: ramesh, amount: 907.5 },
+        { vendor_id: sunita, amount: 18_400 },
       ],
     });
   });
@@ -136,8 +139,44 @@ describe("Cashfree checkout (sandbox)", () => {
     ).rejects.toThrow("already paid");
   });
 
-  it("builds vendor ids Cashfree accepts", () => {
-    expect(vendorIdFor("w1001")).toBe("fairshift_w1001");
-    expect(vendorIdFor("w-10.01")).toBe("fairshift_w1001");
+  it("builds vendor ids Cashfree accepts, one per worker and bank account", () => {
+    expect(ramesh).toMatch(/^fairshift_w1001_[a-f0-9]{12}$/);
+    expect(vendorIdFor({ workerId: "w-10.01", account: "1", ifsc: "X" })).toMatch(/^fairshift_w1001_[a-f0-9]{12}$/);
+    // The same account always maps to the same vendor; a corrected account maps to a new one.
+    expect(vendorIdFor({ ...request.splits[0] })).toBe(ramesh);
+    expect(vendorIdFor({ ...request.splits[0], account: "388108022658", ifsc: "ICIC0000009" })).not.toBe(ramesh);
+  });
+
+  it("pays a corrected bank account, never the one registered before", async () => {
+    const corrected = { ...request.splits[0], account: "388108022658", ifsc: "ICIC0000009" };
+    const fetchImpl = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json(400, { message: "vendor does not exist" }))
+      .mockResolvedValueOnce(json(200, { status: "IN_BANK_VALIDATION" }))
+      .mockResolvedValueOnce(json(200, { link_url: linkUrl, link_status: "ACTIVE" }));
+    await checkout(fetchImpl).create({ ...request, amount: corrected.amount, splits: [corrected] });
+    const [, created, link] = fetchImpl.mock.calls;
+    expect(body(created)).toMatchObject({
+      vendor_id: vendorIdFor(corrected),
+      bank: { account_number: "388108022658", ifsc: "ICIC0000009" },
+    });
+    expect(body(link).order_splits).toEqual([{ vendor_id: vendorIdFor(corrected), amount: 907.5 }]);
+    expect(vendorIdFor(corrected)).not.toBe(ramesh);
+  });
+
+  it("only ever sends the employer to a Cashfree page over HTTPS", async () => {
+    for (const url of [
+      "https://evil.example/pay",
+      "http://payments-test.cashfree.com/x",
+      "javascript:alert(1)",
+      "nope",
+    ]) {
+      const fetchImpl = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(json(200, {}))
+        .mockResolvedValueOnce(json(200, {}))
+        .mockResolvedValueOnce(json(200, { link_url: url, link_status: "ACTIVE" }));
+      await expect(checkout(fetchImpl).create(request)).rejects.toThrow("did not return a payment link");
+    }
   });
 });

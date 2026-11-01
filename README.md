@@ -4,12 +4,12 @@
 > A voice-first, four-language workplace app for daily-wage and shift workers, and an honest early-warning dashboard for the employers who want to treat them fairly. One codebase, two working interfaces, **construction sites and hospitals**.
 
 [![CI](https://github.com/amanmaskara04/fairshift/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/amanmaskara04/fairshift/actions/workflows/ci.yml)
-![Unit tests](https://img.shields.io/badge/unit%20tests-401%20passing-2e8b57)
+![Unit tests](https://img.shields.io/badge/unit%20tests-403%20passing-2e8b57)
 ![Coverage](https://img.shields.io/badge/coverage-98%25%20lines-2e8b57)
 ![E2E tests](https://img.shields.io/badge/e2e%20tests-36%20passing-2e8b57)
 ![axe](https://img.shields.io/badge/axe-0%20violations-2e8b57)
 ![npm audit](https://img.shields.io/badge/npm%20audit%20(prod)-0%20vulnerabilities-2e8b57)
-![Security probes](https://img.shields.io/badge/live%20security%20probes-34%2F34-2e8b57)
+![Security probes](https://img.shields.io/badge/security%20probes-43%2F43-2e8b57)
 ![License: MIT](https://img.shields.io/badge/license-MIT-2e8b57)
 ![Languages](https://img.shields.io/badge/languages-EN%20·%20हिन्दी%20·%20தமிழ்%20·%20తెలుగు-0f6b5a)
 ![Gemini](https://img.shields.io/badge/Google-Gemini%203.5%20%2F%203.8-4285F4)
@@ -61,7 +61,7 @@ The app runs **with no API key and no cloud account**: seeded data (generated re
 | **1. Real-World Impact** | Tangible improvement to worker safety and employer visibility | **Safety:** voice/photo hazard reports with severity deadlines and **auto-escalation** (supervisor → site manager → safety officer); fire and other emergencies are always *critical* with a one-tap **Call 112**; a **Help** tab with 8 verified national helplines and AI next steps; sector fatigue rules. **Visibility:** live *on duty* count, escalated hazards first, explainable quit risk, pay shortfalls flagged before they become disputes | Ramesh → Report / Help · Priya → Overview · [`core/hazard-lifecycle.ts`](src/core/hazard-lifecycle.ts) · [`config/helplines.ts`](src/config/helplines.ts) |
 | **2. Relevance to SDG 8** | Decent Work and Economic Growth | **Target 8.5** (equal pay for work of equal value): every hour recorded, overtime at 2×, minimum-wage check, **FairPay Sentinel** compares hours with what was paid and **“Pay the gap”** settles it. **Target 8.8** (labour rights, safe workplaces): hazards fixed on deadline, *safe in numbers* co-signed issues, anonymous feedback, welfare-board eligibility and a **signed work certificate** | Ramesh → Pay (₹907) · Priya → Payroll · [Pain point table](#pain-point--feature--code) |
 | **3. Inclusivity & Ease of Use** | Regional languages, low literacy, basic phones | **English, हिन्दी, தமிழ், తెలుగు** in native scripts (parity test on every key); **read-aloud on every screen**, voice input, icon-first big buttons (≥48px); **works offline** (check-ins queue in IndexedDB); installable PWA, no app store; SVG-only visuals for a ₹7,000 phone; WCAG AA, **axe: 0 violations** | Landing → *I'm a worker* → தமிழ் · [Accessibility](#accessibility-and-inclusivity) |
-| **4. Technical Implementation** | Clean code, security, working dual interfaces | **Worker app (`/w`) and employer dashboard (`/a`)**, both end-to-end tested. Pure, tested rules in [`src/core`](src/core) (95% coverage gate); *AI decides, code computes*; nonce CSP, role + org check on every mutation, Zod, rate limits, HMAC-signed tokens; **401 unit + 39 Playwright tests, 98% line coverage (CI gate: 95%)**, 34 live security probes | [Architecture](#architecture) · [`SECURITY.md`](SECURITY.md) · [Testing](#testing) |
+| **4. Technical Implementation** | Clean code, security, working dual interfaces | **Worker app (`/w`) and employer dashboard (`/a`)**, both end-to-end tested. Pure, tested rules in [`src/core`](src/core) (95% coverage gate); *AI decides, code computes*; nonce CSP, role + org check on every mutation, Zod, rate limits, HMAC-signed tokens; **403 unit + 39 Playwright tests, 98% line coverage (CI gate: 95%)**, 43 black-box security probes | [Architecture](#architecture) · [`SECURITY.md`](SECURITY.md) · [Testing](#testing) |
 | **5. Feasibility & Scalability** | Practical adoption across two or more distinct industries | **Construction and hospital** live, with **campus and factory** profiles: every difference (pay basis, roster, fatigue rules, hazard types, escalation chain, welfare schemes) is configuration. Runs without AI or a database; one container, one command to deploy; a site needs only a printed or kiosk QR | [Two sectors, one product](#two-sectors-one-product) · [Feasibility](#feasibility-and-scalability) |
 
 ## At a glance
@@ -236,10 +236,10 @@ Server Components by default; client JS only for interactive islands. The animat
 ## Testing
 
 ```bash
-npm test             # 401 unit tests (Vitest): core engine, services, security, AI fallbacks, i18n parity, contrast
+npm test             # 403 unit tests (Vitest): core engine, services, security, AI fallbacks, i18n parity, contrast
 npm run coverage     # with coverage gates: whole codebase (lines 95%) and src/core (95% on every measure)
 npm run e2e          # 39 Playwright tests on a production build, with axe scans
-npm run probe        # 34 read-only black-box security probes against a deployment (default: the live demo)
+npm run probe        # 43 read-only black-box security probes against a deployment (default: the live demo)
 npm run lint && npm run typecheck && npm run format:check
 ```
 
@@ -266,7 +266,7 @@ Highlights: overtime underpaid / regular underpaid / below minimum wage / exact 
 | **Code quality** | Pure `core/` with no I/O; one repository interface; config over code; typed end to end; Server Actions hold only guarded mutations; ESLint (React Compiler rules) with zero warnings | [`src/core`](src/core), [`src/config`](src/config), [`src/server/repos/types.ts`](src/server/repos/types.ts) |
 | **Security** | Nonce CSP, role + org checks on every mutation (tested across tenants), Zod everywhere, rate limits, HMAC guards and signed tokens, secrets only from encrypted env vars, 0 production audit findings, live probe script | [`SECURITY.md`](SECURITY.md), [`proxy.ts`](src/proxy.ts), [`server/actions`](src/server/actions) |
 | **Efficiency** | Organisation-wide pages load in two batched round trips (payroll, certificates), open-shift-only headcount, idempotent hazard sweep, cached TTS, server-rendered charts, SVG-only visuals | [`services/workforce.ts`](src/server/services/workforce.ts), [`ai/tts.ts`](src/ai/tts.ts) |
-| **Testing** | 401 unit + 39 e2e + 34 live probes; 98% line coverage (CI gate: 95% of lines, and 95% on every measure for the core); security and tenant-isolation suites; container smoke test | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| **Testing** | 403 unit + 39 e2e + 43 black-box probes; 98% line coverage (CI gate: 95% of lines, and 95% on every measure for the core); security and tenant-isolation suites; container smoke test | [`tests/`](tests), [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **Accessibility** | AA contrast test, axe in e2e, keyboard menus and radiogroups, live regions, reduced motion, 4 languages + voice | [`tests/e2e`](tests/e2e), [`globals.css`](src/app/globals.css) |
 | **Problem alignment** | Worker + employer interfaces, construction + hospital, every pain point in the brief mapped above | [Pain point table](#pain-point--feature--code) |
 

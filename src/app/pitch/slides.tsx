@@ -112,7 +112,7 @@ export const SLIDES: Slide[] = [
         <div className="grid grid-cols-2 gap-6 md:grid-cols-4">
           <Stat value="4" label="languages, read aloud" />
           <Stat value="2+" label="industries, one codebase" />
-          <Stat value="440" label="automated tests" />
+          <Stat value="442" label="automated tests" />
           <Stat value="0" label="accessibility violations" />
         </div>
       </div>
@@ -466,7 +466,7 @@ export const SLIDES: Slide[] = [
         <div className="flex flex-col gap-3">
           <Card icon={<Gauge className="size-5" />} title="What came out">
             Four features beyond the brief. The lowest AI score (code quality, 89) became the next target: formatting,
-            focused components, coverage from 78% to 98%. Tenant-isolation tests, 34 live probes, and a release gate
+            focused components, coverage from 78% to 98%. Tenant-isolation tests, 43 security probes, and a release gate
             where all six targets passed.
           </Card>
           <Card icon={<Lightbulb className="size-5" />} title="What I learned">
@@ -592,7 +592,7 @@ export const SLIDES: Slide[] = [
         <div className="flex flex-col gap-3">
           {[
             [
-              "Unit · 401",
+              "Unit · 403",
               "Pay, overtime, fatigue, risk, eligibility, hazard deadlines, signed tokens, AI guard rails, contrast, 4 languages.",
             ],
             ["Coverage · 98%", "Of all measured lines, enforced in CI: the build fails below 95%."],
@@ -601,7 +601,7 @@ export const SLIDES: Slide[] = [
               "Real browser (phone + desktop) through both interfaces, with axe accessibility checks.",
             ],
             [
-              "Live probes · 34",
+              "Security probes · 43",
               "Read-only attacks on the deployed site: forged logins, cross-site requests, tampering.",
             ],
           ].map(([name, text]) => (
@@ -648,7 +648,7 @@ export const SLIDES: Slide[] = [
         </Card>
         <Card icon={<TestTube2 className="size-5" />} title="Headers, secrets & dependencies">
           Nonce script policy, HSTS, no framing. Secrets only in encrypted environment settings. 0 production
-          vulnerabilities; 34/34 live probes.
+          vulnerabilities; 43/43 security probes.
         </Card>
       </div>
     ),
@@ -672,7 +672,7 @@ export const SLIDES: Slide[] = [
             "Inclusivity",
             "4 languages, voice in and out, offline, big targets, axe 0 violations, every page under 400 ms.",
           ],
-          ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 440 tests, 98% coverage, green CI."],
+          ["Technical", "Strict TypeScript, nonce CSP, signed sessions, 442 tests, 98% coverage, green CI."],
           [
             "Feasibility",
             "Construction and hospital live from one codebase; a new industry is one config file; Cloud Run–ready.",

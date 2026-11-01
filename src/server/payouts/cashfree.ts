@@ -1,4 +1,5 @@
 import "server-only";
+import { createHash } from "node:crypto";
 import { z } from "zod";
 import { mapLinkStatus, paiseToRupees } from "@/core/payouts";
 import type { CheckoutProvider, CheckoutRequest, CheckoutSplit } from "./provider";
@@ -30,13 +31,32 @@ interface CashfreeConfig {
   now?: () => Date;
 }
 
-const Link = z.object({ link_url: z.string().url().optional(), link_status: z.string() });
+/** Only ever send the browser to Cashfree's own pages, over HTTPS. */
+const isCashfreePage = (url: string) => {
+  try {
+    const { protocol, hostname } = new URL(url);
+    return protocol === "https:" && (hostname === "cashfree.com" || hostname.endsWith(".cashfree.com"));
+  } catch {
+    return false;
+  }
+};
 
-export const vendorIdFor = (workerId: string) => `fairshift_${workerId.replace(/[^A-Za-z0-9_]/g, "")}`;
+const Link = z.object({ link_url: z.string().optional(), link_status: z.string() });
+
+/**
+ * A vendor is one worker's bank account in Cashfree. The id includes a fingerprint of the account
+ * and IFSC, so when an employer corrects a worker's bank details the next checkout registers the
+ * new account instead of paying the old one.
+ */
+export const vendorIdFor = (split: Pick<CheckoutSplit, "workerId" | "account" | "ifsc">) =>
+  `fairshift_${split.workerId.replace(/[^A-Za-z0-9_]/g, "")}_${createHash("sha256")
+    .update(`${split.account}:${split.ifsc}`)
+    .digest("hex")
+    .slice(0, 12)}`;
 
 /** Cashfree vendor names allow letters, spaces and . / - & only. */
 const vendorName = (split: CheckoutSplit) =>
-  split.holder.replace(/[^A-Za-z .\/&-]/g, "").trim() || vendorIdFor(split.workerId);
+  split.holder.replace(/[^A-Za-z .\/&-]/g, "").trim() || `Worker ${split.workerId.replace(/[^A-Za-z0-9]/g, "")}`;
 
 async function failure(response: Response): Promise<Error> {
   const body = (await response.json().catch(() => ({}))) as { message?: string };
@@ -76,7 +96,7 @@ export function createCashfreeCheckout(config: CashfreeConfig): CheckoutProvider
 
   /** Each worker must exist as an Easy Split vendor with their bank account before a split can name them. */
   async function ensureVendor(split: CheckoutSplit): Promise<void> {
-    const vendorId = vendorIdFor(split.workerId);
+    const vendorId = vendorIdFor(split);
     const existing = await call(`/easy-split/vendors/${vendorId}`);
     if (existing.ok) return;
     if (!(await vendorMissing(existing))) throw await failure(existing);
@@ -118,14 +138,16 @@ export function createCashfreeCheckout(config: CashfreeConfig): CheckoutProvider
           link_meta: { return_url: request.returnUrl },
           link_notify: { send_sms: false, send_email: false },
           order_splits: request.splits.map((s) => ({
-            vendor_id: vendorIdFor(s.workerId),
+            vendor_id: vendorIdFor(s),
             amount: paiseToRupees(s.amount),
           })),
         },
       });
       if (!response.ok) throw await failure(response);
       const link = Link.safeParse(await response.json());
-      if (!link.success || !link.data.link_url) throw new Error("Cashfree did not return a payment link");
+      if (!link.success || !link.data.link_url || !isCashfreePage(link.data.link_url)) {
+        throw new Error("Cashfree did not return a payment link");
+      }
       return { url: link.data.link_url };
     },
 
