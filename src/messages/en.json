@@ -174,6 +174,16 @@
       "shortfall": "Possible pay shortfall: {amount}",
       "shortfallHint": "See the details and ask for a review",
       "benefitProgress": "{done} of {needed} days done"
+    },
+    "bank": {
+      "title": "Is this your bank account?",
+      "body": "{employer} set your pay account to {masked} ({ifsc}) on {when}. Your pay will go to this account.",
+      "autoNote": "If you don't answer, it will be used from {when}.",
+      "yes": "Yes, it's mine",
+      "no": "No, not mine",
+      "confirmed": "Thank you. Your pay will go to {masked}.",
+      "disputed": "Your employer has been told. No pay will go to {masked} until they correct it.",
+      "error": "Could not save your answer. Please try again."
     }
   },
   "pay": {
@@ -812,7 +822,17 @@
             "not_found": "Choose one of your workers.",
             "invalid": "Please check the details.",
             "rate_limited": "Too many changes. Please wait a few minutes."
-          }
+          },
+          "waiting": "Waiting for the worker to confirm · payable from {when}",
+          "waitingOver": "Not confirmed yet · payable (48 hours passed)",
+          "disputed": "The worker says this isn't their account",
+          "history": "Change history",
+          "events": {
+            "changed": "Entered by employer",
+            "confirmed": "Confirmed by worker",
+            "disputed": "Worker said it isn't theirs"
+          },
+          "confirmNote": "{name} is asked in their app to confirm new or changed details. Until they do, or for 48 hours, nothing can be paid into them, and if they say it isn't their account it stays blocked."
         },
         "continueCheckout": "Continue payment",
         "cancel": "Cancel",

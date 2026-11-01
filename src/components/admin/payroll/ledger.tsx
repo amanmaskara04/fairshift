@@ -2,7 +2,7 @@
 
 import { useActionState, useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import {
   CircleAlert,
   CircleCheck,
@@ -25,7 +25,7 @@ import {
   type PaidFormState,
 } from "@/server/actions/payroll";
 import { startCheckoutAction } from "@/server/actions/payouts";
-import { formatDuration, formatINR, formatRupees } from "@/lib/format";
+import { formatDuration, formatINR, formatRupees, formatWhen } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -45,7 +45,8 @@ type Open =
   | { kind: "checkout" }
   | null;
 
-const canSelect = (r: LedgerRow) => Boolean(r.due && r.account && r.status !== "waiting");
+/** Owed money, a bank account the worker hasn't objected to (confirmed, or 48 hours passed), not already in a checkout. */
+const canSelect = (r: LedgerRow) => Boolean(r.due && r.account?.usable && r.status !== "waiting");
 
 /**
  * The month's payroll as one list: what each worker earned and was paid, FairPay Sentinel's
@@ -54,6 +55,7 @@ const canSelect = (r: LedgerRow) => Boolean(r.due && r.account && r.status !== "
  */
 export function PayrollLedger({ month, provider, rows }: { month: string; provider: Provider; rows: LedgerRow[] }) {
   const t = useTranslations("admin.payrollPage");
+  const locale = useLocale();
   const router = useRouter();
   const [open, setOpen] = useState<Open>(null);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
@@ -121,14 +123,26 @@ export function PayrollLedger({ month, provider, rows }: { month: string; provid
 
   const bank = (r: LedgerRow) =>
     r.account ? (
-      <button
-        type="button"
-        onClick={() => setOpen({ kind: "bank", workerId: r.workerId })}
-        className="figure min-h-10 rounded-xl px-1 text-left text-sm text-ink-2 underline-offset-2 hover:text-ink hover:underline"
-        aria-label={t("ledger.editBank", { name: r.name })}
-      >
-        {r.account.masked}
-      </button>
+      <span className="flex flex-col items-start">
+        <button
+          type="button"
+          onClick={() => setOpen({ kind: "bank", workerId: r.workerId })}
+          className="figure min-h-10 rounded-xl px-1 text-left text-sm text-ink-2 underline-offset-2 hover:text-ink hover:underline"
+          aria-label={t("ledger.editBank", { name: r.name })}
+        >
+          {r.account.masked}
+        </button>
+        {r.account.status === "pending_worker" && (
+          <span className="px-1 text-xs font-semibold text-warning-ink">
+            {r.account.usable
+              ? t("payouts.account.waitingOver")
+              : t("payouts.account.waiting", { when: formatWhen(r.account.usableFrom!, locale) })}
+          </span>
+        )}
+        {r.account.status === "disputed" && (
+          <span className="px-1 text-xs font-semibold text-danger">{t("payouts.account.disputed")}</span>
+        )}
+      </span>
     ) : (
       <Button size="sm" variant="secondary" onClick={() => setOpen({ kind: "bank", workerId: r.workerId })}>
         {t("payouts.addAccount")}

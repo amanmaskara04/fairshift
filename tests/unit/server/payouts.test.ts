@@ -2,11 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { PayoutStatus } from "@/core/payouts";
 import { payFocusMonth } from "@/core/period";
 import { getRepos } from "@/server/repos";
+import { decryptAccount } from "@/server/bank-crypto";
 import { resetMemoryStore } from "@/server/repos/memory";
 import { getCheckoutProvider, type CheckoutProvider, type CheckoutRequest } from "@/server/payouts/provider";
 import { createSimulatedCheckout, simulatedCheckoutPath } from "@/server/payouts/simulated";
 import { buildPayroll } from "@/server/services/payroll";
 import {
+  answerPayoutAccount,
   cancelCheckout,
   completeSimulatedCheckout,
   confirmCheckout,
@@ -14,7 +16,9 @@ import {
   savePayoutAccount,
   startCheckout,
   waitingCheckout,
+  workerPayoutAccount,
 } from "@/server/services/payouts";
+import { BANK_CHANGE_COOLING_OFF_MS } from "@/core/payouts";
 
 const now = new Date();
 const month = payFocusMonth(now);
@@ -73,7 +77,10 @@ describe("who can be paid", () => {
     await open(provider, ["w1003"]);
     const overview = await payoutOverview(getRepos(), "org1", month);
     const json = JSON.stringify(overview);
-    for (const account of await getRepos().payoutAccounts.getByOrg("org1")) expect(json).not.toContain(account.account);
+    for (const account of await getRepos().payoutAccounts.getByOrg("org1")) {
+      expect(json).not.toContain(decryptAccount(account.accountEncrypted, account.id));
+      expect(json).not.toContain(account.accountEncrypted);
+    }
     expect(overview.accounts.find((a) => a.workerId === "w1001")?.account?.masked).toMatch(/^••••\d{4}$/);
   });
 
@@ -99,7 +106,11 @@ describe("opening one checkout for several workers", () => {
     expect(request.returnUrl).toBe(`${origin}/api/checkout/return?batch=${result.batchId}`);
     expect(request.payer).toEqual({ id: "admin1", name: "Priya Menon" });
     const account = (await getRepos().payoutAccounts.get("w1003"))!;
-    expect(request.splits[1]).toMatchObject({ account: account.account, ifsc: account.ifsc, holder: account.holder });
+    expect(request.splits[1]).toMatchObject({
+      account: decryptAccount(account.accountEncrypted, "w1003"),
+      ifsc: account.ifsc,
+      holder: account.holder,
+    });
 
     // Waiting for payment: nothing is recorded yet, and these workers can't be put in another checkout.
     expect((await rowsByWorker()).get("w1003")!.paid).toBeUndefined();
@@ -362,12 +373,15 @@ describe("bank details", () => {
       account: "0262 9180 0001 191",
       ifsc: "yesb0000262",
     });
-    expect(result).toEqual({ ok: true, account: { holder: "Valli Ammal", masked: "••••1191", ifsc: "YESB0000262" } });
-    expect(await getRepos().payoutAccounts.get("w1017")).toMatchObject({
-      account: "026291800001191",
-      orgId: "org1",
-      updatedBy: "admin1",
+    expect(result).toMatchObject({
+      ok: true,
+      account: { holder: "Valli Ammal", masked: "••••1191", ifsc: "YESB0000262", status: "pending_worker" },
     });
+    const stored = (await getRepos().payoutAccounts.get("w1017"))!;
+    expect(stored).toMatchObject({ last4: "1191", orgId: "org1", updatedBy: "admin1", status: "pending_worker" });
+    // Stored encrypted: the number itself is nowhere in the record.
+    expect(JSON.stringify(stored)).not.toContain("026291800001191");
+    expect(decryptAccount(stored.accountEncrypted, "w1017")).toBe("026291800001191");
     const { payable } = await payoutOverview(getRepos(), "org1", month);
     expect(payable.find((p) => p.workerId === "w1017")?.account?.masked).toBe("••••1191");
   });
@@ -401,6 +415,105 @@ describe("bank details", () => {
       account: "388108022658",
       ifsc: "ICIC0000009",
     });
-    expect((await getRepos().payoutAccounts.get("w1001"))?.account).toBe("388108022658");
+    const stored = (await getRepos().payoutAccounts.get("w1001"))!;
+    expect(decryptAccount(stored.accountEncrypted, "w1001")).toBe("388108022658");
+    expect(stored.history.map((e) => `${e.by}:${e.action}:${e.last4}`)).toEqual([
+      "employer:changed:2658",
+      "worker:confirmed:1191",
+      "employer:changed:1191",
+    ]);
+  });
+
+  it("saving the same details again changes nothing and needs no new confirmation", async () => {
+    const before = (await getRepos().payoutAccounts.get("w1003"))!;
+    const account = decryptAccount(before.accountEncrypted, "w1003");
+    await savePayoutAccount(getRepos(), {
+      ...input,
+      workerId: "w1003",
+      holder: before.holder,
+      account,
+      ifsc: before.ifsc,
+    });
+    expect(await getRepos().payoutAccounts.get("w1003")).toEqual(before);
+  });
+});
+
+describe("the worker confirms changes to their pay account", () => {
+  const later = (ms: number) => new Date(now.getTime() + ms);
+  const change = (workerId: string, account = "388108022658") =>
+    savePayoutAccount(getRepos(), {
+      orgId: "org1",
+      adminId: "admin1",
+      workerId,
+      holder: "Changed Holder",
+      account,
+      ifsc: "ICIC0000009",
+      now,
+    });
+  const openCheckout = (workerIds: string[], at: Date) =>
+    startCheckout(getRepos(), fakeProvider().provider, { ...admin, now: at, workerIds, randomHex: randomHex() });
+
+  it("a changed account can't be paid until the worker confirms it", async () => {
+    await change("w1003");
+    expect((await workerPayoutAccount(getRepos(), "w1003"))?.status).toBe("pending_worker");
+    expect(await openCheckout(["w1003"], now)).toEqual({
+      ok: false,
+      error: "rejected",
+      rejected: [{ workerId: "w1003", reason: "account_unconfirmed" }],
+    });
+    const { payable } = await payoutOverview(getRepos(), "org1", month, undefined, now);
+    expect(payable.find((p) => p.workerId === "w1003")?.account).toMatchObject({ usable: false, masked: "••••2658" });
+
+    expect(await answerPayoutAccount(getRepos(), { workerId: "w1003", confirm: true, now })).toEqual({
+      ok: true,
+      status: "confirmed",
+    });
+    expect((await openCheckout(["w1003"], now)).ok).toBe(true);
+  });
+
+  it("an unanswered change can be paid after 48 hours, so no worker is left unpaid", async () => {
+    await change("w1003");
+    expect((await openCheckout(["w1003"], later(BANK_CHANGE_COOLING_OFF_MS - 60_000))).ok).toBe(false);
+    expect((await openCheckout(["w1003"], later(BANK_CHANGE_COOLING_OFF_MS))).ok).toBe(true);
+  });
+
+  it("'this isn't my account' blocks it for good, until the employer enters it again", async () => {
+    await change("w1003");
+    expect(await answerPayoutAccount(getRepos(), { workerId: "w1003", confirm: false, now })).toEqual({
+      ok: true,
+      status: "disputed",
+    });
+    expect((await openCheckout(["w1003"], later(30 * 24 * 60 * 60 * 1000))).ok).toBe(false);
+    const { payable } = await payoutOverview(getRepos(), "org1", month, undefined, now);
+    expect(payable.find((p) => p.workerId === "w1003")?.account?.status).toBe("disputed");
+
+    await change("w1003", "1233943142");
+    expect((await workerPayoutAccount(getRepos(), "w1003"))?.status).toBe("pending_worker");
+    const history = (await getRepos().payoutAccounts.get("w1003"))!.history;
+    expect(history.slice(0, 3).map((e) => `${e.by}:${e.action}`)).toEqual([
+      "employer:changed",
+      "worker:disputed",
+      "employer:changed",
+    ]);
+  });
+
+  it("a worker can only answer about their own account, and only while a change waits", async () => {
+    expect(await answerPayoutAccount(getRepos(), { workerId: "w1003", confirm: false, now })).toEqual({
+      ok: false,
+      error: "nothing_to_confirm",
+    });
+    expect(await answerPayoutAccount(getRepos(), { workerId: "w1017", confirm: true, now })).toEqual({
+      ok: false,
+      error: "not_found",
+    });
+    expect(await workerPayoutAccount(getRepos(), "w1017")).toBeNull();
+  });
+
+  it("shows the worker only the last four digits", async () => {
+    await change("w1003");
+    const view = await workerPayoutAccount(getRepos(), "w1003");
+    expect(view).toMatchObject({ masked: "••••2658", ifsc: "ICIC0000009", status: "pending_worker" });
+    expect(JSON.stringify(view)).not.toContain("388108022658");
+    expect(view?.usableFrom?.getTime()).toBe(now.getTime() + BANK_CHANGE_COOLING_OFF_MS);
   });
 });

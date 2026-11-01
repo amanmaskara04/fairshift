@@ -203,8 +203,11 @@ const fullAccounts = [
   "000100289877623",
 ];
 check(
-  "payroll page shows bank accounts masked, never in full",
-  /••••\d{4}/.test(payrollHtml) && !fullAccounts.some((a) => payrollHtml.includes(a)),
+  "payroll page shows bank accounts masked, never in full or encrypted",
+  /••••\d{4}/.test(payrollHtml) &&
+    !fullAccounts.some((a) => payrollHtml.includes(a)) &&
+    // nor the stored ciphertext ("v1.<key id>.<iv>.<tag>.<data>")
+    !/v1\.[\w-]{8}\.[\w-]{16}\./.test(payrollHtml),
 );
 await browser.close();
 

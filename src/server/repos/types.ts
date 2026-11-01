@@ -6,7 +6,7 @@ import type { Hazard, Sector, Shift } from "@/core/types";
 import type { PaidRecord, FindingCode } from "@/core/pay-check";
 import type { IssueStatus } from "@/core/cosign";
 import type { SkillLevel } from "@/config/minimum-wage";
-import type { PayoutFailure, PayoutKind, PayoutStatus } from "@/core/payouts";
+import type { PayoutAccountStatus, PayoutFailure, PayoutKind, PayoutStatus } from "@/core/payouts";
 
 export type { Hazard, Shift };
 
@@ -170,19 +170,36 @@ export interface CertificateRequest {
   decidedBy?: string;
 }
 
+/** One change to a worker's bank details, kept so the worker and employer can see who did what. */
+export interface PayoutAccountEvent {
+  at: Date;
+  by: "employer" | "worker";
+  action: "changed" | "confirmed" | "disputed";
+  /** Last four digits of the account at that moment */
+  last4: string;
+}
+
 /**
- * Where a worker's pay goes. Kept apart from Worker so the full account number is only ever
- * read by the payout service: pages get the masked form.
+ * Where a worker's share of a checkout is settled. Kept apart from Worker, and the account number
+ * is stored only encrypted (see bank-crypto.ts): pages get the last four digits.
  */
 export interface PayoutAccount {
   /** The worker id: one account per worker */
   id: string;
   orgId: string;
   holder: string;
-  account: string;
+  /** AES-256-GCM, bound to the worker id */
+  accountEncrypted: string;
+  last4: string;
   ifsc: string;
+  /** Changes made by the employer wait for the worker to confirm them (see core/payouts.ts) */
+  status: PayoutAccountStatus;
+  /** When the employer last entered these details */
+  changedAt: Date;
   updatedAt: Date;
   updatedBy: string;
+  /** Newest first, at most 20 */
+  history: PayoutAccountEvent[];
 }
 
 export interface PayoutItem {

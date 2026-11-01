@@ -1,9 +1,9 @@
 import {
+  accountUsable,
   batchIdFor,
   isValidAccount,
   isValidHolder,
   isValidIfsc,
-  maskAccount,
   MAX_BATCH,
   normaliseAccount,
   normaliseHolder,
@@ -11,12 +11,15 @@ import {
   payableFor,
   summariseBatch,
   transferIdFor,
+  usableFrom,
+  type PayoutAccountStatus,
   type PayoutFailure,
   type PayoutKind,
   type PayoutStatus,
 } from "@/core/payouts";
+import { decryptAccount, encryptAccount } from "@/server/bank-crypto";
 import type { CheckoutProvider } from "@/server/payouts/provider";
-import type { PayoutBatch, PayoutItem, Repos } from "@/server/repos/types";
+import type { PayoutAccount, PayoutAccountEvent, PayoutBatch, PayoutItem, Repos } from "@/server/repos/types";
 import { buildPayroll, type PayrollRow } from "./payroll";
 import { recordArrears, savePaidRecord } from "./pay-check";
 
@@ -25,6 +28,12 @@ export interface MaskedAccount {
   holder: string;
   masked: string;
   ifsc: string;
+  status: PayoutAccountStatus;
+  /** A checkout may pay into it now (confirmed, or the 48-hour wait for the worker is over) */
+  usable: boolean;
+  /** While waiting for the worker: when it becomes payable without their answer */
+  usableFrom: Date | null;
+  history: PayoutAccountEvent[];
 }
 
 export interface PayableWorker {
@@ -59,10 +68,19 @@ export interface PayoutOverview {
 /** Checkouts shown for a month: any still waiting, and the latest finished ones. */
 const RECENT_CHECKOUTS = 10;
 
-const mask = (a: { holder: string; account: string; ifsc: string }): MaskedAccount => ({
+/** Events kept per account, newest first. */
+const HISTORY_LIMIT = 20;
+
+const maskLast4 = (last4: string) => `••••${last4}`;
+
+const mask = (a: PayoutAccount, now: Date): MaskedAccount => ({
   holder: a.holder,
-  masked: maskAccount(a.account),
+  masked: maskLast4(a.last4),
   ifsc: a.ifsc,
+  status: a.status,
+  usable: accountUsable(a, now),
+  usableFrom: a.status === "pending_worker" ? usableFrom(a.changedAt) : null,
+  history: a.history,
 });
 
 const waiting = (batch: PayoutBatch) => batch.items.some((i) => i.status === "pending");
@@ -94,13 +112,14 @@ export async function payoutOverview(
   orgId: string,
   month: string,
   payroll?: PayrollRow[] | Promise<PayrollRow[]>,
+  now: Date = new Date(),
 ): Promise<PayoutOverview> {
   const [rows, accounts, batches] = await Promise.all([
     payroll ?? buildPayroll(repos, orgId, month),
     repos.payoutAccounts.getByOrg(orgId),
     repos.payoutBatches.getByOrgMonth(orgId, month),
   ]);
-  const accountOf = new Map(accounts.map((a) => [a.id, mask(a)]));
+  const accountOf = new Map(accounts.map((a) => [a.id, mask(a, now)]));
   const busy = busyWorkers(batches);
   const payable = rows.flatMap((row) => {
     const due = payableFor({ net: row.net, outstanding: row.outstanding, hasRecord: Boolean(row.paid) });
@@ -131,7 +150,7 @@ export async function payoutOverview(
   };
 }
 
-export type PayRejection = "not_found" | "nothing_owed" | "no_account" | "in_progress";
+export type PayRejection = "not_found" | "nothing_owed" | "no_account" | "account_unconfirmed" | "in_progress";
 
 export type StartCheckoutResult =
   | { ok: true; batchId: string; url: string }
@@ -179,7 +198,9 @@ export async function startCheckout(
     if (!row) rejected.push({ workerId, reason: "not_found" });
     else if (!due) rejected.push({ workerId, reason: "nothing_owed" });
     else if (!accountOf.has(workerId)) rejected.push({ workerId, reason: "no_account" });
-    else if (busy.has(workerId)) rejected.push({ workerId, reason: "in_progress" });
+    else if (!accountUsable(accountOf.get(workerId)!, input.now)) {
+      rejected.push({ workerId, reason: "account_unconfirmed" });
+    } else if (busy.has(workerId)) rejected.push({ workerId, reason: "in_progress" });
     else chosen.push({ row, ...due });
   }
   if (rejected.length) return { ok: false, error: "rejected", rejected };
@@ -201,7 +222,7 @@ export async function startCheckout(
         name: row.name,
         kind,
         amount,
-        accountMasked: maskAccount(account.account),
+        accountMasked: maskLast4(account.last4),
         ifsc: account.ifsc,
         status: "pending",
         payslip: {
@@ -223,12 +244,13 @@ export async function startCheckout(
       purpose: `FairShift wages ${input.month} (${batch.items.length} workers)`,
       returnUrl: `${input.origin}/api/checkout/return?batch=${batchId}`,
       payer: { id: input.adminId, name: admin?.name ?? "Employer" },
+      // The only place a full account number is decrypted: on its way to the payment provider.
       splits: batch.items.map((item) => {
         const account = accountOf.get(item.workerId)!;
         return {
           workerId: item.workerId,
           holder: account.holder,
-          account: account.account,
+          account: decryptAccount(account.accountEncrypted, item.workerId),
           ifsc: account.ifsc,
           amount: item.amount,
         };
@@ -370,7 +392,14 @@ async function recordPayment(repos: Repos, batch: PayoutBatch, item: PayoutItem,
 
 export type AccountInputError = "holder" | "account" | "ifsc" | "not_found";
 
-/** Saves where a worker's share is settled, after checking the formats and that the worker is the employer's. */
+const withEvent = (history: PayoutAccountEvent[], event: PayoutAccountEvent) =>
+  [event, ...history].slice(0, HISTORY_LIMIT);
+
+/**
+ * The employer saves where a worker's share is settled. Formats and the worker's organisation are
+ * checked, the number is stored encrypted, and any change waits for the worker to confirm it.
+ * Saving the same details again changes nothing.
+ */
 export async function savePayoutAccount(
   repos: Repos,
   input: { orgId: string; adminId: string; workerId: string; holder: string; account: string; ifsc: string; now: Date },
@@ -383,15 +412,90 @@ export async function savePayoutAccount(
   if (!isValidIfsc(ifsc)) return { ok: false, error: "ifsc" };
   const worker = await repos.workers.getById(input.workerId);
   if (!worker || worker.orgId !== input.orgId) return { ok: false, error: "not_found" };
-  const saved = {
+
+  const existing = await repos.payoutAccounts.get(worker.id);
+  if (existing && sameDetails(existing, { holder, account, ifsc })) {
+    return { ok: true, account: mask(existing, input.now) };
+  }
+  const saved: PayoutAccount = {
     id: worker.id,
     orgId: worker.orgId,
     holder,
-    account,
+    accountEncrypted: encryptAccount(account, worker.id),
+    last4: account.slice(-4),
     ifsc,
+    status: "pending_worker",
+    changedAt: input.now,
     updatedAt: input.now,
     updatedBy: input.adminId,
+    history: withEvent(existing?.history ?? [], {
+      at: input.now,
+      by: "employer",
+      action: "changed",
+      last4: account.slice(-4),
+    }),
   };
   await repos.payoutAccounts.upsert(saved);
-  return { ok: true, account: mask(saved) };
+  return { ok: true, account: mask(saved, input.now) };
+}
+
+function sameDetails(existing: PayoutAccount, next: { holder: string; account: string; ifsc: string }): boolean {
+  if (existing.holder !== next.holder || existing.ifsc !== next.ifsc || existing.last4 !== next.account.slice(-4)) {
+    return false;
+  }
+  try {
+    return decryptAccount(existing.accountEncrypted, existing.id) === next.account;
+  } catch {
+    return false; // unreadable (e.g. an old key): save it again
+  }
+}
+
+/** What a worker sees of their own pay account: masked, with whether it waits for their answer. */
+export interface WorkerPayoutAccount {
+  masked: string;
+  ifsc: string;
+  holder: string;
+  status: PayoutAccountStatus;
+  changedAt: Date;
+  usableFrom: Date | null;
+}
+
+export async function workerPayoutAccount(repos: Repos, workerId: string): Promise<WorkerPayoutAccount | null> {
+  const account = await repos.payoutAccounts.get(workerId);
+  if (!account) return null;
+  return {
+    masked: maskLast4(account.last4),
+    ifsc: account.ifsc,
+    holder: account.holder,
+    status: account.status,
+    changedAt: account.changedAt,
+    usableFrom: account.status === "pending_worker" ? usableFrom(account.changedAt) : null,
+  };
+}
+
+/**
+ * The worker answers about a change to their own pay account: "yes, it's mine" makes it payable at
+ * once; "this isn't my account" blocks it until the employer enters it again. Only the worker can
+ * answer, only for their own account, and only while a change is waiting.
+ */
+export async function answerPayoutAccount(
+  repos: Repos,
+  input: { workerId: string; confirm: boolean; now: Date },
+): Promise<{ ok: true; status: PayoutAccountStatus } | { ok: false; error: "not_found" | "nothing_to_confirm" }> {
+  const account = await repos.payoutAccounts.get(input.workerId);
+  if (!account) return { ok: false, error: "not_found" };
+  if (account.status !== "pending_worker") return { ok: false, error: "nothing_to_confirm" };
+  const status: PayoutAccountStatus = input.confirm ? "confirmed" : "disputed";
+  await repos.payoutAccounts.upsert({
+    ...account,
+    status,
+    updatedAt: input.now,
+    history: withEvent(account.history, {
+      at: input.now,
+      by: "worker",
+      action: input.confirm ? "confirmed" : "disputed",
+      last4: account.last4,
+    }),
+  });
+  return { ok: true, status };
 }

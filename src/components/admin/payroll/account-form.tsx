@@ -1,9 +1,10 @@
 "use client";
 
 import { useActionState } from "react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { MaskedAccount } from "@/server/services/payouts";
 import { savePayoutAccountAction, type AccountFormState } from "@/server/actions/payouts";
+import { formatWhen } from "@/lib/format";
 import { Input, Label } from "@/components/ui/input";
 import { SubmitButton } from "@/components/ui/submit-button";
 
@@ -27,6 +28,7 @@ export function AccountForm({
   onSaved: () => void;
 }) {
   const t = useTranslations("admin.payrollPage.payouts.account");
+  const locale = useLocale();
   const current = workers.find((w) => w.workerId === workerId) ?? workers[0];
   const [state, action] = useActionState<AccountFormState, FormData>(async (prev, formData) => {
     const result = await savePayoutAccountAction(prev, formData);
@@ -56,7 +58,20 @@ export function AccountForm({
         <p className="mt-1.5 text-sm text-ink-2">
           {current.account ? t("current", { masked: current.account.masked, ifsc: current.account.ifsc }) : t("none")}
         </p>
+        {current.account && current.account.history.length > 0 && (
+          <details className="mt-1.5 text-sm">
+            <summary className="min-h-8 cursor-pointer font-semibold">{t("history")}</summary>
+            <ul className="mt-1 flex flex-col gap-0.5 text-ink-2">
+              {current.account.history.slice(0, 6).map((e) => (
+                <li key={`${e.at.toISOString()}-${e.action}`}>
+                  {formatWhen(e.at, locale)} · {t(`events.${e.action}`)} · ••••{e.last4}
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </div>
+      <p className="rounded-2xl bg-info-soft px-3 py-2 text-sm">{t("confirmNote", { name: current.name })}</p>
       <div>
         <Label htmlFor="payout-holder">{t("holder")}</Label>
         <Input

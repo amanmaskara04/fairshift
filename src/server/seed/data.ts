@@ -29,7 +29,7 @@ import { generateShifts, rameshJoinedAt } from "./attendance";
 import { buildFeedback, buildHazards, buildIssues, SKILLS } from "./records";
 import { buildPayoutAccounts } from "./payouts";
 
-export const SEED_VERSION = 6;
+export const SEED_VERSION = 7;
 
 /** Ramesh was paid for 9h of overtime this month although 13h 32m were recorded. */
 export const RAMESH_UNPAID_OT_MINUTES = 4 * 60 + 32;

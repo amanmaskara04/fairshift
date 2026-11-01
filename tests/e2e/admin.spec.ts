@@ -185,20 +185,42 @@ test("a worker adds a skill, the admin verifies it", async ({ browser }) => {
   ).toBeVisible();
 });
 
-test("pay three workers in one checkout: add bank details, tick them, pay on the checkout page", async ({ page }) => {
+test("pay three workers in one checkout: add bank details, the worker confirms, pay on the checkout page", async ({
+  page,
+  browser,
+}) => {
+  test.setTimeout(90_000); // drives the employer and the worker
   await loginAs(page, /Priya/);
   await page.goto("/a/payroll");
   await expect(page.getByText("Simulated checkout")).toBeVisible();
 
-  // Valli has no bank details yet, so she can't be ticked until they are added.
+  // Valli has no bank details yet, so she can't be ticked until they are added...
   const valliRow = page.getByRole("row", { name: /Valli Ammal/ });
   await expect(valliRow.getByRole("checkbox")).toHaveCount(0);
   await valliRow.getByRole("button", { name: "Add bank details" }).click();
+  await expect(page.getByText(/is asked in their app to confirm/)).toBeVisible();
   await page.getByLabel("Account number").fill("1233943142");
   await page.getByLabel("IFSC").fill("icic0000009");
   await page.getByRole("button", { name: "Save bank details" }).click();
   await expect(valliRow.getByText("••••3142")).toBeVisible();
+  // ...and then not until she confirms them in her own app.
+  await expect(valliRow.getByText(/Waiting for the worker to confirm/)).toBeVisible();
+  await expect(valliRow.getByRole("checkbox")).toHaveCount(0);
 
+  const worker = await (await browser.newContext()).newPage();
+  await worker.goto("/login");
+  await worker.locator("#worker-code").fill("1017");
+  await worker.locator("#worker-pin").fill("7101");
+  await worker.getByRole("button", { name: "Log in", exact: true }).click();
+  await worker.waitForURL(/\/w/);
+  const card = worker.getByRole("region", { name: "Is this your bank account?" });
+  await expect(card).toContainText("••••3142");
+  await expectNoA11yViolations(worker);
+  await card.getByRole("button", { name: "Yes, it's mine" }).click();
+  await expect(worker.getByText(/Your pay will go to ••••3142/)).toBeVisible();
+
+  await page.reload();
+  await expect(valliRow.getByText(/Waiting for the worker/)).toHaveCount(0);
   await page.getByRole("checkbox", { name: /^Pay Venkat Rao/ }).check();
   await page.getByRole("checkbox", { name: /^Pay Ravi Sharma/ }).check();
   await page.getByRole("checkbox", { name: /^Pay Valli Ammal/ }).check();

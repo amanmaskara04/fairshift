@@ -12,6 +12,7 @@ import { getCheckoutProvider } from "@/server/payouts/provider";
 import { RateLimiter } from "@/server/rate-limit";
 import { getRepos } from "@/server/repos";
 import {
+  answerPayoutAccount,
   cancelCheckout,
   completeSimulatedCheckout,
   confirmCheckout,
@@ -24,6 +25,7 @@ import {
 const checkoutLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 60 * 60 * 1000 });
 const statusLimiter = new RateLimiter({ maxTokens: 60, refillIntervalMs: 60 * 60 * 1000 });
 const accountLimiter = new RateLimiter({ maxTokens: 30, refillIntervalMs: 60 * 60 * 1000 });
+const answerLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 60 * 60 * 1000 });
 
 function refresh(): void {
   revalidatePath("/a/payroll");
@@ -131,6 +133,24 @@ export async function savePayoutAccountAction(_prev: AccountFormState, formData:
     now: new Date(),
   });
   if (!result.ok) return { error: result.error };
+  revalidatePath("/a/payroll");
+  return { ok: true };
+}
+
+/** The worker confirms or rejects a change to their own pay account (never anyone else's). */
+export async function answerPayoutAccountAction(input: unknown): Promise<{ ok: boolean; error?: string }> {
+  const session = await requireRole("worker");
+  const parsed = z.object({ confirm: z.boolean() }).safeParse(input);
+  if (!parsed.success) return { ok: false, error: "invalid" };
+  if (!answerLimiter.check(session.uid)) return { ok: false, error: "rate_limited" };
+  const result = await answerPayoutAccount(getRepos(), {
+    workerId: session.uid,
+    confirm: parsed.data.confirm,
+    now: new Date(),
+  });
+  if (!result.ok) return { ok: false, error: result.error };
+  revalidatePath("/w");
+  revalidatePath("/w/pay");
   revalidatePath("/a/payroll");
   return { ok: true };
 }

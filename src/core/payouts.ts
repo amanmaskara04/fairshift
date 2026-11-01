@@ -50,6 +50,31 @@ export function maskAccount(account: string): string {
   return `••••${account.slice(-4)}`;
 }
 
+// ── Bank detail changes ───────────────────────────────────────────
+
+/**
+ * Bank details entered or changed by the employer wait for the worker to confirm them in their
+ * app ("pending_worker"); a worker who says "this isn't my account" blocks it ("disputed") until
+ * the employer enters it again.
+ */
+export type PayoutAccountStatus = "confirmed" | "pending_worker" | "disputed";
+
+/**
+ * A changed account the worker hasn't answered about can still be paid after 48 hours, so a worker
+ * who rarely opens the app is never left unpaid. Long enough for them to see the change and object.
+ */
+export const BANK_CHANGE_COOLING_OFF_MS = 48 * 60 * 60 * 1000;
+
+/** Whether a checkout may pay into this account now. */
+export function accountUsable(account: { status: PayoutAccountStatus; changedAt: Date }, now: Date): boolean {
+  if (account.status === "confirmed") return true;
+  if (account.status === "disputed") return false;
+  return now.getTime() - account.changedAt.getTime() >= BANK_CHANGE_COOLING_OFF_MS;
+}
+
+/** When a waiting change can be paid without the worker's answer. */
+export const usableFrom = (changedAt: Date) => new Date(changedAt.getTime() + BANK_CHANGE_COOLING_OFF_MS);
+
 // ── Batch bookkeeping ─────────────────────────────────────────────
 
 /** Provider ids allow letters, digits and underscores only: "fs202610_a1b2c3d4e5f6". */
