@@ -630,12 +630,12 @@ export const SLIDES: Slide[] = [
         <div className="flex flex-col gap-3">
           {[
             [
-              "Unit · 423",
+              "Unit · 439",
               "Pay, overtime, fatigue, risk, eligibility, hazard deadlines, signed tokens, AI guard rails, contrast, 4 languages.",
             ],
             ["Coverage · 98%", "Of all measured lines, enforced in CI: the build fails below 95%."],
             [
-              "End-to-end · 39",
+              "End-to-end · 40",
               "Real browser (phone + desktop) through both interfaces, with axe accessibility checks.",
             ],
             [

@@ -357,13 +357,15 @@ describe("paying the gap", () => {
     });
   });
 
-  it("keeps arrears when the pay record is corrected, and refuses other organisations", async () => {
+  it("closes the record once the gap is paid, so the arrears can't count twice, and refuses other organisations", async () => {
     const repos = getRepos();
     const month = payFocusMonth(now);
     await payArrears(repos, { orgId: "org1", adminId: "admin1", workerId: "w1001", month, now });
     const record = (await repos.paidRecords.get("w1001", month))!;
-    await savePaidRecord(repos, "org1", "admin1", { ...record, workerId: "w1001", month }, now);
-    expect((await repos.paidRecords.get("w1001", month))!.arrears).toHaveLength(1);
+    // "Paid in full" on top of the arrears would record the gap twice.
+    const full = { ...record, workerId: "w1001", month, paidOvertimeHours: record.paidOvertimeHours + 5 };
+    expect(await savePaidRecord(repos, "org1", "admin1", full, now)).toEqual({ ok: false, error: "settled" });
+    expect(await repos.paidRecords.get("w1001", month)).toEqual(record);
     expect(await payArrears(repos, { orgId: "org2", adminId: "admin2", workerId: "w1001", month, now })).toEqual({
       ok: false,
       error: "not_found",

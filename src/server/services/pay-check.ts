@@ -3,9 +3,11 @@ import { checkPay, outstandingShortfall, type PayCheckResult } from "@/core/pay-
 import { parseCsv, rupeesToPaise } from "@/core/csv";
 import { isMonthKey } from "@/core/period";
 import { payLocks, type PayLock } from "@/core/payouts";
+import { belowRecorded, recordedPay, recordLock } from "@/core/pay-entry";
 import { findMinimumWage, type MinimumWageRate } from "@/config/minimum-wage";
 import { buildPayslip, type PayslipView } from "@/server/services/payslip";
 import type { PaidRecordEntry, Repos } from "@/server/repos/types";
+import { withPayrollLock } from "./pay-lock";
 
 export interface PayCheckView {
   view: PayslipView;
@@ -87,11 +89,15 @@ export async function payLocksFor(repos: Repos, orgId: string, month: string): P
   return payLocks(batches.flatMap((b) => b.items));
 }
 
-export type SavePaidResult = { ok: true } | { ok: false; error: "not_found" | "locked" };
+export type SavePaidError = "not_found" | "locked" | "settled" | "below_recorded" | "busy";
+export type SavePaidResult = { ok: true } | { ok: false; error: SavePaidError };
 
 /**
- * The employer records by hand (form or CSV) what they paid. Refused once a checkout paid this
- * worker for the month, or while one is waiting: that payment is the record.
+ * The employer records by hand (form or CSV) what they paid this month, in total. Refused when:
+ * - a checkout paid this worker for the month, or one is waiting ("locked"): that payment is the record;
+ * - the month is already paid in full, or its gap was paid as arrears ("settled");
+ * - it pays less than is already recorded, in hours or money ("below_recorded"): pay can be added
+ *   to, never taken back, or the reopened gap could be paid a second time.
  */
 export async function savePaidRecord(
   repos: Repos,
@@ -99,17 +105,34 @@ export async function savePaidRecord(
   adminId: string,
   input: PaidRecordInput,
   now: Date,
-  locks?: Map<string, PayLock>,
 ): Promise<SavePaidResult> {
   const worker = await repos.workers.getById(input.workerId);
   if (!worker || worker.orgId !== orgId) return { ok: false, error: "not_found" };
-  const locked = (locks ?? (await payLocksFor(repos, orgId, input.month))).has(input.workerId);
-  if (locked) return { ok: false, error: "locked" };
-  await writePaidRecord(repos, orgId, adminId, input, now);
-  return { ok: true };
+  const result = await withPayrollLock(repos, orgId, input.month, async (): Promise<SavePaidResult> => {
+    const [locks, check] = await Promise.all([
+      payLocksFor(repos, orgId, input.month),
+      payCheckFor(repos, input.workerId, input.month),
+    ]);
+    const lock = recordLock({
+      hasRecord: Boolean(check?.record),
+      outstanding: check?.outstanding ?? 0,
+      arrearsPaid: check?.arrearsPaid ?? 0,
+      checkout: locks.has(input.workerId),
+    });
+    if (lock) return { ok: false, error: lock === "checkout" ? "locked" : "settled" };
+    if (check?.record && belowRecorded(recordedPay(input), recordedPay(check.record))) {
+      return { ok: false, error: "below_recorded" };
+    }
+    await writePaidRecord(repos, orgId, adminId, input, now);
+    return { ok: true };
+  });
+  return result === "busy" ? { ok: false, error: "busy" } : result;
 }
 
-/** Saves the month's pay record. Callers check who may write it; a paid checkout comes through here. */
+/**
+ * Saves the month's pay record. Callers decide who may write it and hold the payroll lock: the
+ * manual form and CSV through `savePaidRecord`, a paid checkout when it settles.
+ */
 export async function writePaidRecord(
   repos: Repos,
   orgId: string,
@@ -117,7 +140,6 @@ export async function writePaidRecord(
   input: PaidRecordInput,
   now: Date,
 ): Promise<void> {
-  // Arrears are separate payments: a corrected record keeps them.
   const existing = await repos.paidRecords.get(input.workerId, input.month);
   await repos.paidRecords.upsert({
     ...input,
@@ -132,22 +154,26 @@ export async function writePaidRecord(
 /**
  * The employer pays the gap. The amount is always the outstanding gap computed here, never a
  * number from the browser. The worker's open review for that month is resolved with it. Refused
- * while a checkout for this worker is open.
+ * while a checkout for this worker is open, and done under the payroll lock so a double tap
+ * records it once.
  */
 export async function payArrears(
   repos: Repos,
   input: { orgId: string; adminId: string; workerId: string; month: string; now: Date },
-): Promise<{ ok: true; amount: number } | { ok: false; error: "not_found" | "nothing_owed" | "in_progress" }> {
+): Promise<{ ok: true; amount: number } | { ok: false; error: "not_found" | "nothing_owed" | "in_progress" | "busy" }> {
   const worker = await repos.workers.getById(input.workerId);
   if (!worker || worker.orgId !== input.orgId) return { ok: false, error: "not_found" };
-  // A checkout for this worker is still open: settling the gap here too would pay it twice.
-  const locks = await payLocksFor(repos, input.orgId, input.month);
-  if (locks.get(input.workerId) === "waiting") return { ok: false, error: "in_progress" };
-  const check = await payCheckFor(repos, input.workerId, input.month);
-  if (!check?.record || check.outstanding === 0) return { ok: false, error: "nothing_owed" };
-  const amount = check.outstanding;
-  await recordArrears(repos, check.record, { ...input, amount });
-  return { ok: true, amount };
+  const result = await withPayrollLock(repos, input.orgId, input.month, async () => {
+    // A checkout for this worker is still open: settling the gap here too would pay it twice.
+    const locks = await payLocksFor(repos, input.orgId, input.month);
+    if (locks.get(input.workerId) === "waiting") return { ok: false as const, error: "in_progress" as const };
+    const check = await payCheckFor(repos, input.workerId, input.month);
+    if (!check?.record || check.outstanding === 0) return { ok: false as const, error: "nothing_owed" as const };
+    const amount = check.outstanding;
+    await recordArrears(repos, check.record, { ...input, amount });
+    return { ok: true as const, amount };
+  });
+  return result === "busy" ? { ok: false, error: "busy" } : result;
 }
 
 /** Adds an arrears payment to a pay record and closes the worker's open reviews for that month. */
@@ -184,12 +210,12 @@ export const MAX_CSV_ROWS = 500;
 export interface CsvImportResult {
   saved: number;
   /** 1-based data row numbers that were rejected, with a short reason key */
-  errors: { row: number; reason: "columns" | "unknown_worker" | "invalid" | "locked" }[];
+  errors: { row: number; reason: "columns" | "unknown_worker" | "invalid" | Exclude<SavePaidError, "not_found"> }[];
 }
 
 /**
  * Import a paid-records sheet. Every row is validated on its own; bad rows are reported, never
- * guessed. A row for a worker paid through a checkout that month is refused like any bad row.
+ * guessed. Each row follows the same rules as the form (see `savePaidRecord`).
  */
 export async function importPaidCsv(
   repos: Repos,
@@ -204,7 +230,6 @@ export async function importPaidCsv(
     return { saved: 0, errors: [{ row: 0, reason: "columns" }] };
   }
   const workers = new Map((await repos.workers.getByOrg(orgId)).map((w) => [w.code, w]));
-  const locksByMonth = new Map<string, Map<string, PayLock>>();
   for (const [index, cells] of rows.slice(0, MAX_CSV_ROWS).entries()) {
     const row = index + 1;
     if (cells.length !== PAID_CSV_HEADER.length) {
@@ -230,10 +255,9 @@ export async function importPaidCsv(
       result.errors.push({ row, reason: "invalid" });
       continue;
     }
-    if (!locksByMonth.has(month)) locksByMonth.set(month, await payLocksFor(repos, orgId, month));
-    const saved = await savePaidRecord(repos, orgId, adminId, parsed.data, now, locksByMonth.get(month));
+    const saved = await savePaidRecord(repos, orgId, adminId, parsed.data, now);
     if (!saved.ok) {
-      result.errors.push({ row, reason: saved.error === "locked" ? "locked" : "unknown_worker" });
+      result.errors.push({ row, reason: saved.error === "not_found" ? "unknown_worker" : saved.error });
       continue;
     }
     result.saved++;

@@ -54,7 +54,18 @@ const canSelect = (r: LedgerRow) => Boolean(r.due && r.account?.usable && r.stat
  * check, and their bank account. Tick the workers who are owed money to pay them together in one
  * checkout; record pay, upload a sheet or add bank details from the toolbar or the row itself.
  */
-export function PayrollLedger({ month, provider, rows }: { month: string; provider: Provider; rows: LedgerRow[] }) {
+export function PayrollLedger({
+  month,
+  inProgress,
+  provider,
+  rows,
+}: {
+  month: string;
+  /** The month isn't over: a checkout pays the days worked so far */
+  inProgress: boolean;
+  provider: Provider;
+  rows: LedgerRow[];
+}) {
   const t = useTranslations("admin.payrollPage");
   const locale = useLocale();
   const router = useRouter();
@@ -348,6 +359,7 @@ export function PayrollLedger({ month, provider, rows }: { month: string; provid
             </li>
           ))}
         </ul>
+        {inProgress && <p className="rounded-2xl bg-info-soft px-3 py-2 text-sm">{t("payouts.inProgress")}</p>}
         <p className="text-sm font-semibold text-warning-ink">{t("payouts.sandboxNote")}</p>
         {error && (
           <p role="alert" className="text-sm font-semibold text-danger">
@@ -479,8 +491,9 @@ function RecordPay({
     if (result.ok) onSaved();
     return result;
   }, {});
-  // Paid (or being paid) through a checkout: that payment is the record. The server refuses it too.
-  const open = rows.filter((r) => !r.lock);
+  // Paid in full, gap already paid, or paid by checkout: what was paid can't change (the server
+  // refuses it too). Everyone else opens on what is already recorded.
+  const open = rows.filter((r) => r.recordable);
   return (
     <>
       <p className="text-ink-2">{t("manualHint")}</p>
@@ -496,6 +509,7 @@ function RecordPay({
           rates: r.rates,
           gross: r.gross,
           deductions: r.deductions,
+          recorded: r.recorded,
         }))}
         action={action}
       />

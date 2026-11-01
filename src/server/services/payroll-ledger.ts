@@ -1,4 +1,5 @@
 import type { PayLock, PayoutKind } from "@/core/payouts";
+import { recordedPay, recordLock, type RecordedPay } from "@/core/pay-entry";
 import type { PayrollRow } from "./payroll";
 import type { MaskedAccount, PayoutOverview } from "./payouts";
 
@@ -29,6 +30,10 @@ export interface LedgerRow {
   account: MaskedAccount | null;
   /** Paid ("paid") or being paid ("waiting") through a checkout: the pay record can't be typed over */
   lock: PayLock | null;
+  /** What is already recorded as paid: the floor of the "Record pay" form */
+  recorded: RecordedPay | null;
+  /** "Record pay" may change this month: not paid by checkout, not paid in full, no gap paid yet */
+  recordable: boolean;
 }
 
 export interface LedgerSummary {
@@ -77,6 +82,14 @@ export function buildLedger(
       due: payable ? { kind: payable.kind, amount: payable.amount } : null,
       account: accountOf.get(row.workerId) ?? null,
       lock: payouts.locks[row.workerId] ?? null,
+      recorded: row.paid ? recordedPay(row.paid) : null,
+      recordable:
+        recordLock({
+          hasRecord: Boolean(row.paid),
+          outstanding: row.outstanding,
+          arrearsPaid: row.arrearsPaid,
+          checkout: Boolean(payouts.locks[row.workerId]),
+        }) === null,
     };
   });
   const shortfalls = ledger.filter((r) => r.status === "shortfall");
