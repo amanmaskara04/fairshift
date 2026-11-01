@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import { CircleCheck, Landmark, ShieldAlert, X } from "lucide-react";
 import { answerPayoutAccountAction } from "@/server/actions/payouts";
@@ -13,11 +12,13 @@ import { SpeakButton } from "@/components/speak-button";
 /**
  * When the employer enters or changes a worker's pay account, the worker is asked here whether it is
  * theirs. "No" blocks payments into it, so a worker's pay never moves to a new account without them being asked.
+ * Pages render this whenever the worker has an account: it stays mounted after an answer, so the
+ * thank-you survives the refresh the server action triggers, and renders nothing for an account
+ * that was already confirmed.
  */
 export function BankConfirmCard({ account, employer }: { account: WorkerPayoutAccount; employer: string }) {
   const t = useTranslations("worker.bank");
   const locale = useLocale();
-  const router = useRouter();
   const [answered, setAnswered] = useState<"confirmed" | "disputed" | null>(null);
   const [error, setError] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -60,10 +61,8 @@ export function BankConfirmCard({ account, employer }: { account: WorkerPayoutAc
     setError(false);
     startTransition(async () => {
       const result = await answerPayoutAccountAction({ confirm });
-      if (result.ok) {
-        setAnswered(confirm ? "confirmed" : "disputed");
-        router.refresh();
-      } else setError(true);
+      if (result.ok) setAnswered(confirm ? "confirmed" : "disputed");
+      else setError(true);
     });
   }
 

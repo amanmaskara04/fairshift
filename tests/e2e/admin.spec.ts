@@ -217,7 +217,11 @@ test("pay three workers in one checkout: add bank details, the worker confirms, 
   await expect(card).toContainText("••••3142");
   await expectNoA11yViolations(worker);
   await card.getByRole("button", { name: "Yes, it's mine" }).click();
-  await expect(worker.getByText(/Your pay will go to ••••3142/)).toBeVisible();
+  const thanks = worker.getByText(/Your pay will go to ••••3142/);
+  await expect(thanks).toBeVisible();
+  // The thank-you must survive the page refresh the answer triggers (it once vanished at once).
+  await worker.waitForTimeout(2000);
+  await expect(thanks).toBeVisible();
 
   await page.reload();
   await expect(valliRow.getByText(/Waiting for the worker/)).toHaveCount(0);

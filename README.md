@@ -389,7 +389,7 @@ docs/          demo-script.md · screenshots/
 ## Limitations and disclosure
 
 - Minimum-wage figures and scheme rules are **demo values**, labelled as such in the UI and in [`config/`](src/config); verify per state before real use. Helpline numbers were checked against official sources in October 2026.
-- *Mark as paid* records a gap the employer settled outside FairShift. The checkout runs only in Cashfree's sandbox (or a simulation of it, which the live demo uses): no real money moves. Cashfree vendors are registered with sandbox placeholders for the email, phone and PAN FairShift does not collect; a real deployment needs the employer's KYC and each worker's.
+- *Mark as paid* records a gap the employer settled outside FairShift. The checkout runs only in Cashfree's sandbox (the live demo uses it; without keys, a built-in simulation stands in): no real money moves. Cashfree vendors are registered with sandbox placeholders for the email, phone and PAN FairShift does not collect; a real deployment needs the employer's KYC and each worker's.
 - Demo mode exposes one-tap logins and re-seeds data daily; turn it off for a real deployment.
 - Built with AI-assisted development (Claude Code); every rule is covered by tests and reviewed against the brief.
 
