@@ -9,9 +9,11 @@ import {
   normaliseHolder,
   normaliseIfsc,
   payableFor,
+  payLocks,
   summariseBatch,
   transferIdFor,
   usableFrom,
+  type PayLock,
   type PayoutAccountStatus,
   type PayoutFailure,
   type PayoutKind,
@@ -21,7 +23,7 @@ import { decryptAccount, encryptAccount } from "@/server/bank-crypto";
 import type { CheckoutProvider } from "@/server/payouts/provider";
 import type { PayoutAccount, PayoutAccountEvent, PayoutBatch, PayoutItem, Repos } from "@/server/repos/types";
 import { buildPayroll, type PayrollRow } from "./payroll";
-import { recordArrears, savePaidRecord } from "./pay-check";
+import { recordArrears, writePaidRecord } from "./pay-check";
 
 /** What the dashboard may see of a bank account: never the full number. */
 export interface MaskedAccount {
@@ -63,6 +65,8 @@ export interface PayoutOverview {
   /** Every worker, with their account if one is on file (for the bank details form) */
   accounts: { workerId: string; name: string; code: string; account: MaskedAccount | null }[];
   batches: PayoutBatchView[];
+  /** Workers paid, or being paid, through a checkout this month: their pay record can't be typed over */
+  locks: Record<string, PayLock>;
 }
 
 /** Checkouts shown for a month: any still waiting, and the latest finished ones. */
@@ -100,8 +104,10 @@ function batchView(batch: PayoutBatch): PayoutBatchView {
   };
 }
 
-const busyWorkers = (batches: PayoutBatch[]) =>
-  new Set(batches.flatMap((b) => b.items.filter((i) => i.status === "pending").map((i) => i.workerId)));
+const locksOf = (batches: PayoutBatch[]) => payLocks(batches.flatMap((b) => b.items));
+
+const busyWorkers = (locks: Map<string, PayLock>) =>
+  new Set([...locks].filter(([, lock]) => lock === "waiting").map(([workerId]) => workerId));
 
 /**
  * Who can be paid this month and how much, the bank details on file, and recent checkouts.
@@ -120,7 +126,8 @@ export async function payoutOverview(
     repos.payoutBatches.getByOrgMonth(orgId, month),
   ]);
   const accountOf = new Map(accounts.map((a) => [a.id, mask(a, now)]));
-  const busy = busyWorkers(batches);
+  const locks = locksOf(batches);
+  const busy = busyWorkers(locks);
   const payable = rows.flatMap((row) => {
     const due = payableFor({ net: row.net, outstanding: row.outstanding, hasRecord: Boolean(row.paid) });
     if (!due) return [];
@@ -147,6 +154,7 @@ export async function payoutOverview(
       .toSorted((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(0, RECENT_CHECKOUTS)
       .map(batchView),
+    locks: Object.fromEntries(locks),
   };
 }
 
@@ -188,7 +196,7 @@ export async function startCheckout(
   ]);
   const rowOf = new Map(rows.map((r) => [r.workerId, r]));
   const accountOf = new Map(accounts.map((a) => [a.id, a]));
-  const busy = busyWorkers(batches);
+  const busy = busyWorkers(locksOf(batches));
 
   const rejected: { workerId: string; reason: PayRejection }[] = [];
   const chosen: { row: PayrollRow; kind: PayoutKind; amount: number }[] = [];
@@ -371,7 +379,7 @@ async function recordPayment(repos: Repos, batch: PayoutBatch, item: PayoutItem,
     });
     return;
   }
-  await savePaidRecord(
+  await writePaidRecord(
     repos,
     batch.orgId,
     batch.createdBy,

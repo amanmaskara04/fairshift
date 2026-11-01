@@ -13,6 +13,7 @@ import {
   FileUp,
   HandCoins,
   Landmark,
+  Lock,
   PenLine,
   Send,
 } from "lucide-react";
@@ -429,14 +430,36 @@ function StatusCell({ row, onRecord, onGap }: { row: LedgerRow; onRecord: () => 
         </>
       );
     case "gap_paid":
-      return badge(
-        "success",
-        <CircleCheck aria-hidden="true" className="size-4" />,
-        t("check.gapPaid", { amount: formatRupees(row.arrearsPaid) }),
+      return (
+        <>
+          {badge(
+            "success",
+            <CircleCheck aria-hidden="true" className="size-4" />,
+            t("check.gapPaid", { amount: formatRupees(row.arrearsPaid) }),
+          )}
+          <PaidByCheckout row={row} />
+        </>
       );
     default:
-      return badge("success", <CircleCheck aria-hidden="true" className="size-4" />, t("check.matches"));
+      return (
+        <>
+          {badge("success", <CircleCheck aria-hidden="true" className="size-4" />, t("check.matches"))}
+          <PaidByCheckout row={row} />
+        </>
+      );
   }
+}
+
+/** A month paid through a checkout: its record is that payment, so "Record pay" leaves it alone. */
+function PaidByCheckout({ row }: { row: LedgerRow }) {
+  const t = useTranslations("admin.payrollPage.ledger");
+  if (row.lock !== "paid") return null;
+  return (
+    <span className="inline-flex items-center gap-1 text-xs font-semibold text-ink-2">
+      <Lock aria-hidden="true" className="size-3.5" />
+      {t("viaCheckout")}
+    </span>
+  );
 }
 
 function RecordPay({
@@ -456,13 +479,16 @@ function RecordPay({
     if (result.ok) onSaved();
     return result;
   }, {});
+  // Paid (or being paid) through a checkout: that payment is the record. The server refuses it too.
+  const open = rows.filter((r) => !r.lock);
   return (
     <>
       <p className="text-ink-2">{t("manualHint")}</p>
+      {open.length < rows.length && <p className="text-sm text-ink-2">{t("lockedNote")}</p>}
       <PayEntryForm
         month={month}
-        initialWorkerId={initialWorkerId}
-        workers={rows.map((r) => ({
+        initialWorkerId={open.some((r) => r.workerId === initialWorkerId) ? initialWorkerId : undefined}
+        workers={open.map((r) => ({
           id: r.workerId,
           label: `${r.name} (#${r.code})`,
           regularMinutes: r.regularMinutes,

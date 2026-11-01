@@ -244,6 +244,13 @@ test("pay three workers in one checkout: add bank details, the worker confirms, 
   await page.waitForURL(/\/a\/payroll\?m=/);
   await expect(page.getByRole("row", { name: /Venkat Rao/ }).getByText("Matches")).toBeVisible();
   await expect(page.getByRole("checkbox", { name: /^Pay Venkat Rao/ })).toHaveCount(0);
+  await expect(page.getByRole("row", { name: /Venkat Rao/ }).getByText("Paid by checkout")).toBeVisible();
+  // That payment is the record: "Record pay" no longer offers Venkat, so he can't be paid twice.
+  await page.getByRole("button", { name: "Record pay for one worker" }).click();
+  const recordSheet = page.getByRole("dialog", { name: "Record what was paid" });
+  await expect(recordSheet.getByText(/aren't listed: the payment is their record/)).toBeVisible();
+  await expect(recordSheet.getByRole("option", { name: /Venkat Rao/ })).toHaveCount(0);
+  await recordSheet.getByRole("button", { name: /close/i }).click();
   await page.getByText(/^Checkout history/).click();
   await expect(page.getByText("3 paid · 0 not paid · 0 waiting")).toBeVisible();
   await expectNoA11yViolations(page);

@@ -56,7 +56,8 @@ describe("the payroll ledger", () => {
       now,
     });
     const { rows: ledgerRows } = await ledger();
-    expect(ledgerRows.find((r) => r.workerId === "w1003")?.status).toBe("waiting");
+    expect(ledgerRows.find((r) => r.workerId === "w1003")).toMatchObject({ status: "waiting", lock: "waiting" });
+    expect(ledgerRows.find((r) => r.workerId === "w1002")?.lock).toBeNull();
   });
 
   it("totals the month: due, recorded as paid, open shortfalls and who is not entered", async () => {

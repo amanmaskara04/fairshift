@@ -1,4 +1,4 @@
-import type { PayoutKind } from "@/core/payouts";
+import type { PayLock, PayoutKind } from "@/core/payouts";
 import type { PayrollRow } from "./payroll";
 import type { MaskedAccount, PayoutOverview } from "./payouts";
 
@@ -27,6 +27,8 @@ export interface LedgerRow {
   /** What a checkout would pay now (the month's pay or the open gap); null when nothing is owed */
   due: { kind: PayoutKind; amount: number } | null;
   account: MaskedAccount | null;
+  /** Paid ("paid") or being paid ("waiting") through a checkout: the pay record can't be typed over */
+  lock: PayLock | null;
 }
 
 export interface LedgerSummary {
@@ -74,6 +76,7 @@ export function buildLedger(
       status: statusOf(row, payable?.busy ?? false),
       due: payable ? { kind: payable.kind, amount: payable.amount } : null,
       account: accountOf.get(row.workerId) ?? null,
+      lock: payouts.locks[row.workerId] ?? null,
     };
   });
   const shortfalls = ledger.filter((r) => r.status === "shortfall");

@@ -735,9 +735,11 @@
           "unknown_worker": "Unknown worker code",
           "file": "Choose a CSV file under 100 KB.",
           "rate_limited": "Too many changes. Please wait a few minutes.",
-          "columns": "The columns do not match the template."
+          "columns": "The columns do not match the template.",
+          "locked": "Paid through a FairShift checkout this month. That payment is the record and can't be changed."
         },
         "manualHint": "Start from what FairShift calculated, then say what was actually paid.",
+        "lockedNote": "Workers paid through a FairShift checkout this month aren't listed: the payment is their record and can't be changed.",
         "calculated": "FairShift recorded {hours} + {overtime} overtime. Due: {amount}.",
         "howPaid": "How was this worker paid?",
         "presets": {
@@ -887,7 +889,8 @@
         "editBank": "Change bank details for {name}",
         "idle": "Tick the workers who are owed pay to pay them together in one checkout.",
         "selected": "{count, plural, one {1 worker} other {# workers}} selected · {amount}",
-        "pay": "Pay with checkout"
+        "pay": "Pay with checkout",
+        "viaCheckout": "Paid by checkout"
       },
       "checkouts": {
         "waitingTitle": "Waiting for payment",

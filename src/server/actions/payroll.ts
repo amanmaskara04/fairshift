@@ -20,7 +20,7 @@ import { Note } from "@/server/validation";
 const MAX_CSV_BYTES = 100 * 1024;
 const importLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 10 * 60 * 1000 });
 
-export type PaidFormState = { ok?: boolean; error?: "invalid" | "unknown_worker" | "rate_limited" };
+export type PaidFormState = { ok?: boolean; error?: "invalid" | "unknown_worker" | "locked" | "rate_limited" };
 
 const saveLimiter = new RateLimiter({ maxTokens: 60, refillIntervalMs: 60 * 60 * 1000 });
 
@@ -30,7 +30,10 @@ function refresh(): void {
   revalidatePath("/w/pay");
 }
 
-/** Manual entry of what was actually paid. Money is typed in rupees and stored in paise. */
+/**
+ * Manual entry of what was actually paid. Money is typed in rupees and stored in paise. A worker
+ * paid through a checkout this month can't be changed here.
+ */
 export async function savePaidRecordAction(_prev: PaidFormState, formData: FormData): Promise<PaidFormState> {
   const session = await requireRole("admin");
   if (!saveLimiter.check(session.uid)) return { error: "rate_limited" };
@@ -45,7 +48,7 @@ export async function savePaidRecordAction(_prev: PaidFormState, formData: FormD
   });
   if (!parsed.success) return { error: "invalid" };
   const saved = await savePaidRecord(getRepos(), session.orgId, session.uid, parsed.data, new Date());
-  if (!saved) return { error: "unknown_worker" };
+  if (!saved.ok) return { error: saved.error === "locked" ? "locked" : "unknown_worker" };
   refresh();
   return { ok: true };
 }
