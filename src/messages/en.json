@@ -89,7 +89,7 @@
       },
       "checkout": {
         "title": "Pay everyone in one checkout",
-        "text": "Tick who is owed, pay the total once, and each share goes to that worker’s own bank account."
+        "text": "Tick who is owed, pay the total once, and each share goes to that worker’s own bank account. Nobody is paid twice."
       }
     },
     "sdgTitle": "Built for UN SDG 8",
