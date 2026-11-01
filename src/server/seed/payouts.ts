@@ -20,33 +20,57 @@ export const WITHOUT_BANK_DETAILS = new Set(["w1017", "w2012"]);
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
+/** Ramesh's employer changed his pay account yesterday; he is asked to confirm it in his app. */
+export const RAMESH_NEW_ACCOUNT: [account: string, ifsc: string] = ["00011020001772", "HDFC0000001"];
+
 /**
  * Every demo account was entered by the employer 30 days ago and confirmed by the worker the next
- * day, and is stored encrypted like a real one.
+ * day, and is stored encrypted like a real one. Ramesh's was changed yesterday and waits for him.
  */
 export function buildPayoutAccounts(workers: Worker[], now: Date): PayoutAccount[] {
   const entered = new Date(now.getTime() - 30 * DAY_MS);
   const confirmed = new Date(entered.getTime() + DAY_MS);
-  return workers.flatMap((worker, index) => {
+  const yesterday = new Date(now.getTime() - DAY_MS);
+  return workers.flatMap((worker, index): PayoutAccount[] => {
     if (WITHOUT_BANK_DETAILS.has(worker.id)) return [];
-    const [account, ifsc] = SUCCESS[index % SUCCESS.length];
-    const last4 = account.slice(-4);
+    const [first, ifscFirst] = SUCCESS[index % SUCCESS.length];
+    const firstLast4 = first.slice(-4);
+    const base = {
+      id: worker.id,
+      orgId: worker.orgId,
+      holder: worker.name,
+      updatedBy: worker.orgId === "org1" ? "admin1" : "admin2",
+    };
+    const settled = [
+      { at: confirmed, by: "worker" as const, action: "confirmed" as const, last4: firstLast4 },
+      { at: entered, by: "employer" as const, action: "changed" as const, last4: firstLast4 },
+    ];
+    if (worker.id === "w1001") {
+      const [account, ifsc] = RAMESH_NEW_ACCOUNT;
+      const last4 = account.slice(-4);
+      return [
+        {
+          ...base,
+          accountEncrypted: encryptAccount(account, worker.id),
+          last4,
+          ifsc,
+          status: "pending_worker",
+          changedAt: yesterday,
+          updatedAt: yesterday,
+          history: [{ at: yesterday, by: "employer", action: "changed", last4 }, ...settled],
+        },
+      ];
+    }
     return [
       {
-        id: worker.id,
-        orgId: worker.orgId,
-        holder: worker.name,
-        accountEncrypted: encryptAccount(account, worker.id),
-        last4,
-        ifsc,
+        ...base,
+        accountEncrypted: encryptAccount(first, worker.id),
+        last4: firstLast4,
+        ifsc: ifscFirst,
         status: "confirmed",
         changedAt: entered,
         updatedAt: confirmed,
-        updatedBy: worker.orgId === "org1" ? "admin1" : "admin2",
-        history: [
-          { at: confirmed, by: "worker", action: "confirmed", last4 },
-          { at: entered, by: "employer", action: "changed", last4 },
-        ],
+        history: settled,
       },
     ];
   });

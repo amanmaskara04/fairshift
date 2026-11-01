@@ -77,11 +77,19 @@
       },
       "payroll": {
         "title": "Fair payroll",
-        "text": "Overtime by labour law, shortfalls flagged, and “Pay the gap” settles them."
+        "text": "Overtime by labour law, and shortfalls flagged with the sum before workers have to ask."
       },
       "risk": {
         "title": "Early warning on quitting",
         "text": "Quit risk for each worker with the reasons, and site conditions shown apart."
+      },
+      "bank": {
+        "title": "Your pay account is safe",
+        "text": "If your bank account is changed, you are asked first. Say “not mine” and no pay goes there."
+      },
+      "checkout": {
+        "title": "Pay everyone in one checkout",
+        "text": "Tick who is owed, pay the total once, and each share goes to that worker’s own bank account."
       }
     },
     "sdgTitle": "Built for UN SDG 8",
@@ -93,6 +101,10 @@
       "t88": {
         "label": "SDG 8.8",
         "text": "Labour rights and safe workplaces: danger reported, fixed on time, voices heard."
+      },
+      "t810": {
+        "label": "SDG 8.10",
+        "text": "Access to banking: pay goes straight to each worker’s own bank account, and only they can approve a change."
       }
     }
   },

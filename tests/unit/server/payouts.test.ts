@@ -96,11 +96,11 @@ describe("opening one checkout for several workers", () => {
   it("asks for the server's total, split to each worker's stored bank account", async () => {
     const { provider, created } = fakeProvider();
     const rows = await rowsByWorker();
-    const result = await open(provider, ["w1001", "w1003", "w1005"]);
+    const result = await open(provider, ["w1014", "w1003", "w1005"]);
     expect(result.url).toBe(`https://payments-test.cashfree.com/links/${result.batchId}`);
 
     const [request] = created;
-    const expected = [rows.get("w1001")!.outstanding, rows.get("w1003")!.net, rows.get("w1005")!.net];
+    const expected = [rows.get("w1014")!.outstanding, rows.get("w1003")!.net, rows.get("w1005")!.net];
     expect(request.splits.map((s) => s.amount)).toEqual(expected);
     expect(request.amount).toBe(expected.reduce((a, b) => a + b, 0));
     expect(request.returnUrl).toBe(`${origin}/api/checkout/return?batch=${result.batchId}`);
@@ -183,7 +183,7 @@ describe("after the checkout", () => {
   it("records every worker's payment once the checkout is paid, and never twice", async () => {
     const fake = fakeProvider();
     const before = await rowsByWorker();
-    const { batchId } = await open(fake.provider, ["w1001", "w1003"]);
+    const { batchId } = await open(fake.provider, ["w1014", "w1003"]);
 
     fake.answer.status = "paid";
     const confirmed = await confirmCheckout(getRepos(), fake.provider, { orgId: "org1", batchId, now });
@@ -192,25 +192,25 @@ describe("after the checkout", () => {
 
     const after = await rowsByWorker();
     // Ramesh's gap is paid as arrears; Venkat's month is recorded exactly as payroll computed it.
-    expect(after.get("w1001")!.outstanding).toBe(0);
-    expect(after.get("w1001")!.arrearsPaid).toBe(before.get("w1001")!.outstanding);
+    expect(after.get("w1014")!.outstanding).toBe(0);
+    expect(after.get("w1014")!.arrearsPaid).toBe(before.get("w1014")!.outstanding);
     expect(after.get("w1003")!.paid?.netPaid).toBe(before.get("w1003")!.net);
     expect(after.get("w1003")!.check).toMatchObject({ status: "checked", findings: [], totalShortfall: 0 });
 
     const status = vi.spyOn(fake.provider, "status");
-    const record = await getRepos().paidRecords.get("w1001", month);
+    const record = await getRepos().paidRecords.get("w1014", month);
     await confirmCheckout(getRepos(), fake.provider, { orgId: "org1", batchId, now });
     expect(status).not.toHaveBeenCalled();
-    expect(await getRepos().paidRecords.get("w1001", month)).toEqual(record);
+    expect(await getRepos().paidRecords.get("w1014", month)).toEqual(record);
   });
 
   it("closes the worker's open pay review when their gap is paid", async () => {
     const { requestPayReview } = await import("@/server/services/disputes");
-    expect((await requestPayReview(getRepos(), { workerId: "w1001", orgId: "org1", month, now })).ok).toBe(true);
+    expect((await requestPayReview(getRepos(), { workerId: "w1014", orgId: "org1", month, now })).ok).toBe(true);
     const fake = fakeProvider({ status: "paid" });
-    const { batchId } = await open(fake.provider, ["w1001"]);
+    const { batchId } = await open(fake.provider, ["w1014"]);
     await confirmCheckout(getRepos(), fake.provider, { orgId: "org1", batchId, now });
-    const disputes = await getRepos().payDisputes.getByWorker("w1001");
+    const disputes = await getRepos().payDisputes.getByWorker("w1014");
     expect(disputes.find((d) => d.month === month)?.status).toBe("resolved");
   });
 
@@ -410,18 +410,36 @@ describe("bank details", () => {
   it("replaces the details on file", async () => {
     await savePayoutAccount(getRepos(), {
       ...input,
-      workerId: "w1001",
-      holder: "Ramesh Kumar",
+      workerId: "w1014",
+      holder: "Gopal Das",
       account: "388108022658",
       ifsc: "ICIC0000009",
     });
-    const stored = (await getRepos().payoutAccounts.get("w1001"))!;
-    expect(decryptAccount(stored.accountEncrypted, "w1001")).toBe("388108022658");
+    const stored = (await getRepos().payoutAccounts.get("w1014"))!;
+    expect(decryptAccount(stored.accountEncrypted, "w1014")).toBe("388108022658");
     expect(stored.history.map((e) => `${e.by}:${e.action}:${e.last4}`)).toEqual([
       "employer:changed:2658",
-      "worker:confirmed:1191",
-      "employer:changed:1191",
+      "worker:confirmed:1772",
+      "employer:changed:1772",
     ]);
+  });
+
+  it("the demo: Ramesh's employer changed his account yesterday, and it waits for him", async () => {
+    expect(await workerPayoutAccount(getRepos(), "w1001")).toMatchObject({
+      masked: "••••1772",
+      ifsc: "HDFC0000001",
+      status: "pending_worker",
+    });
+    const { payable } = await payoutOverview(getRepos(), "org1", month, undefined, now);
+    expect(payable.find((p) => p.workerId === "w1001")).toMatchObject({
+      kind: "gap",
+      account: { status: "pending_worker", usable: false },
+    });
+    expect(await answerPayoutAccount(getRepos(), { workerId: "w1001", confirm: true, now })).toEqual({
+      ok: true,
+      status: "confirmed",
+    });
+    expect((await open(fakeProvider().provider, ["w1001"])).ok).toBe(true);
   });
 
   it("saving the same details again changes nothing and needs no new confirmation", async () => {
