@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import {
+  aboveDue,
   belowRecorded,
   paidAmounts,
   presetAllowed,
@@ -123,6 +124,11 @@ export function PayEntryForm({
       net: toPaise(amounts.net),
     },
     worker.recorded,
+  );
+
+  const tooMuch = aboveDue(
+    { regularMinutes: minutes.regular, overtimeMinutes: minutes.overtime, net: toPaise(amounts.net) },
+    { regularMinutes: all.regular, overtimeMinutes: all.overtime, net: due },
   );
 
   return (
@@ -272,8 +278,13 @@ export function PayEntryForm({
             {t("errors.below_recorded")}
           </p>
         )}
+        {tooMuch && (
+          <p role="alert" className="text-sm font-semibold text-danger">
+            {t("errors.above_due")}
+          </p>
+        )}
       </div>
-      <SubmitButton size="lg" disabled={below}>
+      <SubmitButton size="lg" disabled={below || tooMuch}>
         {t("save")}
       </SubmitButton>
     </form>

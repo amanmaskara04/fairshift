@@ -124,6 +124,22 @@ export const belowRecorded = (entry: RecordedPay, recorded: RecordedPay | null):
     entry.gross < recorded.gross ||
     entry.net < recorded.net);
 
+/** Rounding allowed on money (₹1, as in the pay check) and on hours given as decimals (1 minute). */
+const MONEY_TOLERANCE_PAISE = 100;
+const MINUTE_TOLERANCE = 1;
+
+/**
+ * True when an entry pays more than the month owes: more take-home pay than the payslip's net,
+ * or more hours than were worked. Wages for this month can't exceed what is due for it.
+ */
+export const aboveDue = (
+  entry: Pick<RecordedPay, "regularMinutes" | "overtimeMinutes" | "net">,
+  due: { regularMinutes: number; overtimeMinutes: number; net: number },
+): boolean =>
+  entry.net > due.net + MONEY_TOLERANCE_PAISE ||
+  entry.regularMinutes > due.regularMinutes + MINUTE_TOLERANCE ||
+  entry.overtimeMinutes > due.overtimeMinutes + MINUTE_TOLERANCE;
+
 /**
  * Why "Record pay" may not change a worker's month, or null when it may:
  * - "checkout": paid, or being paid, through a FairShift checkout (that payment is the record);

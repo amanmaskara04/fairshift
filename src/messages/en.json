@@ -739,7 +739,8 @@
           "locked": "Paid through a FairShift checkout this month. That payment is the record and can't be changed.",
           "settled": "This month is already paid in full, or its gap was paid. What was paid can't be changed.",
           "below_recorded": "This is less than is already recorded as paid. Pay can be added to, not taken back.",
-          "busy": "Someone else is updating this payroll. Please try again in a moment."
+          "busy": "Someone else is updating this payroll. Please try again in a moment.",
+          "above_due": "More than this month's net due, or more hours than were worked. Record only this month's wages."
         },
         "manualHint": "Start from what FairShift calculated, then say what was actually paid.",
         "lockedNote": "Workers already paid in full, whose gap was paid, or paid by checkout aren't listed: what was paid can't be changed.",

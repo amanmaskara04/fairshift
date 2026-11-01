@@ -120,10 +120,11 @@ describe("FairPay Sentinel", () => {
   });
 
   it("imports a paid-records CSV row by row and reports bad rows", async () => {
-    const month = monthKey(now);
+    // The month the payroll opens on, with a row well within what Manoj worked and earned.
+    const month = payFocusMonth(now);
     const csv = [
       PAID_CSV_HEADER.join(","),
-      `1005,${month},150,4,"12,000.00",1000,11000`,
+      `1005,${month},10,1,"1,200.00",100,1100`,
       `9999,${month},1,1,1,1,1`,
       `1006,${month},x,1,1,1,1`,
     ].join("\n");
@@ -135,7 +136,7 @@ describe("FairPay Sentinel", () => {
         { row: 3, reason: "invalid" },
       ],
     });
-    expect((await getRepos().paidRecords.get("w1005", month))?.grossPaid).toBe(1_200_000);
+    expect((await getRepos().paidRecords.get("w1005", month))?.grossPaid).toBe(120_000);
     expect(await importPaidCsv(getRepos(), "org1", "admin1", "wrong,header\n1,2", now)).toEqual({
       saved: 0,
       errors: [{ row: 0, reason: "columns" }],

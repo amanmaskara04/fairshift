@@ -3,7 +3,7 @@ import { checkPay, outstandingShortfall, type PayCheckResult } from "@/core/pay-
 import { parseCsv, rupeesToPaise } from "@/core/csv";
 import { isMonthKey } from "@/core/period";
 import { payLocks, type PayLock } from "@/core/payouts";
-import { belowRecorded, recordedPay, recordLock } from "@/core/pay-entry";
+import { aboveDue, belowRecorded, recordedPay, recordLock } from "@/core/pay-entry";
 import { findMinimumWage, type MinimumWageRate } from "@/config/minimum-wage";
 import { buildPayslip, type PayslipView } from "@/server/services/payslip";
 import type { PaidRecordEntry, Repos } from "@/server/repos/types";
@@ -51,6 +51,7 @@ export function payCheckFrom(
       hourlyRate,
       overtimeRate,
       expectedDeductions: view.payslip.deductions.reduce((sum, d) => sum + d.amount, 0),
+      expected: { gross: view.payslip.gross, net: view.payslip.net },
     },
     paidRecord: record ?? null,
     minimumWage,
@@ -89,7 +90,7 @@ export async function payLocksFor(repos: Repos, orgId: string, month: string): P
   return payLocks(batches.flatMap((b) => b.items));
 }
 
-export type SavePaidError = "not_found" | "locked" | "settled" | "below_recorded" | "busy";
+export type SavePaidError = "not_found" | "locked" | "settled" | "below_recorded" | "above_due" | "busy";
 export type SavePaidResult = { ok: true } | { ok: false; error: SavePaidError };
 
 /**
@@ -97,7 +98,8 @@ export type SavePaidResult = { ok: true } | { ok: false; error: SavePaidError };
  * - a checkout paid this worker for the month, or one is waiting ("locked"): that payment is the record;
  * - the month is already paid in full, or its gap was paid as arrears ("settled");
  * - it pays less than is already recorded, in hours or money ("below_recorded"): pay can be added
- *   to, never taken back, or the reopened gap could be paid a second time.
+ *   to, never taken back, or the reopened gap could be paid a second time;
+ * - it pays more than the month owes ("above_due"): more than the net due, or more hours than worked.
  */
 export async function savePaidRecord(
   repos: Repos,
@@ -122,6 +124,12 @@ export async function savePaidRecord(
     if (lock) return { ok: false, error: lock === "checkout" ? "locked" : "settled" };
     if (check?.record && belowRecorded(recordedPay(input), recordedPay(check.record))) {
       return { ok: false, error: "below_recorded" };
+    }
+    if (check) {
+      const { payslip } = check.view;
+      const minutes = (kind: "regular" | "overtime") => payslip.lines.find((l) => l.kind === kind)?.minutes ?? 0;
+      const due = { regularMinutes: minutes("regular"), overtimeMinutes: minutes("overtime"), net: payslip.net };
+      if (aboveDue(recordedPay(input), due)) return { ok: false, error: "above_due" };
     }
     await writePaidRecord(repos, orgId, adminId, input, now);
     return { ok: true };

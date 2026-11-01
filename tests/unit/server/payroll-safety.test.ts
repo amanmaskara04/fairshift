@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { payFocusMonth } from "@/core/period";
+import { monthKey, payFocusMonth } from "@/core/period";
 import { getRepos } from "@/server/repos";
 import { resetMemoryStore } from "@/server/repos/memory";
 import type { CheckoutProvider } from "@/server/payouts/provider";
@@ -236,5 +236,97 @@ describe("a simulated checkout left waiting when Cashfree keys are switched on",
     });
     const { payable } = await payoutOverview(getRepos(), "org1", month);
     expect(payable.find((p) => p.workerId === "w1003")?.busy).toBe(false);
+  });
+});
+
+describe("paid never exceeds what is due", () => {
+  const months = [month, monthKey(now, -1), monthKey(now, -2)];
+  const paidOf = (r: { paid?: { netPaid: number }; arrearsPaid: number }) => (r.paid?.netPaid ?? 0) + r.arrearsPaid;
+
+  it("holds for every worker of both organisations, in every month the payroll shows", async () => {
+    for (const orgId of ["org1", "org2"]) {
+      for (const m of months) {
+        for (const row of await buildPayroll(getRepos(), orgId, m)) {
+          expect(paidOf(row), `${row.name} ${m}`).toBeLessThanOrEqual(row.net + 100);
+        }
+      }
+    }
+  });
+
+  it("paying every open gap brings each worker to exactly their net pay, never above", async () => {
+    for (const orgId of ["org1", "org2"]) {
+      const adminId = orgId === "org1" ? "admin1" : "admin2";
+      for (const m of months) {
+        for (const row of await buildPayroll(getRepos(), orgId, m)) {
+          if (row.outstanding > 0)
+            await payArrears(getRepos(), { orgId, adminId, workerId: row.workerId, month: m, now });
+        }
+        for (const row of await buildPayroll(getRepos(), orgId, m)) {
+          if (!row.paid) continue;
+          expect(paidOf(row), `${row.name} ${m}`).toBeLessThanOrEqual(row.net + 100);
+          if (row.check.findings.some((f) => f.code !== "BELOW_MINIMUM_WAGE")) {
+            expect(Math.abs(paidOf(row) - row.net), `${row.name} ${m}`).toBeLessThanOrEqual(100);
+          }
+        }
+      }
+    }
+  });
+
+  it("nothing recorded as paid, then 'Mark as paid': the gap is the take-home pay, not the gross", async () => {
+    // Arun had nothing entered. Recording ₹0 and paying the gap must pay his net, not his gross
+    // (the PF on his wages is deposited by the employer, not handed to him).
+    const arun = await rowOf("w1002");
+    const zero = {
+      workerId: "w1002",
+      month,
+      paidRegularHours: 0,
+      paidOvertimeHours: 0,
+      grossPaid: 0,
+      deductions: 0,
+      netPaid: 0,
+    };
+    expect(await savePaidRecord(getRepos(), "org1", "admin1", zero, now)).toEqual({ ok: true });
+    expect((await rowOf("w1002")).outstanding).toBe(arun.net);
+    expect(await payArrears(getRepos(), { orgId: "org1", adminId: "admin1", workerId: "w1002", month, now })).toEqual({
+      ok: true,
+      amount: arun.net,
+    });
+    expect(paidOf(await rowOf("w1002"))).toBe(arun.net);
+  });
+
+  it("Record pay can't record more than the net due, or more hours than worked", async () => {
+    const full = await paidInFull("w1002");
+    expect(
+      await savePaidRecord(
+        getRepos(),
+        "org1",
+        "admin1",
+        { ...full, netPaid: full.netPaid + 500_00, grossPaid: full.grossPaid + 500_00 },
+        now,
+      ),
+    ).toEqual({
+      ok: false,
+      error: "above_due",
+    });
+    expect(
+      await savePaidRecord(
+        getRepos(),
+        "org1",
+        "admin1",
+        { ...full, paidOvertimeHours: full.paidOvertimeHours + 2 },
+        now,
+      ),
+    ).toEqual({
+      ok: false,
+      error: "above_due",
+    });
+    expect(await savePaidRecord(getRepos(), "org1", "admin1", full, now)).toEqual({ ok: true });
+  });
+
+  it("the demo's 'Gap paid' row adds up: Babu got his net pay, no more", async () => {
+    const babu = await rowOf("w1008");
+    expect(babu.arrearsPaid).toBeGreaterThan(0);
+    expect(babu.outstanding).toBe(0);
+    expect(paidOf(babu)).toBe(babu.net);
   });
 });

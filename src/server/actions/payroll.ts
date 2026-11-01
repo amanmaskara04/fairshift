@@ -22,7 +22,8 @@ const importLimiter = new RateLimiter({ maxTokens: 10, refillIntervalMs: 10 * 60
 
 export type PaidFormState = {
   ok?: boolean;
-  error?: "invalid" | "unknown_worker" | "locked" | "settled" | "below_recorded" | "busy" | "rate_limited";
+  error?:
+    "invalid" | "unknown_worker" | "locked" | "settled" | "below_recorded" | "above_due" | "busy" | "rate_limited";
 };
 
 const saveLimiter = new RateLimiter({ maxTokens: 60, refillIntervalMs: 60 * 60 * 1000 });
